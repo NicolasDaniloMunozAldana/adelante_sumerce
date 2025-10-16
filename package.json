@@ -1,0 +1,33 @@
+{
+  "name": "adelante_sumerce",
+  "version": "1.0.0",
+  "description": "Adelante Sumerce - Sistema de gestión comercial",
+  "license": "ISC",
+  "author": "",
+  "type": "commonjs",
+  "main": "src/index.js",
+  "scripts": {
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "test": "jest --runInBand"
+  },
+  "dependencies": {
+    "axios": "^1.11.0",
+    "dotenv": "^17.2.1",
+    "ejs": "^3.1.10",
+    "express": "^5.1.0",
+    "knex": "^3.1.0",
+    "mysql2": "^3.15.2",
+    "nodemailer": "^7.0.6",
+    "sequelize": "^6.37.7"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.35.0",
+    "eslint": "^9.35.0",
+    "eslint-plugin-jest": "^29.0.1",
+    "globals": "^16.4.0",
+    "jest": "^30.0.5",
+    "sequelize-cli": "^6.6.3",
+    "supertest": "^7.1.4"
+  }
+}
