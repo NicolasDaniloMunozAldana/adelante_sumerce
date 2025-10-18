@@ -11,11 +11,13 @@ Sistema de layout reutilizable con header, sidebar y footer para la aplicación 
 - `src/views/partials/footer.ejs` - Footer y cierre de HTML
 
 ### Páginas Creadas
-- `src/views/home.ejs` - Página de inicio
-- `src/views/caracterizacion.ejs` - Página de caracterización
-- `src/views/dashboard.ejs` - Página de dashboard
-- `src/views/soporte.ejs` - Página de soporte
-- `src/views/contacto.ejs` - Página de contacto
+- `src/views/home/home.ejs` - Página de inicio
+- `src/views/home/caracterizacion.ejs` - Página de caracterización
+- `src/views/home/dashboard.ejs` - Página de dashboard
+- `src/views/home/soporte.ejs` - Página de soporte
+- `src/views/home/contacto.ejs` - Página de contacto
+
+**Nota:** Las páginas que usan el layout están en la carpeta `home/`, mientras que las páginas de autenticación están en `auth/`.
 
 ### Estilos
 - `public/css/layout.css` - Estilos del layout (header, sidebar, footer)
@@ -29,13 +31,13 @@ Sistema de layout reutilizable con header, sidebar y footer para la aplicación 
 
 Para crear una nueva página que use el layout:
 
-1. Crea un nuevo archivo EJS en `src/views/`, por ejemplo `mi-pagina.ejs`
+1. Crea un nuevo archivo EJS en `src/views/home/`, por ejemplo `mi-pagina.ejs`
 
 2. Usa esta estructura:
 
 ```ejs
-<%- include('partials/header') %>
-<%- include('partials/navbar') %>
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
 
 <!-- Tu contenido aquí -->
 <div class="breadcrumb">
@@ -51,7 +53,7 @@ Para crear una nueva página que use el layout:
     </div>
 </div>
 
-<%- include('partials/footer') %>
+<%- include('../partials/footer') %>
 
 <style>
 /* Estilos específicos de esta página (opcional) */
@@ -68,7 +70,7 @@ router.get('/mi-pagina', homeController.showMiPagina);
 
 ```javascript
 exports.showMiPagina = (req, res) => {
-    res.render('mi-pagina', {
+    res.render('home/mi-pagina', {
         title: 'Mi Página - Salga Adelante Sumercé',
         currentPage: 'mi-pagina'
     });
@@ -78,10 +80,10 @@ exports.showMiPagina = (req, res) => {
 ## Características del Layout
 
 ### Header
-- Logo de la aplicación
+- Logo de la aplicación (`logo_login.png`)
 - Título "Salga Adelante Sumercé"
 - Botón "Iniciar Sesión"
-- Avatar de usuario
+- Icono de usuario (SVG)
 
 ### Sidebar
 - Navegación con tres opciones:
@@ -94,6 +96,13 @@ exports.showMiPagina = (req, res) => {
 - Versión de la aplicación
 - Enlaces a Soporte y Contacto
 - Copyright
+- **Footer fijo** - El footer permanece en la parte inferior y el contenido tiene scroll interno
+
+## Tipografía
+
+El proyecto utiliza dos fuentes principales:
+- **Poppins:** Para todos los títulos (h1, h2, h3, h4, h5, h6)
+- **Work Sans:** Para el resto del contenido (párrafos, botones, textos generales)
 
 ## Estilos
 

@@ -27,6 +27,9 @@
     font-style: normal;
 }
 
+/* Importar fuente Work Sans desde Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Work+Sans:wght@300;400;500;600;700&display=swap');
+
 /* Reset y estilos base */
 * {
     margin: 0;
@@ -35,12 +38,18 @@
 }
 
 body {
-    font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    font-family: 'Work Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
     background: linear-gradient(135deg, #f5f7fa 0%, #e8edf2 100%);
-    min-height: 100vh;
+    height: 100vh;
     display: flex;
     flex-direction: column;
     color: #1a2332;
+    overflow: hidden;
+}
+
+/* Títulos usan Poppins */
+h1, h2, h3, h4, h5, h6 {
+    font-family: 'Poppins', sans-serif;
 }
 
 /* Header */
@@ -74,6 +83,7 @@ body {
     font-weight: 700;
     color: #0033ff;
     letter-spacing: -0.3px;
+    font-family: 'Poppins', sans-serif;
 }
 
 .header-right {
@@ -88,7 +98,7 @@ body {
     color: white;
     font-size: 14px;
     font-weight: 600;
-    font-family: 'Poppins', sans-serif;
+    font-family: 'Work Sans', sans-serif;
     border: none;
     border-radius: 24px;
     cursor: pointer;
@@ -105,20 +115,23 @@ body {
     width: 40px;
     height: 40px;
     border-radius: 50%;
-    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     border: 2px solid #e5e7eb;
     cursor: pointer;
     transition: all 0.2s ease;
+    background-color: #f9fafb;
 }
 
 .user-profile:hover {
     border-color: #0033ff;
+    background-color: #eff6ff;
 }
 
-.user-avatar {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
+.user-profile svg {
+    width: 24px;
+    height: 24px;
 }
 
 /* Main Container */
@@ -128,6 +141,8 @@ body {
     max-width: 1920px;
     margin: 0 auto;
     width: 100%;
+    overflow: hidden;
+    height: calc(100vh - 80px - 60px); /* altura viewport - header - footer */
 }
 
 /* Sidebar */
@@ -136,6 +151,7 @@ body {
     background-color: #1a2849;
     padding: 24px 0;
     box-shadow: 2px 0 8px rgba(0, 0, 0, 0.05);
+    overflow-y: auto;
 }
 
 .sidebar-nav {
@@ -180,6 +196,7 @@ body {
     flex: 1;
     padding: 32px;
     overflow-y: auto;
+    height: 100%;
 }
 
 /* Footer */
@@ -188,6 +205,11 @@ body {
     border-top: 1px solid #e5e7eb;
     padding: 20px 32px;
     box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.04);
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 99;
 }
 
 .footer-content {
