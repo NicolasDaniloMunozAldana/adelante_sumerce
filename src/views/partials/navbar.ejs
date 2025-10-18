@@ -7,10 +7,7 @@
         <div class="header-right">
             <button class="btn-header" onclick="window.location.href='/login'">Iniciar Sesión</button>
             <div class="user-profile">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <circle cx="12" cy="8" r="4" stroke="#1a2332" stroke-width="2"/>
-                    <path d="M4 20C4 16.6863 6.68629 14 10 14H14C17.3137 14 20 16.6863 20 20" stroke="#1a2332" stroke-width="2" stroke-linecap="round"/>
-                </svg>
+                <img src="/user.png" alt="Usuario" class="user-icon">
             </div>
         </div>
     </header>
@@ -19,7 +16,7 @@
     <div class="main-container">
         <!-- Sidebar -->
         <aside class="sidebar">
-            <nav class="sidebar-nav">
+            <nav class="sidebar-nav" >
                 <a href="/home" class="nav-item <%= typeof currentPage !== 'undefined' && currentPage === 'home' ? 'active' : '' %>">
                     <span class="nav-text">Inicio</span>
                 </a>
