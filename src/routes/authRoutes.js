@@ -8,6 +8,9 @@ router.get('/login', authController.showLoginForm);
 // Ruta para procesar el login
 router.post('/login', authController.processLogin);
 
+// Ruta para cerrar sesión
+router.get('/logout', authController.logout);
+
 // Ruta para registro (placeholder)
 router.get('/register', authController.showRegisterForm);
 
