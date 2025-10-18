@@ -1,0 +1,76 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+<!-- Breadcrumb -->
+<div class="breadcrumb">
+    <span class="breadcrumb-item">> Caracterización</span>
+</div>
+
+<!-- Content Section -->
+<div class="page-section">
+    <h1 class="page-title">Caracterización de Emprendimientos</h1>
+    <p class="page-description">
+        En esta sección podrás caracterizar tu emprendimiento respondiendo las preguntas que te ayudarán a 
+        identificar las características clave de tu proyecto de negocio.
+    </p>
+    <div class="page-content">
+        <p>Contenido de caracterización en desarrollo...</p>
+    </div>
+</div>
+
+<%- include('../partials/footer') %>
+
+<style>
+/* Page Styles */
+.breadcrumb {
+    margin-bottom: 24px;
+}
+
+.breadcrumb-item {
+    font-size: 14px;
+    color: #6b7280;
+    font-weight: 400;
+}
+
+.page-section {
+    max-width: 1000px;
+}
+
+.page-title {
+    font-size: 32px;
+    font-weight: 700;
+    color: #1a2332;
+    margin-bottom: 16px;
+    letter-spacing: -0.5px;
+}
+
+.page-description {
+    font-size: 16px;
+    color: #4b5563;
+    line-height: 1.7;
+    margin-bottom: 32px;
+}
+
+.page-content {
+    background: white;
+    border-radius: 16px;
+    padding: 32px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    border: 1px solid #e5e7eb;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .page-title {
+        font-size: 26px;
+    }
+
+    .page-description {
+        font-size: 15px;
+    }
+
+    .page-content {
+        padding: 24px;
+    }
+}
+</style>

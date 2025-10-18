@@ -1,0 +1,146 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+<!-- Breadcrumb -->
+<div class="breadcrumb">
+    <span class="breadcrumb-item">> Inicio</span>
+</div>
+
+<!-- Logo Creativos Sumercé -->
+<div class="logo-creativos">
+    <img src="/logo_creativos.png" alt="Creativos Sumercé" class="creativos-logo">
+</div>
+
+<!-- Welcome Section -->
+<div class="welcome-section">
+    <div class="welcome-icon">
+        <svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="10" y="20" width="60" height="40" rx="4" fill="#4ade80" opacity="0.3"/>
+            <rect x="20" y="15" width="40" height="10" rx="2" fill="#4ade80"/>
+            <path d="M40 35 L50 45 L30 45 Z" fill="#4ade80"/>
+        </svg>
+    </div>
+    <h1 class="welcome-title">¡Bienvenido a Salga Adelante Sumercé!</h1>
+    <p class="welcome-subtitle">Sistema de Cualificación de Emprendimientos</p>
+    <p class="welcome-description">
+        El programa <strong>"Salga Adelante Sumercé"</strong> busca ofrecer a emprendedores y mipymes 
+        una herramienta digital que permita caracterizar, evaluar y cualificar sus proyectos de negocio.
+    </p>
+</div>
+
+<%- include('../partials/footer') %>
+
+<style>
+/* Home Page Styles */
+.breadcrumb {
+    margin-bottom: 24px;
+}
+
+.breadcrumb-item {
+    font-size: 14px;
+    color: #6b7280;
+    font-weight: 400;
+}
+
+.logo-creativos {
+    position: absolute;
+    top: 40px;
+    right: 40px;
+}
+
+.creativos-logo {
+    width: 180px;
+    height: auto;
+    object-fit: contain;
+}
+
+.welcome-section {
+    max-width: 800px;
+    margin: 60px auto;
+    text-align: center;
+    padding: 40px;
+}
+
+.welcome-icon {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 32px;
+}
+
+.welcome-title {
+    font-size: 36px;
+    font-weight: 700;
+    color: #0033ff;
+    margin-bottom: 16px;
+    letter-spacing: -0.5px;
+}
+
+.welcome-subtitle {
+    font-size: 20px;
+    color: #1a2332;
+    margin-bottom: 24px;
+    font-weight: 500;
+}
+
+.welcome-description {
+    font-size: 16px;
+    color: #4b5563;
+    line-height: 1.7;
+    max-width: 700px;
+    margin: 0 auto;
+}
+
+.welcome-description strong {
+    color: #1a2332;
+    font-weight: 600;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .logo-creativos {
+        position: static;
+        text-align: center;
+        margin-bottom: 32px;
+    }
+
+    .creativos-logo {
+        width: 140px;
+    }
+
+    .welcome-section {
+        margin: 40px auto;
+        padding: 24px;
+    }
+
+    .welcome-title {
+        font-size: 28px;
+    }
+
+    .welcome-subtitle {
+        font-size: 18px;
+    }
+
+    .welcome-description {
+        font-size: 15px;
+    }
+}
+
+@media (max-width: 480px) {
+    .welcome-icon svg {
+        width: 60px;
+        height: 60px;
+    }
+
+    .welcome-title {
+        font-size: 24px;
+    }
+
+    .welcome-subtitle {
+        font-size: 16px;
+    }
+
+    .welcome-description {
+        font-size: 14px;
+    }
+}
+</style>

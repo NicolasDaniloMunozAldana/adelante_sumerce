@@ -16,9 +16,11 @@ app.use(express.static(path.join(__dirname, '../public')));
 
 // Importar rutas
 const authRoutes = require('./routes/authRoutes');
+const homeRoutes = require('./routes/homeRoutes');
 
 // Usar rutas
 app.use('/', authRoutes);
+app.use('/', homeRoutes);
 
 // Ruta por defecto - redirecciona al login
 app.get('/', (req, res) => {
