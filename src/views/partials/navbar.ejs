@@ -1,0 +1,33 @@
+    <!-- Header -->
+    <header class="header">
+        <div class="header-left">
+            <img src="/logo_login.png" alt="Logo" class="header-logo">
+            <h1 class="header-title">Salga Adelante Sumercé</h1>
+        </div>
+        <div class="header-right">
+            <button class="btn-header" onclick="window.location.href='/login'">Iniciar Sesión</button>
+            <div class="user-profile">
+                <img src="/user.png" alt="Usuario" class="user-icon">
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <div class="main-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <nav class="sidebar-nav" >
+                <a href="/home" class="nav-item <%= typeof currentPage !== 'undefined' && currentPage === 'home' ? 'active' : '' %>">
+                    <span class="nav-text">Inicio</span>
+                </a>
+                <a href="/caracterizacion" class="nav-item <%= typeof currentPage !== 'undefined' && currentPage === 'caracterizacion' ? 'active' : '' %>">
+                    <span class="nav-text">Caracterización</span>
+                </a>
+                <a href="/dashboard" class="nav-item <%= typeof currentPage !== 'undefined' && currentPage === 'dashboard' ? 'active' : '' %>">
+                    <span class="nav-text">Dashboard</span>
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Content Area -->
+        <main class="content">

@@ -1,0 +1,340 @@
+/* Importar fuente Poppins */
+@font-face {
+    font-family: 'Poppins';
+    src: url('../poppins/Poppins-Regular.ttf') format('truetype');
+    font-weight: 400;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Poppins';
+    src: url('../poppins/Poppins-Medium.ttf') format('truetype');
+    font-weight: 500;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Poppins';
+    src: url('../poppins/Poppins-SemiBold.ttf') format('truetype');
+    font-weight: 600;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Poppins';
+    src: url('../poppins/Poppins-Bold.ttf') format('truetype');
+    font-weight: 700;
+    font-style: normal;
+}
+
+/* Importar fuente Work Sans desde Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Work+Sans:wght@300;400;500;600;700&display=swap');
+
+/* Reset y estilos base */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Work Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    background: linear-gradient(135deg, #f5f7fa 0%, #e8edf2 100%);
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    color: #1a2332;
+    overflow: hidden;
+}
+
+/* Títulos usan Poppins */
+h1, h2, h3, h4, h5, h6 {
+    font-family: 'Poppins', sans-serif;
+}
+
+/* Header */
+.header {
+    background-color: #ffffff;
+    border-bottom: 1px solid #e5e7eb;
+    padding: 16px 32px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.header-logo {
+    width: 48px;
+    height: 48px;
+    object-fit: contain;
+}
+
+.header-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: #0033ff;
+    letter-spacing: -0.3px;
+    font-family: 'Poppins', sans-serif;
+}
+
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.btn-header {
+    padding: 10px 24px;
+    background-color: #1a2849;
+    color: white;
+    font-size: 14px;
+    font-weight: 600;
+    font-family: 'Work Sans', sans-serif;
+    border: none;
+    border-radius: 24px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-header:hover {
+    background-color: #0f1a33;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(26, 40, 73, 0.3);
+}
+
+.user-profile {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid #e5e7eb;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background-color: #f9fafb;
+}
+
+.user-profile:hover {
+    border-color: #0033ff;
+    background-color: #eff6ff;
+}
+
+.user-icon {
+    width: 24px;
+    height: 24px;
+    object-fit: contain;
+}
+
+/* Main Container */
+.main-container {
+    display: flex;
+    flex: 1;
+    max-width: 1920px;
+    margin: 0 auto;
+    width: 100%;
+    overflow: hidden;
+    height: calc(100vh - 80px - 60px); /* altura viewport - header - footer */
+}
+
+/* Sidebar */
+.sidebar {
+    width: 240px;
+    background-color: #1a2849;
+    padding: 24px 0;
+    box-shadow: 2px 0 8px rgba(0, 0, 0, 0.05);
+    overflow-y: auto;
+}
+
+.sidebar-nav {
+    display: flex;
+    flex-direction: column;
+}
+
+.nav-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 32px;
+    color: #ffffff;
+    text-decoration: none;
+    font-size: 15px;
+    font-weight: 400;
+    transition: all 0.2s ease;
+    border-left: 4px solid transparent;
+}
+
+.nav-item:hover {
+    background-color: rgba(255, 255, 255, 0.08);
+}
+
+.nav-item.active {
+    background-color: #0033ff;
+    border-left-color: #ffffff;
+    font-weight: 600;
+}
+
+.nav-icon {
+    font-size: 14px;
+    display: inline-block;
+}
+
+.nav-icon-svg {
+    width: 20px;
+    height: 20px;
+    color: #ffffff;
+    transition: color 0.2s ease;
+}
+
+.nav-item.active .nav-icon-svg {
+    color: #6cee12;
+}
+
+.nav-text {
+    flex: 1;
+    font-family: 'Poppins', sans-serif;
+    font-size: 16px;
+    font-weight: 400;
+}
+
+/* Content Area */
+.content {
+    flex: 1;
+    padding: 32px;
+    overflow-y: auto;
+    height: 100%;
+}
+
+
+
+/* Footer */
+.footer {
+    background-color: #ffffff;
+    border-top: 1px solid #e5e7eb;
+    padding: 20px 32px;
+    box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.04);
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 99;
+}
+
+.footer-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1920px;
+    margin: 0 auto;
+}
+
+.footer-version {
+    font-size: 14px;
+    color: #6b7280;
+    font-weight: 400;
+}
+
+.footer-links {
+    display: flex;
+    gap: 24px;
+}
+
+.footer-link {
+    font-size: 14px;
+    color: #1a2332;
+    text-decoration: underline;
+    transition: color 0.2s ease;
+    font-weight: 400;
+}
+
+.footer-link:hover {
+    color: #0033ff;
+}
+
+.footer-copyright {
+    font-size: 14px;
+    color: #6b7280;
+    font-weight: 400;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+    .sidebar {
+        width: 200px;
+    }
+
+    .nav-item {
+        padding: 14px 24px;
+        font-size: 14px;
+    }
+
+    .content {
+        padding: 24px;
+    }
+}
+
+@media (max-width: 768px) {
+    .header {
+        padding: 12px 20px;
+    }
+
+    .header-title {
+        font-size: 16px;
+    }
+
+    .header-logo {
+        width: 40px;
+        height: 40px;
+    }
+
+    .sidebar {
+        width: 180px;
+    }
+
+    .nav-item {
+        padding: 12px 20px;
+        font-size: 13px;
+    }
+
+    .content {
+        padding: 20px;
+    }
+
+    .footer-content {
+        flex-direction: column;
+        gap: 12px;
+        text-align: center;
+    }
+
+    .footer-links {
+        order: -1;
+    }
+}
+
+@media (max-width: 640px) {
+    .sidebar {
+        display: none;
+    }
+
+    .header-left {
+        gap: 12px;
+    }
+
+    .header-title {
+        display: none;
+    }
+
+    .btn-header {
+        padding: 8px 16px;
+        font-size: 13px;
+    }
+}

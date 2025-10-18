@@ -1,0 +1,101 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+<!-- Breadcrumb -->
+<div class="breadcrumb">
+    <span class="breadcrumb-item">> Soporte</span>
+</div>
+
+<!-- Content Section -->
+<div class="page-section">
+    <h1 class="page-title">Soporte Técnico</h1>
+    <p class="page-description">
+        ¿Tienes algún problema o necesitas ayuda? Contacta con nuestro equipo de soporte.
+    </p>
+    <div class="page-content">
+        <div class="support-info">
+            <h3>Información de Contacto</h3>
+            <p><strong>Email:</strong> soporte@adelantesumerce.com</p>
+            <p><strong>Teléfono:</strong> +57 300 123 4567</p>
+            <p><strong>Horario:</strong> Lunes a Viernes, 8:00 AM - 6:00 PM</p>
+        </div>
+    </div>
+</div>
+
+<%- include('../partials/footer') %>
+
+<style>
+.breadcrumb {
+    margin-bottom: 24px;
+}
+
+.breadcrumb-item {
+    font-size: 14px;
+    color: #6b7280;
+    font-weight: 400;
+}
+
+.page-section {
+    max-width: 1000px;
+}
+
+.page-title {
+    font-size: 32px;
+    font-weight: 700;
+    color: #1a2332;
+    margin-bottom: 16px;
+    letter-spacing: -0.5px;
+    font-family: 'Poppins', sans-serif;
+}
+
+.page-description {
+    font-size: 16px;
+    color: #4b5563;
+    line-height: 1.7;
+    margin-bottom: 32px;
+    font-family: 'Work Sans', sans-serif;
+}
+
+.page-content {
+    background: white;
+    border-radius: 16px;
+    padding: 32px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    border: 1px solid #e5e7eb;
+}
+
+.support-info h3 {
+    font-size: 20px;
+    font-weight: 600;
+    color: #1a2332;
+    margin-bottom: 20px;
+    font-family: 'Poppins', sans-serif;
+}
+
+.support-info p {
+    font-size: 15px;
+    color: #4b5563;
+    margin-bottom: 12px;
+    line-height: 1.6;
+    font-family: 'Work Sans', sans-serif;
+}
+
+.support-info strong {
+    color: #1a2332;
+    font-weight: 600;
+}
+
+@media (max-width: 768px) {
+    .page-title {
+        font-size: 26px;
+    }
+
+    .page-description {
+        font-size: 15px;
+    }
+
+    .page-content {
+        padding: 24px;
+    }
+}
+</style>
