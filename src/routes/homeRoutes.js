@@ -1,20 +1,13 @@
 const express = require('express');
 const router = express.Router();
 const homeController = require('../controllers/homeController');
+const ensureAuthenticated = require('../middlewares/authMiddleware');
 
-// Ruta para la página de inicio
-router.get('/home', homeController.showHome);
-
-// Ruta para caracterización
-router.get('/caracterizacion', homeController.showCaracterizacion);
-
-// Ruta para dashboard
-router.get('/dashboard', homeController.showDashboard);
-
-// Ruta para soporte
-router.get('/soporte', homeController.showSoporte);
-
-// Ruta para contacto
-router.get('/contacto', homeController.showContacto);
+// Rutas protegidas
+router.get('/home', ensureAuthenticated, homeController.showHome);
+router.get('/caracterizacion', ensureAuthenticated, homeController.showCaracterizacion);
+router.get('/dashboard', ensureAuthenticated, homeController.showDashboard);
+router.get('/soporte', ensureAuthenticated, homeController.showSoporte);
+router.get('/contacto', ensureAuthenticated, homeController.showContacto);
 
 module.exports = router;
