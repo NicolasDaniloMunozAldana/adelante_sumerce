@@ -26,6 +26,11 @@ app.use(session({
   }
 }));
 
+// Ruta por defecto - redirecciona al login (debe ir primero)
+app.get('/', (req, res) => {
+  res.redirect('/login');
+});
+
 // Importar rutas
 const authRoutes = require('./routes/authRoutes');
 const homeRoutes = require('./routes/homeRoutes');
@@ -33,11 +38,6 @@ const homeRoutes = require('./routes/homeRoutes');
 // Usar rutas
 app.use('/', authRoutes);
 app.use('/', homeRoutes);
-
-// Ruta por defecto - redirecciona al login
-app.get('/', (req, res) => {
-  res.redirect('/login');
-});
 
 // Manejo de errores 404
 app.use((req, res) => {
