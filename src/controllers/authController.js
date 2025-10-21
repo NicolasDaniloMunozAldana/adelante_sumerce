@@ -1,7 +1,4 @@
-/**
- * Controlador de Autenticación
- * Maneja las operaciones relacionadas con login, registro y recuperación de contraseña
- */
+const bcrypt = require('bcryptjs'); // Si usas contraseñas encriptadas
 
 class AuthController {
   /**
@@ -9,6 +6,11 @@ class AuthController {
    */
   showLoginForm(req, res) {
     try {
+      // Si ya está logueado, redirigir directamente
+      if (req.session.user) {
+        return res.redirect('/home');
+      }
+
       res.render('auth/login', {
         title: 'Iniciar Sesión - Adelante Sumercé',
         error: null
@@ -34,12 +36,27 @@ class AuthController {
         });
       }
 
-      // TODO: Aquí irá la lógica de autenticación con la base de datos
-      // Por ahora, solo como ejemplo:
-      console.log('Intento de login:', { username });
+      // TODO: Aquí se debe consultar el usuario real en la base de datos
+      // Ejemplo temporal:
+      const fakeUser = { username: 'user', password: '123' };
 
-      // Redirigir al dashboard (cuando esté implementado)
-      res.redirect('/dashboard');
+      // Validación de credenciales
+      if (username === fakeUser.username && password === fakeUser.password) {
+        // Crear sesión
+        req.session.user = {
+          username: fakeUser.username,
+          isAuthenticated: true
+        };
+
+        return res.redirect('/home');
+      }
+
+      // Si no coincide
+      return res.render('auth/login', {
+        title: 'Iniciar Sesión - Adelante Sumercé',
+        error: 'Usuario o contraseña incorrectos'
+      });
+
     } catch (error) {
       console.error('Error al procesar login:', error);
       res.render('auth/login', {
@@ -50,6 +67,19 @@ class AuthController {
   }
 
   /**
+   * Cierra la sesión y redirige al login
+   */
+  logout(req, res) {
+    req.session.destroy(err => {
+      if (err) {
+        console.error('Error al cerrar sesión:', err);
+        return res.status(500).send('Error al cerrar sesión');
+      }
+      res.redirect('/login');
+    });
+  }
+
+   /**
    * Muestra el formulario de registro
    */
   showRegisterForm(req, res) {
