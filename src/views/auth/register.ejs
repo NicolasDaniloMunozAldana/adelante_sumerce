@@ -3,23 +3,170 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><%= title %></title>
+    <title>Registro - Salga Adelante Sumercé</title>
     <link rel="stylesheet" href="/css/login.css">
 </head>
 <body>
     <div class="login-container">
         <div class="login-card">
+            <!-- Logo -->
             <div class="logo-container">
-                <img src="/images/logo_login.png" alt="Adelante Sumercé Logo" class="logo">
+                <img src="/logo_login.png" alt="Logo Salga Adelante Sumercé" class="logo">
             </div>
 
-            <h1 class="login-title">Registro</h1>
-            <p class="login-subtitle">Página de registro - En construcción</p>
+            <!-- Título -->
+            <h1 class="login-title">Crear Cuenta</h1>
+            <p class="login-subtitle">Completa el formulario para registrarte</p>
 
-            <div style="text-align: center; margin-top: 20px;">
-                <a href="/login" class="register-link">Volver al inicio de sesión</a>
-            </div>
+            <!-- Mensaje de error (si existe) -->
+            <% if (typeof error !== 'undefined' && error) { %>
+                <div class="error-message">
+                    <%= error %>
+                </div>
+            <% } %>
+
+            <!-- Formulario de registro -->
+            <form class="login-form" action="/auth/register" method="POST">
+                <!-- Nombres -->
+                <div class="form-group">
+                    <input 
+                        type="text" 
+                        id="nombres" 
+                        name="nombres" 
+                        class="form-input" 
+                        placeholder="Nombres"
+                        required
+                        autocomplete="given-name"
+                    >
+                </div>
+
+                <!-- Apellidos -->
+                <div class="form-group">
+                    <input 
+                        type="text" 
+                        id="apellidos" 
+                        name="apellidos" 
+                        class="form-input" 
+                        placeholder="Apellidos"
+                        required
+                        autocomplete="family-name"
+                    >
+                </div>
+
+                <!-- Correo electrónico -->
+                <div class="form-group">
+                    <input 
+                        type="email" 
+                        id="email" 
+                        name="email" 
+                        class="form-input" 
+                        placeholder="Correo electrónico"
+                        required
+                        autocomplete="email"
+                    >
+                </div>
+
+                <!-- Celular -->
+                <div class="form-group">
+                    <input 
+                        type="tel" 
+                        id="celular" 
+                        name="celular" 
+                        class="form-input" 
+                        placeholder="Celular (3001234567)"
+                        maxlength="10"
+                        pattern="[3][0-9]{9}"
+                        required
+                        autocomplete="tel"
+                    >
+                </div>
+
+                <!-- Contraseña -->
+                <div class="form-group">
+                    <input 
+                        type="password" 
+                        id="password" 
+                        name="password" 
+                        class="form-input" 
+                        placeholder="Contraseña"
+                        required
+                        autocomplete="new-password"
+                        minlength="8"
+                    >
+                </div>
+
+                <!-- Confirmar contraseña -->
+                <div class="form-group">
+                    <input 
+                        type="password" 
+                        id="confirmPassword" 
+                        name="confirmPassword" 
+                        class="form-input" 
+                        placeholder="Confirmar contraseña"
+                        required
+                        autocomplete="new-password"
+                        minlength="8"
+                    >
+                </div>
+
+                <!-- Botón de registro -->
+                <button type="submit" class="btn-login">
+                    Crear Cuenta
+                </button>
+
+                <!-- Link de inicio de sesión -->
+                <div class="register-link-container">
+                    <span class="register-text">¿Ya tienes cuenta? </span>
+                    <a href="/login" class="register-link">Inicia sesión</a>
+                </div>
+            </form>
         </div>
     </div>
+
+    <script>
+        // Validación de correo electrónico
+        document.getElementById('email').addEventListener('blur', function(e) {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (this.value && !emailRegex.test(this.value)) {
+                this.setCustomValidity('Por favor ingresa un correo electrónico válido');
+                this.reportValidity();
+            } else {
+                this.setCustomValidity('');
+            }
+        });
+
+        // Validación de celular en tiempo real
+        document.getElementById('celular').addEventListener('input', function(e) {
+            this.value = this.value.replace(/[^0-9]/g, '');
+        });
+
+        // Validación de contraseñas coincidentes
+        document.querySelector('.login-form').addEventListener('submit', function(e) {
+            const email = document.getElementById('email').value;
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            
+            if (!emailRegex.test(email)) {
+                e.preventDefault();
+                alert('Por favor ingresa un correo electrónico válido.');
+                return false;
+            }
+
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            
+            if (password !== confirmPassword) {
+                e.preventDefault();
+                alert('Las contraseñas no coinciden. Por favor, verifica.');
+                return false;
+            }
+
+            const celular = document.getElementById('celular').value;
+            if (celular.length !== 10 || !celular.startsWith('3')) {
+                e.preventDefault();
+                alert('El celular debe tener 10 dígitos y comenzar con 3.');
+                return false;
+            }
+        });
+    </script>
 </body>
 </html>
