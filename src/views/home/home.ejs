@@ -1,44 +1,40 @@
 <%- include('../partials/header') %>
 <%- include('../partials/navbar') %>
 
-<!-- Breadcrumb -->
-<div class="breadcrumb">
-    <span class="breadcrumb-item">> Inicio</span>
-</div>
-
 <!-- Logo Creativos Sumercé -->
 <div class="logo-creativos">
     <img src="/logo_creativos.png" alt="Creativos Sumercé" class="creativos-logo">
 </div>
 
 <!-- Welcome Section -->
-<div class="welcome-section">
-    <div class="welcome-icon">
-        <img src="/home.png" alt="Inicio" class="home-icon-img">
+<div class="welcome-container">
+    <div class="welcome-card">
+        <div class="welcome-icon">
+            <img src="/home.png" alt="Inicio" class="home-icon-img">
+        </div>
+        <h1 class="welcome-title">¡Bienvenido a Salga Adelante Sumercé!</h1>
+        <p class="welcome-subtitle">Sistema de Cualificación de Emprendimientos</p>
+        <p class="welcome-description">
+            El programa <strong>"Salga Adelante Sumercé"</strong> busca ofrecer a emprendedores y mipymes 
+            una herramienta digital que permita caracterizar, evaluar y cualificar sus proyectos de negocio.
+        </p>
+        
+        <!-- Imagen promocional -->
+        <div class="promo-image-container">
+            <img src="/images/promocion.png.jpg" alt="Promoción Salga Adelante Sumercé" class="promo-image">
+        </div>
+        
+        <!-- Imagen de frase -->
+        <div class="frase-image-container">
+            <img src="/images/frase.png" alt="Frase Salga Adelante Sumercé" class="frase-image">
+        </div>
     </div>
-    <h1 class="welcome-title">¡Bienvenido a Salga Adelante Sumercé!</h1>
-    <p class="welcome-subtitle">Sistema de Cualificación de Emprendimientos</p>
-    <p class="welcome-description">
-        El programa <strong>"Salga Adelante Sumercé"</strong> busca ofrecer a emprendedores y mipymes 
-        una herramienta digital que permita caracterizar, evaluar y cualificar sus proyectos de negocio.
-    </p>
 </div>
 
 <%- include('../partials/footer') %>
 
 <style>
 /* Home Page Styles */
-.breadcrumb {
-    margin-bottom: 24px;
-}
-
-.breadcrumb-item {
-    font-size: 18px;        
-    color: #6b7280;       
-    font-weight: 400;     
-    font-family: 'Poppins', sans-serif;
-}
-
 .logo-creativos {
     position: absolute;
     top: 40px;
@@ -51,11 +47,22 @@
     object-fit: contain;
 }
 
-.welcome-section {
-    max-width: 800px;
-    margin: 60px auto;
+.welcome-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: calc(100vh - 200px);
+    padding: 1px 10px 20px 20px;
+}
+
+.welcome-card {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    padding: 48px;
+    max-width: 1200px;
+    width: 100%;
     text-align: center;
-    padding: 40px;
 }
 
 .welcome-icon {
@@ -92,7 +99,6 @@
     font-size: 16px;
     line-height: 1.8;
     color: #4b5563;
-    max-width: 700px;
     margin: 0 auto;
     font-family: 'Poppins', sans-serif;
     font-weight: 400;
@@ -101,6 +107,36 @@
 .welcome-description strong {
     color: #1a2332;
     font-weight: 600;
+}
+
+.promo-image-container {
+    margin-top: 40px;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+.promo-image {
+    width: 100%;
+    max-width: 1000px;
+    height: auto;
+    border-radius: 12px;
+    object-fit: cover;
+}
+
+.frase-image-container {
+    margin-top: 30px;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+.frase-image {
+    width: 100%;
+    max-width: 1000px;
+    height: auto;
+    border-radius: 12px;
+    object-fit: cover;
 }
 
 /* Responsive */
@@ -115,9 +151,8 @@
         width: 140px;
     }
 
-    .welcome-section {
-        margin: 40px auto;
-        padding: 24px;
+    .welcome-card {
+        padding: 32px 24px;
     }
 
     .welcome-title {
@@ -131,9 +166,21 @@
     .welcome-description {
         font-size: 15px;
     }
+    
+    .promo-image {
+        max-width: 100%;
+    }
+    
+    .frase-image {
+        max-width: 100%;
+    }
 }
 
 @media (max-width: 480px) {
+    .welcome-card {
+        padding: 24px 20px;
+    }
+
     .home-icon-img {
         width: 50px;
         height: 50px;
