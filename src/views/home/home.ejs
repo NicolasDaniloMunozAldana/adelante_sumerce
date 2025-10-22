@@ -28,6 +28,12 @@
         <div class="frase-image-container">
             <img src="/images/frase.png" alt="Frase Salga Adelante Sumercé" class="frase-image">
         </div>
+        
+        <!-- Texto inspiracional -->
+        <div class="inspirational-text">
+            <p>En Creativos Sumercé creemos que la <strong>creatividad no solo vende, también transforma.</strong></p>
+            <p>Cada marca que acompañamos es una historia, <strong>un sueño que merece ser contado</strong></p>
+        </div>
     </div>
 </div>
 
@@ -139,6 +145,33 @@
     object-fit: cover;
 }
 
+.inspirational-text {
+    margin-top: 50px;
+    text-align: center;
+    max-width: 900px;
+    margin-left: auto;
+    margin-right: auto;
+    padding: 40px 60px;
+}
+
+.inspirational-text p {
+    font-family: 'Poppins', sans-serif;
+    font-size: 23px;
+    line-height: 2;
+    color: #0033ff;
+    margin-bottom: 15px;
+    font-style: italic;
+}
+
+.inspirational-text p:last-child {
+    margin-bottom: 10px;
+}
+
+.inspirational-text strong {
+    font-weight: 700;
+    color: #0033ff;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
     .logo-creativos {
@@ -174,6 +207,15 @@
     .frase-image {
         max-width: 100%;
     }
+    
+    .inspirational-text {
+        padding: 30px 40px;
+    }
+    
+    .inspirational-text p {
+        font-size: 18px;
+        margin-bottom: 12px;
+    }
 }
 
 @media (max-width: 480px) {
@@ -196,6 +238,15 @@
 
     .welcome-description {
         font-size: 14px;
+    }
+    
+    .inspirational-text {
+        padding: 20px 20px;
+    }
+    
+    .inspirational-text p {
+        font-size: 16px;
+        margin-bottom: 10px;
     }
 }
 </style>
