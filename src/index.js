@@ -41,7 +41,7 @@ const authRoutes = require('./routes/authRoutes');
 const homeRoutes = require('./routes/homeRoutes');
 
 // Usar rutas
-app.use('/auth', authRoutes); // Rutas de autenticación bajo /auth
+app.use('/', authRoutes); // Rutas de autenticación bajo
 app.use('/', homeRoutes); // Rutas principales en la raíz
 
 // Ruta por defecto - redirecciona al login si no está autenticado

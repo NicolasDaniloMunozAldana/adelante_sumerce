@@ -145,7 +145,7 @@ class AuthController {
         isAuthenticated: true
       };
 
-      return res.redirect('/auth/login');
+      return res.redirect('/login');
 
     } catch (error) {
       console.error('Error in registration:', error);
