@@ -28,16 +28,16 @@
             <% } %>
 
             <!-- Formulario -->
-            <form action="/login" method="POST" class="login-form">
+            <form action="/auth/login" method="POST" class="login-form">
                 <div class="form-group">
                     <input 
-                        type="text" 
-                        id="username" 
-                        name="username" 
+                        type="email" 
+                        id="email" 
+                        name="email" 
                         class="form-input" 
-                        placeholder="Usuario"
+                        placeholder="Correo electrónico"
                         required
-                        autocomplete="username"
+                        autocomplete="email"
                     >
                 </div>
 
@@ -54,7 +54,7 @@
                 </div>
 
                 <div class="forgot-password-container">
-                    <a href="/forgot-password" class="forgot-password-link">¿Olvidaste tu contraseña?</a>
+                    <a href="/auth/forgot-password" class="forgot-password-link">¿Olvidaste tu contraseña?</a>
                 </div>
 
                 <button type="submit" class="btn-login">Iniciar Sesión</button>
@@ -63,10 +63,42 @@
             <!-- Enlace de registro -->
             <div class="register-link-container">
                 <p class="register-text">
-                    ¿No tienes cuenta? <a href="/register" class="register-link">Regístrate</a>
+                    ¿No tienes cuenta? <a href="/auth/register" class="register-link">Regístrate</a>
                 </p>
             </div>
         </div>
     </div>
+
+    <script>
+        // Validación del correo electrónico
+        document.getElementById('email').addEventListener('blur', function(e) {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (this.value && !emailRegex.test(this.value)) {
+                this.setCustomValidity('Por favor ingrese un correo electrónico válido');
+                this.reportValidity();
+            } else {
+                this.setCustomValidity('');
+            }
+        });
+
+        // Validación del formulario antes de enviar
+        document.querySelector('.login-form').addEventListener('submit', function(e) {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            if (!email || !password) {
+                e.preventDefault();
+                alert('Por favor complete todos los campos');
+                return false;
+            }
+
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                e.preventDefault();
+                alert('Por favor ingrese un correo electrónico válido');
+                return false;
+            }
+        });
+    </script>
 </body>
 </html>

@@ -1,10 +1,20 @@
 const express = require('express');
 const path = require('path');
 const session = require('express-session');
+const sequelize = require('./config/database');
 require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 3030;
+
+// Test database connection
+sequelize.authenticate()
+  .then(() => {
+    console.log('Conexión a la base de datos establecida correctamente.');
+  })
+  .catch(err => {
+    console.error('No se pudo conectar a la base de datos:', err);
+  });
 
 // Configuración del motor de plantillas EJS
 app.set('view engine', 'ejs');
@@ -26,18 +36,28 @@ app.use(session({
   }
 }));
 
-// Ruta por defecto - redirecciona al login (debe ir primero)
-app.get('/', (req, res) => {
-  res.redirect('/login');
-});
-
 // Importar rutas
 const authRoutes = require('./routes/authRoutes');
 const homeRoutes = require('./routes/homeRoutes');
 
 // Usar rutas
-app.use('/', authRoutes);
-app.use('/', homeRoutes);
+app.use('/auth', authRoutes); // Rutas de autenticación bajo /auth
+app.use('/', homeRoutes); // Rutas principales en la raíz
+
+// Ruta por defecto - redirecciona al login si no está autenticado
+app.get('/', (req, res) => {
+  if (!req.session.user) {
+    res.redirect('/auth/login');
+  } else {
+    res.redirect('/home');
+  }
+});
+
+// Log para debugging de rutas
+app.use((req, res, next) => {
+  console.log(`${req.method} ${req.url}`);
+  next();
+});
 
 // Manejo de errores 404
 app.use((req, res) => {
