@@ -23,7 +23,7 @@ CREATE TABLE emprendimientos (
     nombre_encargado VARCHAR(200),
     contacto_encargado VARCHAR(20),
     email_encargado VARCHAR(255),
-    tiempo_operacion_meses INT,
+    tiempo_operacion_meses ENUM('0_6_meses', '6_12_meses', '12_24_meses', 'mas_24_meses'),
     fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE
 );
@@ -44,10 +44,10 @@ CREATE TABLE modelo_negocio (
 CREATE TABLE finanzas (
     id INT AUTO_INCREMENT PRIMARY KEY,
     emprendimiento_id INT NOT NULL,
-    ventas_netas_mes DECIMAL(15,2),
-    rentabilidad_mensual DECIMAL(15,2),
-    fuentes_financiamiento TEXT,
-    costos_fijos_mensuales DECIMAL(15,2),
+    ventas_netas_mes ENUM('menos_1_smmlv', '1_3_smmlv', '3_mas_smmlv'),
+    rentabilidad_mensual ENUM('menos_medio_smmlv', 'medio_1_smmlv', '2_mas_smmlv'),
+    fuentes_financiamiento ENUM('recursos_propios', 'credito_bancario', 'inversionistas', 'subsidios', 'mixto'),
+    costos_fijos_mensuales ENUM('menos_medio_smmlv', 'medio_1_smmlv', '2_mas_smmlv'),
     fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (emprendimiento_id) REFERENCES emprendimientos(id) ON DELETE CASCADE
 );
@@ -81,13 +81,11 @@ CREATE TABLE impacto_social_ambiental (
 CREATE TABLE calificaciones (
     id INT AUTO_INCREMENT PRIMARY KEY,
     emprendimiento_id INT NOT NULL,
-    -- Puntajes por sección
     puntaje_datos_generales INT DEFAULT 0,
     puntaje_modelo_negocio INT DEFAULT 0,
     puntaje_finanzas INT DEFAULT 0,
     puntaje_equipo_trabajo INT DEFAULT 0,
     puntaje_impacto_social INT DEFAULT 0,
-    -- Totales
     puntaje_total INT DEFAULT 0,
     porcentaje_total DECIMAL(5,2) DEFAULT 0,
     clasificacion_global ENUM('idea_inicial', 'en_desarrollo', 'consolidado'),

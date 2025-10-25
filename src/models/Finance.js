@@ -19,21 +19,27 @@ Finance.init({
       key: 'id'
     }
   },
+  // 🔄 CAMBIO: ahora se usa ENUM para los rangos de ventas
   monthlyNetSales: {
-    type: DataTypes.DECIMAL(15, 2),
-    field: 'ventas_netas_mes'
+    type: DataTypes.ENUM('menos_1_smmlv', '1_3_smmlv', '3_6_smmlv', 'mas_6_smmlv'),
+    field: 'ventas_netas_mes',
+    allowNull: true
   },
+  // 🔄 CAMBIO: ENUM para los rangos de rentabilidad
   monthlyProfitability: {
-    type: DataTypes.DECIMAL(15, 2),
-    field: 'rentabilidad_mensual'
+    type: DataTypes.ENUM('baja_menos_1_smmlv', 'medio_1_smmlv', 'alta_mas_3_smmlv'),
+    field: 'rentabilidad_mensual',
+    allowNull: true
   },
   financingSources: {
-    type: DataTypes.TEXT,
-    field: 'fuentes_financiamiento'
+    type: DataTypes.ENUM('propios', 'credito_bancario', 'inversion_externa', 'otro'),
+    field: 'fuentes_financiamiento',
+    allowNull: true
   },
   monthlyFixedCosts: {
-    type: DataTypes.DECIMAL(15, 2),
-    field: 'costos_fijos_mensuales'
+    type: DataTypes.ENUM('bajo_menos_1_smmlv', 'medio_1_smmlv', 'alto_mas_3_smmlv'),
+    field: 'costos_fijos_mensuales',
+    allowNull: true
   },
   registrationDate: {
     type: DataTypes.DATE,
@@ -47,6 +53,7 @@ Finance.init({
   timestamps: false
 });
 
+// Asociación con emprendimiento
 Finance.belongsTo(Business, { foreignKey: 'emprendimiento_id' });
 
 module.exports = Finance;

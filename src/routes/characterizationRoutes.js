@@ -1,16 +1,13 @@
 const express = require('express');
 const router = express.Router();
 const characterizationController = require('../controllers/characterizationController');
-const authMiddleware = require('../middlewares/authMiddleware');
+const ensureAuthenticated = require('../middlewares/authMiddleware');
 
 
 // Mostrar formulario de caracterización
-router.get('/', characterizationController.showCharacterizationForm);
+router.get('/', ensureAuthenticated ,characterizationController.showCharacterizationForm);
 
 // Guardar caracterización
-router.post('/guardar', characterizationController.saveCharacterization);
-
-// Obtener resultados de caracterización
-router.get('/resultados/:businessId', characterizationController.getCharacterizationResults);
+router.post('/save', ensureAuthenticated, characterizationController.saveCharacterization);
 
 module.exports = router;

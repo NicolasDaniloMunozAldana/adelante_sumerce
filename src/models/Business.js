@@ -55,8 +55,9 @@ Business.init({
     }
   },
   operationMonths: {
-    type: DataTypes.INTEGER,
-    field: 'tiempo_operacion_meses'
+    type: DataTypes.ENUM('0_6_meses', '6_12_meses', '12_24_meses', 'mas_24_meses'),
+    field: 'tiempo_operacion_meses',
+    allowNull: true
   },
   registrationDate: {
     type: DataTypes.DATE,
