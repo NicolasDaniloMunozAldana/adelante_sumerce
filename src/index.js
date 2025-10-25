@@ -39,10 +39,12 @@ app.use(session({
 // Importar rutas
 const authRoutes = require('./routes/authRoutes');
 const homeRoutes = require('./routes/homeRoutes');
+const characterizationRoutes = require('./routes/characterizationRoutes');
 
 // Usar rutas
 app.use('/', authRoutes); // Rutas de autenticación bajo
 app.use('/', homeRoutes); // Rutas principales en la raíz
+app.use('/caracterizacion', characterizationRoutes); // Rutas de caracterización
 
 // Ruta por defecto - redirecciona al login si no está autenticado
 app.get('/', (req, res) => {
