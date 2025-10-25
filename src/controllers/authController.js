@@ -1,14 +1,14 @@
-const bcrypt = require('bcryptjs'); // Si usas contraseñas encriptadas
+const authService = require('../services/authServices');
 
 class AuthController {
   /**
-   * Muestra el formulario de inicio de sesión
+   * Show login form
    */
   showLoginForm(req, res) {
     try {
-      // Si ya está logueado, redirigir directamente
+      // If already logged in, redirect directly
       if (req.session.user) {
-        return res.redirect('/home');
+        return res.redirect('/');
       }
 
       res.render('auth/login', {
@@ -16,52 +16,62 @@ class AuthController {
         error: null
       });
     } catch (error) {
-      console.error('Error al mostrar formulario de login:', error);
-      res.status(500).send('Error interno del servidor');
+      console.error('Error showing login form:', error);
+      res.status(500).send('Internal Server Error');
     }
   }
 
   /**
-   * Procesa el formulario de inicio de sesión
+   * Process login form
    */
   async processLogin(req, res) {
     try {
-      const { username, password } = req.body;
+      const { email, password } = req.body;
 
-      // Validación básica
-      if (!username || !password) {
+      // Basic validation
+      if (!email || !password) {
         return res.render('auth/login', {
           title: 'Iniciar Sesión - Adelante Sumercé',
-          error: 'Por favor, ingrese usuario y contraseña'
+          error: 'Por favor ingrese su correo electrónico y contraseña'
         });
       }
 
-      // TODO: Aquí se debe consultar el usuario real en la base de datos
-      // Ejemplo temporal:
-      const fakeUser = { username: 'user', password: '123' };
+      // Validate email format
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        return res.render('auth/login', {
+          title: 'Iniciar Sesión - Adelante Sumercé',
+          error: 'Por favor ingrese un correo electrónico válido'
+        });
+      }
 
-      // Validación de credenciales
-      if (username === fakeUser.username && password === fakeUser.password) {
-        // Crear sesión
+      // Authenticate user
+      const user = await authService.authenticate(email, password);
+
+      if (user) {
+        // Create session
         req.session.user = {
-          username: fakeUser.username,
+          id: user.id,
+          email: user.email,
+          firstName: user.firstName,
+          lastName: user.lastName,
           isAuthenticated: true
         };
 
         return res.redirect('/home');
       }
 
-      // Si no coincide
+      // If authentication fails
       return res.render('auth/login', {
         title: 'Iniciar Sesión - Adelante Sumercé',
-        error: 'Usuario o contraseña incorrectos'
+        error: 'Correo electrónico o contraseña incorrectos'
       });
 
     } catch (error) {
-      console.error('Error al procesar login:', error);
+      console.error('Error processing login:', error);
       res.render('auth/login', {
         title: 'Iniciar Sesión - Adelante Sumercé',
-        error: 'Error al procesar la solicitud'
+        error: 'Error processing request'
       });
     }
   }
@@ -80,17 +90,70 @@ class AuthController {
   }
 
    /**
-   * Muestra el formulario de registro
+   * Show registration form
    */
   showRegisterForm(req, res) {
     try {
       res.render('auth/register', {
         title: 'Registro - Adelante Sumercé',
-        error: null
+        error: null,
+        formData: {} // For repopulating form on error
       });
     } catch (error) {
-      console.error('Error al mostrar formulario de registro:', error);
+      console.error('Error showing registration form:', error);
       res.status(500).send('Error interno del servidor');
+    }
+  }
+
+  /**
+   * Process registration form
+   */
+  async processRegister(req, res) {
+    try {
+      const { 
+        email, 
+        password, 
+        confirmPassword, 
+        celular,
+        nombres,
+        apellidos
+      } = req.body;
+
+      // Basic validation
+      if (!email || !password || !confirmPassword || !celular || !nombres || !apellidos) {
+        return res.render('auth/register', {
+          title: 'Registro - Adelante Sumercé',
+          error: 'Por favor complete todos los campos requeridos',
+          formData: req.body
+        });
+      }
+
+      // Register user
+      const user = await authService.register({
+        email,
+        password,
+        confirmPassword,
+        celular,
+        nombres,
+        apellidos
+      });
+
+      // Create session
+      req.session.user = {
+        id: user.id,
+        email: user.email,
+        isAuthenticated: true
+      };
+
+      return res.redirect('/auth/login');
+
+    } catch (error) {
+      console.error('Error in registration:', error);
+      res.render('auth/register', {
+        title: 'Registro - Adelante Sumercé',
+        error: error.message || 'Error al procesar el registro',
+        formData: req.body
+      });
     }
   }
 

@@ -2,17 +2,17 @@ const express = require('express');
 const router = express.Router();
 const authController = require('../controllers/authController');
 
-// Ruta para mostrar el formulario de login
+// Rutas de autenticación
+router.get('/', (req, res) => res.redirect('/auth/login'));
 router.get('/login', authController.showLoginForm);
-
-// Ruta para procesar el login
 router.post('/login', authController.processLogin);
+
+// Rutas de registro
+router.get('/register', authController.showRegisterForm);
+router.post('/register', authController.processRegister);
 
 // Ruta para cerrar sesión
 router.get('/logout', authController.logout);
-
-// Ruta para registro (placeholder)
-router.get('/register', authController.showRegisterForm);
 
 // Ruta para recuperar contraseña
 router.get('/forgot-password', authController.showForgotPassword);

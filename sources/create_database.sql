@@ -7,12 +7,10 @@ CREATE TABLE usuarios (
     id INT AUTO_INCREMENT PRIMARY KEY,
     email VARCHAR(255) UNIQUE NOT NULL,
     password_hash VARCHAR(255) NOT NULL,
-    nombre_encargado VARCHAR(255) NOT NULL,
     contacto_celular VARCHAR(20),
     fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    email_validado BOOLEAN DEFAULT FALSE,
-    token_recuperacion VARCHAR(255),
-    token_expiracion DATETIME
+    nombre VARCHAR(100),
+    apellido VARCHAR(100)
 );
 
 -- Tabla de emprendimientos
