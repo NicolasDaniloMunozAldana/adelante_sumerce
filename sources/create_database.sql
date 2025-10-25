@@ -20,9 +20,11 @@ CREATE TABLE emprendimientos (
     nombre_emprendimiento VARCHAR(255) NOT NULL,
     año_creacion INT,
     sector_economico VARCHAR(100),
+    nombre_encargado VARCHAR(200),
+    contacto_encargado VARCHAR(20),
+    email_encargado VARCHAR(255),
     tiempo_operacion_meses INT,
-    fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    fecha_actualizacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE
 );
 
@@ -34,7 +36,7 @@ CREATE TABLE modelo_negocio (
     segmento_clientes TEXT,
     canales_venta TEXT,
     fuentes_ingreso TEXT,
-    fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (emprendimiento_id) REFERENCES emprendimientos(id) ON DELETE CASCADE
 );
 
@@ -46,7 +48,7 @@ CREATE TABLE finanzas (
     rentabilidad_mensual DECIMAL(15,2),
     fuentes_financiamiento TEXT,
     costos_fijos_mensuales DECIMAL(15,2),
-    fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (emprendimiento_id) REFERENCES emprendimientos(id) ON DELETE CASCADE
 );
 
@@ -57,7 +59,8 @@ CREATE TABLE equipo_trabajo (
     nivel_formacion_empresarial ENUM('sin_formacion', 'tecnica_profesional', 'administracion_emprendimiento'),
     personal_capacitado BOOLEAN,
     roles_definidos BOOLEAN,
-    fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    cantidad_empleados INT,
+    fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (emprendimiento_id) REFERENCES emprendimientos(id) ON DELETE CASCADE
 );
 
@@ -70,7 +73,7 @@ CREATE TABLE impacto_social_ambiental (
     estrategias_ambientales TEXT,
     innovacion_social BOOLEAN,
     implementacion_innovacion TEXT,
-    fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (emprendimiento_id) REFERENCES emprendimientos(id) ON DELETE CASCADE
 );
 
