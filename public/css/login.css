@@ -1,267 +1,216 @@
-/* Importar fuente Poppins */
-@font-face {
-    font-family: 'Poppins';
-    src: url('../poppins/Poppins-Regular.ttf') format('truetype');
-    font-weight: 400;
-    font-style: normal;
-}
+/* Fuente principal */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
 
-@font-face {
-    font-family: 'Poppins';
-    src: url('../poppins/Poppins-Medium.ttf') format('truetype');
-    font-weight: 500;
-    font-style: normal;
-}
-
-@font-face {
-    font-family: 'Poppins';
-    src: url('../poppins/Poppins-SemiBold.ttf') format('truetype');
-    font-weight: 600;
-    font-style: normal;
-}
-
-@font-face {
-    font-family: 'Poppins';
-    src: url('../poppins/Poppins-Bold.ttf') format('truetype');
-    font-weight: 700;
-    font-style: normal;
-}
-
-/* Reset y estilos base */
+/* --- RESET GLOBAL --- */
 * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
 body {
-    font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-    background: linear-gradient(135deg, #e8edf2 0%, #d9e2ea 100%);
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
+  font-family: 'Poppins', sans-serif;
+  background: linear-gradient(135deg, #e8edf2 0%, #d9e2ea 100%);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
 }
 
-/* Contenedor principal */
+/* --- CONTENEDOR PRINCIPAL --- */
 .login-container {
-    width: 100%;
-    max-width: 480px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
 }
 
-/* Tarjeta de login */
 .login-card {
-    background: white;
-    border-radius: 24px;
-    padding: 48px 42px;
-    width: 100%;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-    border: 1px solid rgba(0, 0, 0, 0.06);
+  background: #fff;
+  border-radius: 20px;
+  padding: 45px 40px;
+  width: 380px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+  text-align: center;
+  transition: all 0.3s ease;
 }
 
-/* Logo */
-.logo-container {
-    display: flex;
-    justify-content: center;
-    margin-bottom: 32px;
+.login-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.1);
 }
 
+/* --- LOGO --- */
 .logo {
-    width: 80px;
-    height: 80px;
-    object-fit: contain;
+  width: 65px;
+  margin-bottom: 20px;
 }
 
-/* Título */
+/* --- TÍTULOS --- */
 .login-title {
-    font-size: 28px;
-    font-weight: 700;
-    color: #1a2332;
-    text-align: center;
-    margin-bottom: 12px;
-    letter-spacing: -0.5px;
+  font-size: 1.8em;
+  color: #1c1c1c;
+  font-weight: 700;
+  margin-bottom: 8px;
 }
 
 .login-subtitle {
-    font-size: 15px;
-    color: #6b7280;
-    text-align: center;
-    margin-bottom: 36px;
-    font-weight: 400;
-    line-height: 1.5;
+  color: #6b7280;
+  font-size: 0.95em;
+  margin-bottom: 25px;
 }
 
-/* Mensaje de error */
-.error-message {
-    background-color: #fee;
-    color: #c33;
-    padding: 12px 16px;
-    border-radius: 8px;
-    margin-bottom: 20px;
-    font-size: 14px;
-    text-align: center;
-    border: 1px solid #fcc;
-}
-
-/* Mensaje de éxito */
-.success-message {
-    background-color: #d4edda;
-    color: #155724;
-    padding: 12px 16px;
-    border-radius: 8px;
-    margin-bottom: 20px;
-    font-size: 14px;
-    text-align: center;
-    border: 1px solid #c3e6cb;
-}
-
-/* Formulario */
-.login-form {
-    width: 100%;
-}
-
-.form-group {
-    margin-bottom: 20px;
-}
-
+/* --- INPUTS --- */
 .form-input {
-    width: 100%;
-    padding: 14px 18px;
-    font-size: 15px;
-    font-family: 'Poppins', sans-serif;
-    border: 1.5px solid #d1d5db;
-    border-radius: 12px;
-    outline: none;
-    transition: all 0.2s ease;
-    background-color: #fafbfc;
-    color: #1a2332;
-}
-
-.form-input::placeholder {
-    color: #9ca3af;
-    font-weight: 400;
+  width: 100%;
+  padding: 13px 15px;
+  margin: 10px 0;
+  border: 1.5px solid #d1d5db;
+  border-radius: 12px;
+  outline: none;
+  transition: 0.2s ease;
+  font-size: 15px;
+  background-color: #fafbfc;
 }
 
 .form-input:focus {
-    border-color: #3b82f6;
-    background-color: #ffffff;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  border-color: #3b82f6;
+  background-color: #ffffff;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
-.form-input:hover {
-    border-color: #9ca3af;
-}
-
-/* Olvidaste contraseña */
+/* --- OLVIDAR CONTRASEÑA --- */
 .forgot-password-container {
-    text-align: center;
-    margin-bottom: 28px;
+  text-align: right;
+  margin: 8px 0 20px;
 }
 
 .forgot-password-link {
-    color: #1a2332;
-    font-size: 14px;
-    font-weight: 600;
-    text-decoration: none;
-    transition: color 0.2s ease;
+  color: #1a2332;
+  font-size: 0.85em;
+  font-weight: 500;
+  text-decoration: none;
 }
 
 .forgot-password-link:hover {
-    color: #3b82f6;
+  color: #3b82f6;
 }
 
-/* Botón de inicio de sesión */
+/* --- BOTÓN LOGIN --- */
 .btn-login {
-    width: 100%;
-    padding: 14px 24px;
-    background-color: #2c3e50;
-    color: white;
-    font-size: 16px;
-    font-weight: 600;
-    font-family: 'Poppins', sans-serif;
-    border: none;
-    border-radius: 12px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    margin-bottom: 24px;
-    letter-spacing: 0.3px;
+  width: 100%;
+  padding: 14px;
+  background-color: #2c3e50;
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 15px;
+  cursor: pointer;
+  transition: all 0.2s ease;
 }
 
 .btn-login:hover {
-    background-color: #1a252f;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(44, 62, 80, 0.3);
+  background-color: #1a252f;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(44, 62, 80, 0.3);
 }
 
-.btn-login:active {
-    transform: translateY(0);
-    box-shadow: 0 2px 8px rgba(44, 62, 80, 0.2);
+/* --- DIVISOR --- */
+.divider {
+  margin: 18px 0;
+  position: relative;
+  text-align: center;
+  color: #aaa;
+  font-size: 0.9em;
 }
 
-/* Enlace de registro */
+.divider::before,
+.divider::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  width: 40%;
+  height: 1px;
+  background: #ddd;
+}
+
+.divider::before {
+  left: 0;
+}
+
+.divider::after {
+  right: 0;
+}
+
+/* --- BOTÓN GOOGLE --- */
+.btn-google {
+  margin-top: 10px;
+  width: 100%;
+  padding: 10px 12px;
+  background-color: #fff;
+  border: 1.5px solid #ccc;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-weight: 500;
+  font-size: 15px;
+  color: #444;
+}
+
+.btn-google:hover {
+  background-color: #f8f8f8;
+  border-color: #aaa;
+  transform: translateY(-1px);
+}
+
+.btn-google img {
+  width: 22px; /* 🔹 Más pequeño y equilibrado */
+  height: 22px;
+}
+
+/* --- REGISTRO --- */
 .register-link-container {
-    text-align: center;
+  margin-top: 20px;
 }
 
 .register-text {
-    font-size: 14px;
-    color: #6b7280;
-    font-weight: 400;
+  color: #6b7280;
+  font-size: 0.9em;
 }
 
 .register-link {
-    color: #1a2332;
-    font-weight: 700;
-    text-decoration: none;
-    transition: color 0.2s ease;
+  color: #2c3e50;
+  font-weight: 600;
+  text-decoration: none;
 }
 
 .register-link:hover {
-    color: #3b82f6;
+  color: #3b82f6;
 }
 
-/* Responsive */
-@media (max-width: 520px) {
-    .login-card {
-        padding: 36px 28px;
-        border-radius: 20px;
-    }
+/* --- RESPONSIVE --- */
+@media (max-width: 450px) {
+  .login-card {
+    width: 90%;
+    padding: 30px 25px;
+  }
 
-    .login-title {
-        font-size: 24px;
-    }
+  .login-title {
+    font-size: 1.5em;
+  }
 
-    .login-subtitle {
-        font-size: 14px;
-        margin-bottom: 28px;
-    }
+  .btn-login,
+  .btn-google {
+    font-size: 14px;
+  }
 
-    .logo {
-        width: 70px;
-        height: 70px;
-    }
-
-    .form-input {
-        padding: 12px 16px;
-        font-size: 14px;
-    }
-
-    .btn-login {
-        padding: 12px 20px;
-        font-size: 15px;
-    }
-}
-
-@media (max-width: 380px) {
-    .login-card {
-        padding: 28px 20px;
-    }
-
-    .login-title {
-        font-size: 22px;
-    }
+  .btn-google img {
+    width: 20px;
+    height: 20px;
+  }
 }

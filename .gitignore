@@ -18,3 +18,6 @@ Thumbs.db
 .idea/
 
 package-lock.json
+
+# .gitignore
+/config/firebase-service-account.json

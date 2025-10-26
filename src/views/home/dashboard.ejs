@@ -1,78 +1,250 @@
 <%- include('../partials/header') %>
-<%- include('../partials/navbar') %>
+    <link rel="stylesheet" href="/css/dashboard.css">
+    <%- include('../partials/navbar') %>
 
-<!-- Breadcrumb -->
-<div class="breadcrumb">
-    <span class="breadcrumb-item">> Dashboard</span>
-</div>
+        <!-- Breadcrumb -->
+        <div class="breadcrumb">
+            <span class="breadcrumb-item">> Dashboard</span>
+        </div>
 
-<!-- Content Section -->
-<div class="page-section">
-    <h1 class="page-title">Dashboard</h1>
-    <p class="page-description">
-        Visualiza el estado y progreso de tus emprendimientos registrados en el sistema.
-    </p>
-    <div class="page-content">
-        <p>Contenido del dashboard en desarrollo...</p>
-    </div>
-</div>
+        <div class="dashboard-container">
+            <h1 class="dashboard-title">Dashboard del Emprendimiento</h1>
+            <p class="dashboard-subtitle">
+                Visualiza el estado y progreso de tu emprendimiento basado en la caracterización.
+            </p>
 
-<%- include('../partials/footer') %>
+            <!-- ✅ Sección protegida: si caracterizacion no existe, muestra mensaje -->
+            <% if (typeof caracterizacion !=="undefined" && caracterizacion) { %>
 
-<style>
-/* Page Styles */
-.breadcrumb {
-    margin-bottom: 24px;
-}
+                <!-- Consolidado General -->
+                <div class="dashboard-summary">
+                    <h2>Resumen General</h2>
+                    <div class="summary-card">
+                        <div class="summary-item">
+                            <p class="summary-label">Puntaje total:</p>
+                            <p class="summary-value">
+                                <%= caracterizacion.puntajeTotal %> / 17
+                            </p>
+                        </div>
+                        <div class="summary-item">
+                            <p class="summary-label">Porcentaje:</p>
+                            <p class="summary-value">
+                                <%= caracterizacion.porcentaje %> %
+                            </p>
+                        </div>
+                        <div class="summary-item">
+                            <p class="summary-label">Clasificación:</p>
+                            <p
+                                class="summary-value status-<%= caracterizacion.estado.toLowerCase().replace(' ', '-') %>">
+                                <%= caracterizacion.estado %>
+                            </p>
+                        </div>
+                    </div>
+                </div>
 
-.breadcrumb-item {
-    font-size: 18px;
-    color: #6b7280;
-    font-weight: 400;
-    font-family: 'Poppins', sans-serif;
-}
+                <!-- Gráfica Radar -->
+                <div class="chart-section">
+                    <h2>Desempeño por Dimensión</h2>
+                    <canvas id="radarChart"></canvas>
+                </div>
 
-.page-section {
-    max-width: 1000px;
-}
+                <!-- Barra de Progreso -->
+                <div class="progress-section">
+                    <h2>Nivel de Consolidación</h2>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill">
+                            <span>
+                                <%= caracterizacion.porcentaje %>%
+                            </span>
+                        </div>
+                    </div>
+                </div>
 
-.page-title {
-    font-size: 32px;
-    font-weight: 700;
-    color: #1a2332;
-    margin-bottom: 16px;
-    letter-spacing: -0.5px;
-    font-family: 'Poppins', sans-serif;
-}
+                <!-- Tabla de Puntajes -->
+                <div class="table-section">
+                    <h2>Detalle por Sección</h2>
+                    <table class="score-table">
+                        <thead>
+                            <tr>
+                                <th>Sección</th>
+                                <th>Puntaje</th>
+                                <th>Porcentaje</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% caracterizacion.secciones.forEach(sec=> { %>
+                                <tr>
+                                    <td>
+                                        <%= sec.nombre %>
+                                    </td>
+                                    <td>
+                                        <%= sec.puntaje %>
+                                    </td>
+                                    <td>
+                                        <%= sec.porcentaje %> %
+                                    </td>
+                                </tr>
+                                <% }) %>
+                        </tbody>
+                    </table>
+                </div>
 
-.page-description {
-    font-size: 16px;
-    color: #4b5563;
-    line-height: 1.7;
-    margin-bottom: 32px;
-    font-family: 'Poppins', sans-serif;
-}
+                <% } else { %>
+                    <!-- 🟥 Mensaje de error claro si caracterizacion no fue pasada -->
+                    <div class="alert alert-warning">
+                        <p>No hay datos de caracterización disponibles.</p>
+                        <p>Por favor, complete la caracterización primero.</p>
+                    </div>
+                    <% } %>
+        </div>
 
-.page-content {
-    background: white;
-    border-radius: 16px;
-    padding: 32px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-    border: 1px solid #e5e7eb;
-}
+        <%- include('../partials/footer') %>
 
-/* Responsive */
-@media (max-width: 768px) {
-    .page-title {
-        font-size: 26px;
-    }
+            <%- include('../partials/footer') %>
 
-    .page-description {
-        font-size: 15px;
-    }
+                <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<% if (typeof caracterizacion !== "undefined" && caracterizacion) { %>
+                <script>
+                        // Set progress bar width
+                        document.getElementById('progressFill').style.width = '<%= caracterizacion.porcentaje %>%';
 
-    .page-content {
-        padding: 24px;
-    }
-}
-</style>
+                        // Gráfica radar dinámica
+                        const ctx = document.getElementById('radarChart');
+
+                        // ✅ Corregido: serialización segura desde EJS a JS
+                        const sectionLabels = JSON.parse('<%- JSON.stringify(caracterizacion.secciones.map(s => s.nombre)) %>');
+                        const sectionScores = JSON.parse('<%- JSON.stringify(caracterizacion.secciones.map(s => s.puntaje)) %>');
+
+                        const radarChart = new Chart(ctx, {
+                            type: 'radar',
+                            data: {
+                                labels: sectionLabels,
+                                datasets: [{
+                                    label: 'Puntaje por Sección',
+                                    data: sectionScores,
+                                    backgroundColor: 'rgba(63, 81, 181, 0.2)',
+                                    borderColor: '#3f51b5',
+                                    borderWidth: 2,
+                                    pointBackgroundColor: '#3f51b5'
+                                }]
+                            },
+                            options: {
+                                scales: {
+                                    r: {
+                                        beginAtZero: true,
+                                        max: 3,
+                                        ticks: { stepSize: 1 }
+                                    }
+                                }
+                            }
+                        });
+                </script>
+<% } %>
+                <style>
+                    .dashboard-container {
+                        max-width: 1000px;
+                        margin: 0 auto;
+                        background: #fff;
+                        border-radius: 16px;
+                        padding: 32px;
+                        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+                        font-family: 'Poppins', sans-serif;
+                    }
+
+                    .dashboard-title {
+                        font-size: 30px;
+                        color: #1a2332;
+                        margin-bottom: 8px;
+                    }
+
+                    .dashboard-subtitle {
+                        color: #4b5563;
+                        margin-bottom: 24px;
+                    }
+
+                    .summary-card {
+                        display: flex;
+                        justify-content: space-between;
+                        background: #f9fafb;
+                        padding: 16px;
+                        border-radius: 12px;
+                        margin-bottom: 32px;
+                    }
+
+                    .summary-item {
+                        text-align: center;
+                        flex: 1;
+                    }
+
+                    .summary-label {
+                        font-weight: 500;
+                        color: #6b7280;
+                    }
+
+                    .summary-value {
+                        font-size: 22px;
+                        font-weight: 700;
+                        color: #111827;
+                    }
+
+                    .status-idea-inicial {
+                        color: #ef4444;
+                    }
+
+                    .status-en-desarrollo {
+                        color: #f59e0b;
+                    }
+
+                    .status-consolidado {
+                        color: #10b981;
+                    }
+
+                    .progress-bar {
+                        width: 100%;
+                        background: #e5e7eb;
+                        border-radius: 12px;
+                        height: 25px;
+                        overflow: hidden;
+                        margin-bottom: 24px;
+                    }
+
+                    .progress-fill {
+                        background: linear-gradient(90deg, #3b82f6, #2563eb);
+                        height: 100%;
+                        color: white;
+                        display: flex;
+                        align-items: center;
+                        justify-content: flex-end;
+                        font-size: 14px;
+                        padding-right: 8px;
+                        border-radius: 12px;
+                        transition: width 0.5s ease;
+                    }
+
+                    .score-table {
+                        width: 100%;
+                        border-collapse: collapse;
+                        margin-top: 16px;
+                    }
+
+                    .score-table th,
+                    .score-table td {
+                        padding: 10px;
+                        border-bottom: 1px solid #e5e7eb;
+                        text-align: left;
+                    }
+
+                    .score-table th {
+                        background: #f3f4f6;
+                        font-weight: 600;
+                        color: #374151;
+                    }
+
+                    .alert {
+                        background: #fff8e1;
+                        border-left: 4px solid #f59e0b;
+                        padding: 16px;
+                        border-radius: 8px;
+                        margin: 20px 0;
+                    }
+                </style>
