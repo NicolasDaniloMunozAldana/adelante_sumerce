@@ -5,8 +5,12 @@
             <h1 class="header-title">Salga Adelante Sumercé</h1>
         </div>
         <div class="header-right">
-            <button class="btn-header" onclick="window.location.href='/login'">Iniciar Sesión</button>
             <div class="user-profile">
+                <% if (typeof user !== 'undefined' && user) { %>
+                    <div class="user-info">
+                        <span class="user-name"><%= user.firstName %> <%= user.lastName %></span>
+                    </div>
+                <% } %>
                 <img src="/user.png" alt="Usuario" class="user-icon" id="userIcon">
                 <!-- Dropdown Menu -->
                 <div class="user-dropdown" id="userDropdown">

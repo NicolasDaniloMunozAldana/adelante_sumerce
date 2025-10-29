@@ -19,7 +19,15 @@ class AuthController {
 
   async processLogin(req, res) {
     try {
-      const { username, password } = req.body;
+      const { email, password } = req.body;
+
+      // Basic validation
+      if (!email || !password) {
+        return res.render('auth/login', {
+          title: 'Iniciar Sesión - Adelante Sumercé',
+          error: 'Por favor ingrese su correo electrónico y contraseña'
+        });
+      }
 
       if (!username || !password) {
         return res.render("auth/login", {
