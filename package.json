@@ -2,6 +2,14 @@
   "name": "adelante_sumerce",
   "version": "1.0.0",
   "description": "Adelante Sumerce - Sistema de gestión comercial",
+  "homepage": "https://github.com/NicolasDaniloMunozAldana/adelante_sumerce#readme",
+  "bugs": {
+    "url": "https://github.com/NicolasDaniloMunozAldana/adelante_sumerce/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/NicolasDaniloMunozAldana/adelante_sumerce.git"
+  },
   "license": "ISC",
   "author": "",
   "type": "commonjs",
