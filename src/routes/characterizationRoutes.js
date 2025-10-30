@@ -10,4 +10,7 @@ router.get('/', ensureAuthenticated ,characterizationController.showCharacteriza
 // Guardar caracterización
 router.post('/save', ensureAuthenticated, characterizationController.saveCharacterization);
 
+// Resultados de caracterización
+router.get('/resultados/:businessId', ensureAuthenticated, characterizationController.getCharacterizationResults);
+
 module.exports = router;

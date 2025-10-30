@@ -28,6 +28,36 @@ class AuthController {
     try {
       const { email, password } = req.body;
 
+      // DEMO login (sin BD): acepta credenciales quemadas cuando DEMO_MODE está activo
+      if (process.env.DEMO_MODE === '1' || process.env.DEMO_MODE === 'true') {
+        const ok = (email === 'user' || email === 'user@demo.com') && password === '123';
+        if (ok) {
+          req.session.user = {
+            id: 1,
+            email: 'user@demo.com',
+            firstName: 'Usuario',
+            lastName: 'Demo',
+            isAuthenticated: true
+          };
+          return res.redirect('/home');
+        }
+        // En modo demo permitimos cualquier correo con pass 123 para facilitar pruebas
+        if (password === '123') {
+          req.session.user = {
+            id: 1,
+            email: email,
+            firstName: 'Usuario',
+            lastName: 'Demo',
+            isAuthenticated: true
+          };
+          return res.redirect('/home');
+        }
+        return res.render('auth/login', {
+          title: 'Iniciar Sesión - Adelante Sumercé',
+          error: 'Use user@demo.com o user con contraseña 123 (DEMO)'
+        });
+      }
+
       // Basic validation
       if (!email || !password) {
         return res.render('auth/login', {
