@@ -3,8 +3,9 @@ const sequelize = require('../config/database');
 
 class CharacterizationService {
     calculateOperationTimeScore(operationMonths) {
+        // Model enum: '0_6_meses', '6_12_meses', '12_24_meses', 'mas_24_meses'
         switch (operationMonths) {
-            case 'menos_6_meses': return 0;
+            case '0_6_meses': return 0;
             case '6_12_meses': return 1;
             case '12_24_meses': return 2;
             case 'mas_24_meses': return 3;
@@ -15,25 +16,26 @@ class CharacterizationService {
     calculateFinanceScores(financeData) {
         let score = 0;
 
-        // Ventas netas mensuales
+        // Ventas netas mensuales (model: 'menos_1_smmlv','1_3_smmlv','3_6_smmlv','mas_6_smmlv')
         switch (financeData.monthlyNetSales) {
             case 'menos_1_smmlv': score += 0; break;
             case '1_3_smmlv': score += 1; break;
-            case '3_mas_smmlv': score += 2; break;
+            case '3_6_smmlv': score += 2; break;
+            case 'mas_6_smmlv': score += 2; break; // top tier
         }
 
-        // Rentabilidad mensual
+        // Rentabilidad mensual (model: 'baja_menos_1_smmlv','medio_1_smmlv','alta_mas_3_smmlv')
         switch (financeData.monthlyProfitability) {
-            case 'menos_medio_smmlv': score += 0; break;
+            case 'baja_menos_1_smmlv': score += 0; break;
             case 'medio_1_smmlv': score += 1; break;
-            case '2_mas_smmlv': score += 2; break;
+            case 'alta_mas_3_smmlv': score += 2; break;
         }
 
-        // Costos fijos mensuales
+        // Costos fijos mensuales (model: 'bajo_menos_1_smmlv','medio_1_smmlv','alto_mas_3_smmlv')
         switch (financeData.monthlyFixedCosts) {
-            case 'menos_medio_smmlv': score += 0; break;
+            case 'bajo_menos_1_smmlv': score += 2; break; // lower costs -> better score
             case 'medio_1_smmlv': score += 1; break;
-            case '2_mas_smmlv': score += 2; break;
+            case 'alto_mas_3_smmlv': score += 0; break;
         }
 
         return score;
@@ -67,6 +69,29 @@ class CharacterizationService {
         return 'consolidado';
     }
 
+    // Map form values to model enums for Finance
+    mapFinanceFormToEnums(finance) {
+        const mapped = { ...finance };
+        // monthlyNetSales: form may send '3_mas_smmlv'
+        if (mapped.monthlyNetSales === '3_mas_smmlv') mapped.monthlyNetSales = 'mas_6_smmlv';
+        // monthlyProfitability: form 'menos_medio_smmlv'|'medio_1_smmlv'|'2_mas_smmlv'
+        if (mapped.monthlyProfitability === 'menos_medio_smmlv') mapped.monthlyProfitability = 'baja_menos_1_smmlv';
+        if (mapped.monthlyProfitability === '2_mas_smmlv') mapped.monthlyProfitability = 'alta_mas_3_smmlv';
+        // monthlyFixedCosts: form 'menos_medio_smmlv'|'medio_1_smmlv'|'2_mas_smmlv'
+        if (mapped.monthlyFixedCosts === 'menos_medio_smmlv') mapped.monthlyFixedCosts = 'bajo_menos_1_smmlv';
+        if (mapped.monthlyFixedCosts === '2_mas_smmlv') mapped.monthlyFixedCosts = 'alto_mas_3_smmlv';
+        // financingSources
+        const financeMap = {
+            'recursos_propios': 'propios',
+            'credito_bancario': 'credito_bancario',
+            'inversionistas': 'inversion_externa',
+            'subsidios': 'otro',
+            'mixto': 'otro'
+        };
+        if (financeMap[mapped.financingSources]) mapped.financingSources = financeMap[mapped.financingSources];
+        return mapped;
+    }
+
     async saveCharacterization(businessData, businessModelData, financeData, workTeamData) {
         const t = await sequelize.transaction();
 
@@ -80,8 +105,9 @@ class CharacterizationService {
             await BusinessModel.create(businessModelData, { transaction: t });
 
             // 3. Crear finanzas
-            financeData.businessId = businessId;
-            await Finance.create(financeData, { transaction: t });
+            const mappedFinance = this.mapFinanceFormToEnums(financeData);
+            mappedFinance.businessId = businessId;
+            await Finance.create(mappedFinance, { transaction: t });
 
             // 4. Crear equipo de trabajo
             workTeamData.businessId = businessId;
@@ -89,7 +115,7 @@ class CharacterizationService {
 
             // 5. Calcular puntajes
             const operationTimeScore = this.calculateOperationTimeScore(businessData.operationMonths);
-            const financeScore = this.calculateFinanceScores(financeData);
+            const financeScore = this.calculateFinanceScores(mappedFinance);
             const workTeamScore = this.calculateWorkTeamScores(workTeamData);
 
             const totalScore = operationTimeScore + financeScore + workTeamScore;

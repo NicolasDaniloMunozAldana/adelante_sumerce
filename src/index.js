@@ -4,17 +4,27 @@ const session = require('express-session');
 const sequelize = require('./config/database');
 require('dotenv').config();
 
+// Auto DEMO fallback if DB env vars are missing
+if (!process.env.DB_NAME || !process.env.DB_USER || !process.env.DB_PASSWORD) {
+  process.env.DEMO_MODE = '1';
+  console.log('🟡 DEMO fallback: variables de BD faltantes. Ejecutando en modo DEMO sin MySQL.');
+}
+
 const app = express();
 const PORT = process.env.PORT || 3030;
 
-// Test database connection
-sequelize.authenticate()
-  .then(() => {
-    console.log('Conexión a la base de datos establecida correctamente.');
-  })
-  .catch(err => {
-    console.error('No se pudo conectar a la base de datos:', err);
-  });
+// Test database connection (skip in demo mode)
+if (process.env.DEMO_MODE === '1' || process.env.DEMO_MODE === 'false') {
+  console.log('🟡 DEMO_MODE activo: omitiendo conexión a la base de datos.');
+} else {
+  sequelize.authenticate()
+    .then(() => {
+      console.log('Conexión a la base de datos establecida correctamente.');
+    })
+    .catch(err => {
+      console.error('No se pudo conectar a la base de datos:', err);
+    });
+}
 
 // Configuración del motor de plantillas EJS
 app.set('view engine', 'ejs');
@@ -39,20 +49,24 @@ app.use(session({
 // Importar rutas
 const authRoutes = require('./routes/authRoutes');
 const homeRoutes = require('./routes/homeRoutes');
-const characterizationRoutes = require('./routes/characterizationRoutes');
 
 // Usar rutas
 app.use('/', authRoutes); // Rutas de autenticación bajo
 app.use('/', homeRoutes); // Rutas principales en la raíz
-app.use('/caracterizacion', characterizationRoutes); // Rutas de caracterización
 
 // Ruta por defecto - redirecciona al login si no está autenticado
 app.get('/', (req, res) => {
   if (!req.session.user) {
-    res.redirect('/auth/login');
+    res.redirect('/login');
   } else {
     res.redirect('/home');
   }
+});
+
+// Log para debugging de rutas
+app.use((req, res, next) => {
+  console.log(`${req.method} ${req.url}`);
+  next();
 });
 
 // Manejo de errores 404

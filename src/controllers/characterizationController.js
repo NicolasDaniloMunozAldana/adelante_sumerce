@@ -88,7 +88,8 @@ exports.getCharacterizationResults = async (req, res) => {
     try {
         const businessId = req.params.businessId;
         const results = await characterizationService.getCharacterizationResults(businessId);
-        
+
+        // Si el cliente pide JSON explícitamente
         if (req.headers['accept'] === 'application/json') {
             res.json({
                 success: true,
@@ -103,7 +104,7 @@ exports.getCharacterizationResults = async (req, res) => {
         }
     } catch (error) {
         console.error('Error al obtener resultados de caracterización:', error);
-        if (req.headers['accept'] === 'application/json') {
+        if (req.headers['accept'] && req.headers['accept'].includes('application/json')) {
             res.status(500).json({
                 success: false,
                 message: 'Error al obtener resultados',
