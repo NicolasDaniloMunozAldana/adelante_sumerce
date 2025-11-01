@@ -96,7 +96,7 @@ exports.getCharacterizationResults = async (req, res) => {
             });
         } else {
             // Renderizar la vista con los resultados
-            res.render('', {
+            res.render('home/dashboard', {
                 business: results,
                 rating: results.Rating
             });

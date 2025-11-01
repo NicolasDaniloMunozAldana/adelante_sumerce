@@ -6,8 +6,8 @@ class CharacterizationService {
         switch (operationMonths) {
             case 'menos_6_meses': return 0;
             case '6_12_meses': return 1;
-            case '1_3_anios': return 2;
-            case '4_mas_anios': return 3;
+            case '12_24_meses': return 2;
+            case 'mas_24_meses': return 3;
             default: return 0;
         }
     }

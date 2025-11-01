@@ -559,7 +559,7 @@ document.getElementById('caracterizacionForm').addEventListener('submit', functi
             if (result.success) {
                 alert('¡Caracterización guardada exitosamente!');
                 // Redirigir a la página de resultados
-                window.location.href = `/caracterizacion/resultados/${result.data.business.id}`;
+                window.location.href = `/dashboard`;
             } else {
                 alert('Error al guardar la caracterización: ' + result.message);
             }
