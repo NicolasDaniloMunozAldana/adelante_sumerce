@@ -1,27 +1,11 @@
-const User = require('./User');
-const Business = require('./Business');
-const BusinessModel = require('./BusinessModel');
-const Finance = require('./Finance');
-const WorkTeam = require('./WorkTeam');
-const SocialEnvironmentalImpact = require('./SocialEnvironmentalImpact');
-const Rating = require('./Rating');
+// TODO: Importar modelos específicos de ADELANTE SUMERCE
+// const ModelExample = require('./modelExample');
 
-// Define relationships
-User.hasMany(Business, { foreignKey: 'usuario_id' });
-Business.belongsTo(User, { foreignKey: 'usuario_id' });
-
-Business.hasOne(BusinessModel, { foreignKey: 'emprendimiento_id' });
-Business.hasOne(Finance, { foreignKey: 'emprendimiento_id' });
-Business.hasOne(WorkTeam, { foreignKey: 'emprendimiento_id' });
-Business.hasOne(SocialEnvironmentalImpact, { foreignKey: 'emprendimiento_id' });
-Business.hasOne(Rating, { foreignKey: 'emprendimiento_id' });
+// TODO: Definir relaciones entre modelos de ADELANTE SUMERCE
+// Ejemplo de relaciones:
+// ModelA.belongsTo(ModelB, { foreignKey: 'model_b_id' });
+// ModelB.hasMany(ModelA, { foreignKey: 'model_b_id' });
 
 module.exports = {
-  User,
-  Business,
-  BusinessModel,
-  Finance,
-  WorkTeam,
-  SocialEnvironmentalImpact,
-  Rating
+  // TODO: Exportar modelos de ADELANTE SUMERCE
 };

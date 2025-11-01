@@ -33,7 +33,7 @@
 
     <!-- Formulario Multi-sección -->
     <div class="form-card">
-        <form id="caracterizacionForm" method="POST" action="/caracterizacion/save">
+        <form id="caracterizacionForm" method="POST" action="/caracterizacion/guardar">
             
             <!-- SECCIÓN A: Datos Generales -->
             <div class="form-section active" data-section="1">
@@ -130,10 +130,10 @@
                         <label for="tiempoOperacion" class="form-label">Tiempo de operación</label>
                         <select id="tiempoOperacion" name="tiempoOperacion" class="form-input" required>
                             <option value="">Seleccione una opción</option>
-                            <option value="0_6_meses">Menos de 6 meses</option>
+                            <option value="menos_6_meses">Menos de 6 meses</option>
                             <option value="6_12_meses">6 a 12 meses</option>
-                            <option value="12_24_meses">1 a 3 años</option>
-                            <option value="mas_24_meses">4 años o más</option>
+                            <option value="1_3_anios">1 a 3 años</option>
+                            <option value="4_mas_anios">4 años o más</option>
                         </select>
                         <span class="error-message"></span>
                     </div>
@@ -307,21 +307,6 @@
                             <option value="si">Sí</option>
                             <option value="no">No</option>
                         </select>
-                        <span class="error-message"></span>
-                    </div>
-                </div>
-
-                <div class="form-row">
-                    <div class="form-group full-width">
-                        <label for="cantidadEmpleados" class="form-label">Cantidad de empleados</label>
-                        <input 
-                            type="number" 
-                            id="cantidadEmpleados" 
-                            name="cantidadEmpleados" 
-                            class="form-input"
-                            min="0"
-                            required
-                        >
                         <span class="error-message"></span>
                     </div>
                 </div>
@@ -539,35 +524,9 @@ document.getElementById('caracterizacionForm').addEventListener('submit', functi
     }
     
     if (allValid) {
-        // Recoger todos los datos del formulario
-        const formData = new FormData(this);
-        const data = {};
-        formData.forEach((value, key) => {
-            data[key] = value;
-        });
-
-        // Enviar datos al servidor
-        fetch('/caracterizacion/save', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(data)
-        })
-        .then(response => response.json())
-        .then(result => {
-            if (result.success) {
-                alert('¡Caracterización guardada exitosamente!');
-                // Redirigir a la página de resultados
-                window.location.href = `/caracterizacion/resultados/${result.data.business.id}`;
-            } else {
-                alert('Error al guardar la caracterización: ' + result.message);
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('Error al guardar la caracterización. Por favor, intente nuevamente.');
-        });
+        // Aquí puedes enviar el formulario
+        alert('Formulario válido. Listo para enviar al servidor.');
+        // this.submit(); // Descomentar cuando tengas el backend listo
     }
 });
 </script>
