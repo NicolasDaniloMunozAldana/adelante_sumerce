@@ -145,8 +145,10 @@ class AuthController {
         isAuthenticated: true
       };
 
-      return res.redirect('/login');
-
+      res.render('auth/login', {
+        title: 'Iniciar Sesión - Adelante Sumercé',
+        error: null
+      });
     } catch (error) {
       console.error('Error in registration:', error);
       res.render('auth/register', {
