@@ -167,8 +167,8 @@ class AdminReportService {
         /* Tabla */
         table { width: 100%; border-collapse: collapse; }
         .table { border: 1px solid var(--border); border-radius: 10px; overflow: hidden; background: #fff; }
-        .table thead th { background: #f9fafb; font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; text-align: left; padding: 10px 12px; font-weight: 600; }
-        .table tbody td { padding: 12px; border-top: 1px solid var(--border); font-size: 13px; color: var(--text); }
+        .table thead th { background: #f9fafb; font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; text-align: center; padding: 10px 12px; font-weight: 600; }
+        .table tbody td { padding: 12px; border-top: 1px solid var(--border); font-size: 13px; color: var(--text); text-align: center; vertical-align: middle; }
         .text-center { text-align: center; }
 
         /* Progreso */
