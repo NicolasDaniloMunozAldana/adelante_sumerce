@@ -31,4 +31,7 @@ router.get('/api/users', adminController.getAllUsers);
 router.get('/reportes/generar-pdf', adminController.generateComparativePDF);
 router.get('/reportes/generar-excel', adminController.generateComparativeExcel);
 
+// Ruta para generar reporte individual de un emprendimiento
+router.get('/emprendimientos/:id/generar-pdf', adminController.generateBusinessPDF);
+
 module.exports = router;
