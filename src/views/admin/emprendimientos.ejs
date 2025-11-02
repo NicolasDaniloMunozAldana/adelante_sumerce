@@ -169,183 +169,152 @@
         color: #0f5132;
     }
     
-    .btn-view {
-        background: #667eea;
-        color: white;
-        padding: 8px 16px;
-        border-radius: 6px;
-        text-decoration: none;
-        font-size: 13px;
-        font-weight: 500;
-        transition: all 0.3s ease;
-        display: inline-block;
-    }
-    
-    .btn-view:hover {
-        background: #5568d3;
-        transform: translateY(-2px);
-        box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
-    }
-    
-    .empty-state {
-        text-align: center;
-        padding: 60px 20px;
-        color: #999;
-    }
-    
-    .empty-state-icon {
-        font-size: 64px;
-        margin-bottom: 20px;
-    }
-    
-    .empty-state h3 {
-        color: #666;
-        margin-bottom: 10px;
-    }
-    
-    .loading {
-        text-align: center;
-        padding: 60px 20px;
-        color: #667eea;
-    }
-    
-    .loading-spinner {
-        border: 4px solid #f3f3f3;
-        border-top: 4px solid #667eea;
-        border-radius: 50%;
-        width: 50px;
-        height: 50px;
-        animation: spin 1s linear infinite;
-        margin: 0 auto 20px auto;
-    }
-    
-    @keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
-    }
-    
-    .user-info {
-        display: flex;
-        flex-direction: column;
-        gap: 5px;
-    }
-    
-    .user-name {
-        font-weight: 500;
-        color: #333;
-    }
-    
-    .user-email {
-        font-size: 12px;
-        color: #999;
-    }
-
     /* Cards Grid */
     .businesses-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-        gap: 25px;
-        margin-bottom: 30px;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 24px;
+        margin-bottom: 24px;
     }
 
     .business-card {
-        background: white;
-        border-radius: 16px;
-        padding: 25px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        background: #ffffff;
+        border-radius: 14px;
+        padding: 22px;
         border: 1px solid #e9ecef;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+        transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+        position: relative;
+        overflow: hidden;
     }
 
     .business-card:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        transform: translateY(-3px);
+        box-shadow: 0 10px 24px rgba(0, 0, 0, 0.08);
+        border-color: #dee3ea;
     }
 
-    .business-card-header {
+    .card-top {
         display: flex;
         justify-content: space-between;
-        align-items: flex-start;
-        margin-bottom: 15px;
-        padding-bottom: 15px;
-        border-bottom: 2px solid #f1f5f9;
+        align-items: center;
+        margin-bottom: 12px;
     }
 
     .business-id {
         font-size: 12px;
-        color: #999;
+        color: #64748b;
         font-weight: 600;
-        background: #f8f9fa;
+        background: #f1f5f9;
         padding: 4px 10px;
-        border-radius: 6px;
+        border-radius: 999px;
     }
 
     .business-name {
         font-size: 20px;
         font-weight: 700;
         color: #1a2332;
-        margin: 15px 0 10px 0;
+        margin: 10px 0 12px 0;
         line-height: 1.3;
     }
 
-    .business-info {
-        margin: 12px 0;
-    }
-
-    .info-row {
+    .user-line {
         display: flex;
         align-items: center;
+        gap: 10px;
+        margin-bottom: 8px;
+    }
+
+    .user-avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #eef2f7, #e9eef5);
+        border: 1px solid #e5e9f0;
+    }
+
+    .user-name { font-weight: 600; color: #1f2937; }
+    .user-email { font-size: 12px; color: #94a3b8; }
+
+    .chips-row {
+        display: flex;
         gap: 8px;
-        margin: 8px 0;
-        font-size: 14px;
-        color: #555;
+        flex-wrap: wrap;
+        margin: 10px 0 6px 0;
     }
 
-    .info-icon {
-        font-size: 16px;
-        width: 20px;
-    }
-
-    .info-label {
-        font-weight: 500;
-        color: #6b7280;
-    }
-
-    .business-score {
-        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-        padding: 15px;
-        border-radius: 12px;
-        margin: 15px 0;
-        text-align: center;
-    }
-
-    .score-number {
-        font-size: 28px;
-        font-weight: 700;
-        color: #3b82f6;
-        margin-bottom: 5px;
-    }
-
-    .score-label {
-        font-size: 12px;
-        color: #6b7280;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-
-    .business-card-footer {
-        display: flex;
-        justify-content: space-between;
+    .chip {
+        display: inline-flex;
         align-items: center;
-        margin-top: 15px;
-        padding-top: 15px;
+        gap: 6px;
+        padding: 4px 10px;
+        background: #f1f5f9;
+        color: #475569;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 600;
+        border: 1px solid #e5e9f0;
+    }
+
+    .chip-date { color: #64748b; }
+
+    .score-row { margin-top: 8px; }
+
+    .score-main {
+        display: flex;
+        align-items: baseline;
+        gap: 8px;
+        margin-bottom: 8px;
+    }
+
+    .score-strong { font-weight: 700; color: #111827; }
+    .score-percentage { font-weight: 600; color: #667eea; }
+
+    .score-progress {
+        width: 100%;
+        height: 8px;
+        background: #eef2f7;
+        border-radius: 999px;
+        overflow: hidden;
+    }
+
+    .score-progress-bar {
+        height: 100%;
+        width: 0;
+        background: linear-gradient(90deg, #667eea, #3b82f6);
+        border-radius: 999px;
+        transition: width 900ms ease;
+    }
+
+    .business-card-footer,
+    .card-actions {
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        margin-top: 14px;
+        padding-top: 12px;
         border-top: 1px solid #e9ecef;
     }
 
-    .business-date {
-        font-size: 12px;
-        color: #999;
+    .btn-view {
+        background: #667eea;
+        color: white;
+        padding: 9px 16px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-size: 13px;
+        font-weight: 600;
+        transition: all 0.25s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        white-space: nowrap;
     }
+
+    .btn-view:hover { background: #5568d3; transform: translateY(-2px); box-shadow: 0 6px 14px rgba(102,126,234,0.35); }
+
+    .fade-in { animation: fadeInUp 0.3s ease both; }
+    @keyframes fadeInUp { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
 
     /* Pagination */
     .pagination-container {
@@ -353,7 +322,7 @@
         justify-content: center;
         align-items: center;
         gap: 15px;
-        margin-top: 30px;
+        margin-top: 24px;
     }
 
     .pagination-info {
@@ -362,10 +331,7 @@
         font-weight: 500;
     }
 
-    .pagination-buttons {
-        display: flex;
-        gap: 10px;
-    }
+    .pagination-buttons { display: flex; gap: 10px; }
 
     .pagination-btn {
         padding: 10px 18px;
@@ -380,60 +346,16 @@
         font-family: 'Poppins', sans-serif;
     }
 
-    .pagination-btn:hover:not(:disabled) {
-        background: #667eea;
-        color: white;
-        transform: translateY(-2px);
-        box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
-    }
+    .pagination-btn:hover:not(:disabled) { background: #667eea; color: white; transform: translateY(-2px); box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3); }
+    .pagination-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
-    .pagination-btn:disabled {
-        opacity: 0.4;
-        cursor: not-allowed;
-    }
-
-    .page-numbers {
-        display: flex;
-        gap: 5px;
-    }
-
-    .page-number {
-        width: 40px;
-        height: 40px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: white;
-        color: #667eea;
-        border: 2px solid #e9ecef;
-        border-radius: 8px;
-        font-size: 14px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        font-family: 'Poppins', sans-serif;
-    }
-
-    .page-number:hover {
-        border-color: #667eea;
-        background: #f8f9fa;
-    }
-
-    .page-number.active {
-        background: #667eea;
-        color: white;
-        border-color: #667eea;
-    }
+    .page-numbers { display: flex; gap: 5px; }
+    .page-number { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; background: white; color: #667eea; border: 2px solid #e9ecef; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s ease; font-family: 'Poppins', sans-serif; }
+    .page-number:hover { border-color: #667eea; background: #f8f9fa; }
+    .page-number.active { background: #667eea; color: white; border-color: #667eea; }
 
     @media (max-width: 768px) {
-        .businesses-grid {
-            grid-template-columns: 1fr;
-        }
-
-        .pagination-container {
-            flex-direction: column;
-            gap: 20px;
-        }
+        .pagination-container { flex-direction: column; gap: 20px; }
     }
 </style>
 
@@ -500,7 +422,7 @@
         </div>
         
         <div id="emptyState" class="empty-state" style="display: none;">
-            <div class="empty-state-icon">📭</div>
+            <div class="empty-state-icon"></div>
             <h3>No se encontraron emprendimientos</h3>
             <p>No hay emprendimientos registrados que coincidan con los filtros.</p>
         </div>
@@ -531,7 +453,7 @@
     let allBusinesses = [];
     let filteredBusinesses = [];
     let currentPage = 1;
-    const itemsPerPage = 5;
+    const itemsPerPage = 6;
     
     // Cargar datos al iniciar
     document.addEventListener('DOMContentLoaded', function() {
@@ -634,9 +556,7 @@
         const endIndex = startIndex + itemsPerPage;
         const currentBusinesses = filteredBusinesses.slice(startIndex, endIndex);
         
-
-        
-        // Renderizar tarjetas
+        // Renderizar tarjetas (nuevo diseño)
         grid.innerHTML = currentBusinesses.map(business => {            
             const classification = business.Rating?.globalClassification || 'N/A';
             const classificationLabel = getClassificationLabel(classification);
@@ -651,55 +571,56 @@
             const userEmail = business.User?.email || '';
             
             const date = new Date(business.registrationDate);
-            const formattedDate = date.toLocaleDateString('es-CO', {
-                year: 'numeric',
-                month: 'short',
-                day: 'numeric'
-            });
+            const formattedDate = isNaN(date.getTime()) ? '-' : date.toLocaleDateString('es-CO', { year: 'numeric', month: 'short', day: 'numeric' });
             
             return `
-                <div class="business-card">
-                    <div class="business-card-header">
+                <div class="business-card fade-in">
+                    <div class="card-top">
+                        <span class="badge ${badgeClass}">${classificationLabel}</span>
                         <span class="business-id">#${business.id}</span>
-                        <span class="badge ${badgeClass}">
-                            ${classificationLabel}
-                        </span>
                     </div>
-                    
+
                     <h3 class="business-name">${business.name}</h3>
-                    
-                    <div class="business-info">
-                        <div class="info-row">
-                            <span class="info-icon"></span>
-                            <div>
-                                <div class="user-name">${userName}</div>
-                                <div class="user-email">${userEmail}</div>
-                            </div>
-                        </div>
-                        <div class="info-row">
-                            <span class="info-icon"></span>
-                            <span>${getSectorLabel(business.economicSector)}</span>
-                        </div>
-                        <div class="info-row">
-                            <span class="info-icon"></span>
-                            <span>${formattedDate}</span>
+
+                    <div class="user-line">
+                        <span class="user-avatar" aria-hidden="true"></span>
+                        <div>
+                            <div class="user-name">${userName}</div>
+                            <div class="user-email">${userEmail}</div>
                         </div>
                     </div>
-                    
-                    <div class="business-score">
-                        <div class="score-number">${score}/${maxScore}</div>
-                        <div class="score-label">Puntaje Total (${percentage.toFixed(1)}%)</div>
+
+                    <div class="chips-row">
+                        <span class="chip">${getSectorLabel(business.economicSector)}</span>
+                        <span class="chip chip-date">${formattedDate}</span>
                     </div>
-                    
-                    <div class="business-card-footer">
-                        <a href="/admin/emprendimientos/${business.id}" class="btn-view">
-                            Ver Detalles →
-                        </a>
+
+                    <div class="score-row">
+                        <div class="score-main">
+                            <span class="score-strong">${score}/${maxScore}</span>
+                            <span class="score-percentage">${percentage.toFixed(1)}%</span>
+                        </div>
+                        <div class="score-progress">
+                            <div class="score-progress-bar" data-width="${percentage}"></div>
+                        </div>
+                    </div>
+
+                    <div class="card-actions">
+                        <a href="/admin/emprendimientos/${business.id}" class="btn-view">Ver Detalles →</a>
                     </div>
                 </div>
             `;
         }).join('');
-                
+
+        // Animaciones de progreso
+        requestAnimationFrame(() => {
+            document.querySelectorAll('.score-progress-bar').forEach((bar, i) => {
+                const width = parseFloat(bar.getAttribute('data-width')) || 0;
+                const clamped = Math.max(0, Math.min(100, width));
+                setTimeout(() => { bar.style.width = clamped + '%'; }, 70 + i * 40);
+            });
+        });
+        
         // Renderizar paginación
         renderPagination(totalPages);
     }
@@ -714,7 +635,6 @@
         // Información de página
         const startItem = (currentPage - 1) * itemsPerPage + 1;
         const endItem = Math.min(currentPage * itemsPerPage, filteredBusinesses.length);
-        paginationInfo.textContent = `Mostrando ${startItem}-${endItem} de ${filteredBusinesses.length} emprendimientos`;
         
         // Botones de página
         pageNumbers.innerHTML = '';
