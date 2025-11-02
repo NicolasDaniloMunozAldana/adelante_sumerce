@@ -1,3 +1,58 @@
+<%
+// Función para formatear los valores del formulario
+function formatValue(field, value) {
+    const formats = {
+        sectorEconomico: {
+            'agricultura': 'Agricultura, ganadería y pesca',
+            'manufactura': 'Manufactura',
+            'comercio': 'Comercio',
+            'servicios': 'Servicios',
+            'tecnologia': 'Tecnología',
+            'turismo': 'Turismo',
+            'construccion': 'Construcción',
+            'otro': 'Otro'
+        },
+        tiempoOperacion: {
+            '0_6_meses': 'Menos de 6 meses',
+            '6_12_meses': '6 a 12 meses',
+            '12_24_meses': '1 a 3 años',
+            'mas_24_meses': '4 años o más'
+        },
+        ventasNetas: {
+            'menos_1_smmlv': 'Menos de 1 SMMLV',
+            '1_3_smmlv': '1 - 3 SMMLV',
+            '3_mas_smmlv': '3 o más SMMLV'
+        },
+        rentabilidad: {
+            'menos_medio_smmlv': 'Menos de ½ SMMLV',
+            'medio_1_smmlv': '½ y 1 SMMLV',
+            '2_mas_smmlv': '2 o más SMMLV'
+        },
+        fuentesFinanciamiento: {
+            'recursos_propios': 'Recursos propios',
+            'credito_bancario': 'Crédito bancario',
+            'inversionistas': 'Inversionistas',
+            'subsidios': 'Subsidios gubernamentales',
+            'mixto': 'Mixto'
+        },
+        costosFijos: {
+            'menos_medio_smmlv': 'Menos de ½ SMMLV',
+            'medio_1_smmlv': '½ y 1 SMMLV',
+            '2_mas_smmlv': '2 o más SMMLV'
+        },
+        formacionEmpresarial: {
+            'sin_formacion': 'Sin formación empresarial',
+            'tecnica_profesional': 'Con formación técnica/profesional',
+            'administracion_emprendimiento': 'Con formación en administración/emprendimiento'
+        }
+    };
+    
+    if (formats[field] && formats[field][value]) {
+        return formats[field][value];
+    }
+    return value;
+}
+%>
 <%- include('../partials/header') %>
 <link rel="stylesheet" href="/css/dashboard.css">
 <link rel="stylesheet" href="/css/caracterizacion.css">
@@ -355,7 +410,7 @@
                             type="text" 
                             id="sectorEconomico" 
                             class="form-input"
-                            value="<%= formData.sectorEconomico %>"
+                            value="<%= formatValue('sectorEconomico', formData.sectorEconomico) %>"
                             readonly
                         >
                     </div>
@@ -404,7 +459,7 @@
                             type="text" 
                             id="tiempoOperacion" 
                             class="form-input"
-                            value="<%= formData.tiempoOperacion %>"
+                            value="<%= formatValue('tiempoOperacion', formData.tiempoOperacion) %>"
                             readonly
                         >
                     </div>
@@ -481,7 +536,7 @@
                             type="text" 
                             id="ventasNetas" 
                             class="form-input"
-                            value="<%= formData.ventasNetas %>"
+                            value="<%= formatValue('ventasNetas', formData.ventasNetas) %>"
                             readonly
                         >
                     </div>
@@ -491,7 +546,7 @@
                             type="text" 
                             id="rentabilidad" 
                             class="form-input"
-                            value="<%= formData.rentabilidad %>"
+                            value="<%= formatValue('rentabilidad', formData.rentabilidad) %>"
                             readonly
                         >
                     </div>
@@ -504,7 +559,7 @@
                             type="text" 
                             id="fuentesFinanciamiento" 
                             class="form-input"
-                            value="<%= formData.fuentesFinanciamiento %>"
+                            value="<%= formatValue('fuentesFinanciamiento', formData.fuentesFinanciamiento) %>"
                             readonly
                         >
                     </div>
@@ -514,7 +569,7 @@
                             type="text" 
                             id="costosFijos" 
                             class="form-input"
-                            value="<%= formData.costosFijos %>"
+                            value="<%= formatValue('costosFijos', formData.costosFijos) %>"
                             readonly
                         >
                     </div>
@@ -533,7 +588,7 @@
                             type="text" 
                             id="formacionEmpresarial" 
                             class="form-input"
-                            value="<%= formData.formacionEmpresarial %>"
+                            value="<%= formatValue('formacionEmpresarial', formData.formacionEmpresarial) %>"
                             readonly
                         >
                     </div>
