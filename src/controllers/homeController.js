@@ -1,4 +1,5 @@
 const dashboardService = require('../services/dashboardService');
+const { Business, BusinessModel, Finance, WorkTeam } = require('../models');
 
 /**
  * Controller para las páginas principales de la aplicación
@@ -40,12 +41,66 @@ exports.showDashboard = async (req, res) => {
 };
 
 // Mostrar la página de caracterización
-exports.showCaracterizacion = (req, res) => {
-    res.render('home/caracterizacion', {
-        title: 'Caracterización - Salga Adelante Sumercé',
-        currentPage: 'caracterizacion',
-        user: req.session.user
-    });
+exports.showCaracterizacion = async (req, res) => {
+    try {
+        const userId = req.session.user.id;
+        
+        // Verificar si el usuario ya tiene un emprendimiento registrado
+        const existingBusiness = await Business.findOne({
+            where: { userId },
+            include: [
+                { model: BusinessModel },
+                { model: Finance },
+                { model: WorkTeam }
+            ]
+        });
+
+        // Si ya tiene un emprendimiento, pasar los datos a la vista
+        if (existingBusiness) {
+            const businessData = {
+                nombreEmprendimiento: existingBusiness.name,
+                anioCreacion: existingBusiness.creationYear,
+                sectorEconomico: existingBusiness.economicSector,
+                nombreEncargado: existingBusiness.managerName,
+                celularEncargado: existingBusiness.managerContact,
+                correoEncargado: existingBusiness.managerEmail,
+                tiempoOperacion: existingBusiness.operationMonths,
+                propuestaValor: existingBusiness.BusinessModel?.valueProposition || '',
+                segmentoClientes: existingBusiness.BusinessModel?.customerSegment || '',
+                canalesVenta: existingBusiness.BusinessModel?.salesChannels || '',
+                fuentesIngreso: existingBusiness.BusinessModel?.incomeSources || '',
+                ventasNetas: existingBusiness.Finance?.monthlyNetSales || '',
+                rentabilidad: existingBusiness.Finance?.monthlyProfitability || '',
+                fuentesFinanciamiento: existingBusiness.Finance?.financingSources || '',
+                costosFijos: existingBusiness.Finance?.monthlyFixedCosts || '',
+                formacionEmpresarial: existingBusiness.WorkTeam?.businessTrainingLevel || '',
+                personalCapacitado: existingBusiness.WorkTeam?.hasTrainedStaff ? 'si' : 'no',
+                rolesDefinidos: existingBusiness.WorkTeam?.hasDefinedRoles ? 'si' : 'no',
+                cantidadEmpleados: existingBusiness.WorkTeam?.employeeCount || 0
+            };
+            
+            console.log('📋 Usuario ya tiene emprendimiento registrado. Mostrando datos en modo lectura.');
+            
+            res.render('home/caracterizacion', {
+                title: 'Caracterización - Salga Adelante Sumercé',
+                currentPage: 'caracterizacion',
+                user: req.session.user,
+                existingData: businessData,
+                isReadOnly: true
+            });
+        } else {
+            res.render('home/caracterizacion', {
+                title: 'Caracterización - Salga Adelante Sumercé',
+                currentPage: 'caracterizacion',
+                user: req.session.user,
+                existingData: null,
+                isReadOnly: false
+            });
+        }
+    } catch (error) {
+        console.error('Error al mostrar el formulario de caracterización:', error);
+        res.status(500).send('Error al cargar el formulario');
+    }
 };
 
 // Mostrar la página de soporte

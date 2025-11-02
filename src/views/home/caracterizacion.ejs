@@ -32,7 +32,7 @@
     </div>
 
     <!-- Formulario Multi-sección -->
-    <div class="form-card">
+    <div class="form-card">        
         <form id="caracterizacionForm" method="POST" action="/caracterizacion/save">
             
             <!-- SECCIÓN A: Datos Generales -->
@@ -48,6 +48,8 @@
                             id="nombreEmprendimiento" 
                             name="nombreEmprendimiento" 
                             class="form-input"
+                            value="<%= existingData ? existingData.nombreEmprendimiento : '' %>"
+                            <% if (isReadOnly) { %>readonly<% } %>
                             required
                         >
                         <span class="error-message"></span>
@@ -64,22 +66,24 @@
                             class="form-input"
                             min="1900"
                             max="2025"
+                            value="<%= existingData ? existingData.anioCreacion : '' %>"
+                            <% if (isReadOnly) { %>readonly<% } %>
                             required
                         >
                         <span class="error-message"></span>
                     </div>
                     <div class="form-group">
                         <label for="sectorEconomico" class="form-label">Sector económico</label>
-                        <select id="sectorEconomico" name="sectorEconomico" class="form-input" required>
+                        <select id="sectorEconomico" name="sectorEconomico" class="form-input" <% if (isReadOnly) { %>disabled<% } %> required>
                             <option value="">Seleccione un sector</option>
-                            <option value="agricultura">Agricultura, ganadería y pesca</option>
-                            <option value="manufactura">Manufactura</option>
-                            <option value="comercio">Comercio</option>
-                            <option value="servicios">Servicios</option>
-                            <option value="tecnologia">Tecnología</option>
-                            <option value="turismo">Turismo</option>
-                            <option value="construccion">Construcción</option>
-                            <option value="otro">Otro</option>
+                            <option value="agricultura" <%= existingData && existingData.sectorEconomico === 'agricultura' ? 'selected' : '' %>>Agricultura, ganadería y pesca</option>
+                            <option value="manufactura" <%= existingData && existingData.sectorEconomico === 'manufactura' ? 'selected' : '' %>>Manufactura</option>
+                            <option value="comercio" <%= existingData && existingData.sectorEconomico === 'comercio' ? 'selected' : '' %>>Comercio</option>
+                            <option value="servicios" <%= existingData && existingData.sectorEconomico === 'servicios' ? 'selected' : '' %>>Servicios</option>
+                            <option value="tecnologia" <%= existingData && existingData.sectorEconomico === 'tecnologia' ? 'selected' : '' %>>Tecnología</option>
+                            <option value="turismo" <%= existingData && existingData.sectorEconomico === 'turismo' ? 'selected' : '' %>>Turismo</option>
+                            <option value="construccion" <%= existingData && existingData.sectorEconomico === 'construccion' ? 'selected' : '' %>>Construcción</option>
+                            <option value="otro" <%= existingData && existingData.sectorEconomico === 'otro' ? 'selected' : '' %>>Otro</option>
                         </select>
                         <span class="error-message"></span>
                     </div>
@@ -93,6 +97,8 @@
                             id="nombreEncargado" 
                             name="nombreEncargado" 
                             class="form-input"
+                            value="<%= existingData ? existingData.nombreEncargado : '' %>"
+                            <% if (isReadOnly) { %>readonly<% } %>
                             required
                         >
                         <span class="error-message"></span>
@@ -107,6 +113,8 @@
                             placeholder="3001234567"
                             maxlength="10"
                             pattern="[3][0-9]{9}"
+                            value="<%= existingData ? existingData.celularEncargado : '' %>"
+                            <% if (isReadOnly) { %>readonly<% } %>
                             required
                         >
                         <span class="error-message"></span>
@@ -122,18 +130,20 @@
                             name="correoEncargado" 
                             class="form-input"
                             placeholder="ejemplo@correo.com"
+                            value="<%= existingData ? existingData.correoEncargado : '' %>"
+                            <% if (isReadOnly) { %>readonly<% } %>
                             required
                         >
                         <span class="error-message"></span>
                     </div>
                     <div class="form-group">
                         <label for="tiempoOperacion" class="form-label">Tiempo de operación</label>
-                        <select id="tiempoOperacion" name="tiempoOperacion" class="form-input" required>
+                        <select id="tiempoOperacion" name="tiempoOperacion" class="form-input" <% if (isReadOnly) { %>disabled<% } %> required>
                             <option value="">Seleccione una opción</option>
-                            <option value="0_6_meses">Menos de 6 meses</option>
-                            <option value="6_12_meses">6 a 12 meses</option>
-                            <option value="12_24_meses">1 a 3 años</option>
-                            <option value="mas_24_meses">4 años o más</option>
+                            <option value="0_6_meses" <%= existingData && existingData.tiempoOperacion === '0_6_meses' ? 'selected' : '' %>>Menos de 6 meses</option>
+                            <option value="6_12_meses" <%= existingData && existingData.tiempoOperacion === '6_12_meses' ? 'selected' : '' %>>6 a 12 meses</option>
+                            <option value="12_24_meses" <%= existingData && existingData.tiempoOperacion === '12_24_meses' ? 'selected' : '' %>>1 a 3 años</option>
+                            <option value="mas_24_meses" <%= existingData && existingData.tiempoOperacion === 'mas_24_meses' ? 'selected' : '' %>>4 años o más</option>
                         </select>
                         <span class="error-message"></span>
                     </div>
@@ -154,10 +164,11 @@
                             class="form-textarea"
                             maxlength="300"
                             rows="4"
+                            <% if (isReadOnly) { %>readonly<% } %>
                             required
-                        ></textarea>
+                        ><%= existingData ? existingData.propuestaValor : '' %></textarea>
                         <div class="char-counter">
-                            <span class="current-chars">0</span> / 300 caracteres
+                            <span class="current-chars"><%= existingData && existingData.propuestaValor ? existingData.propuestaValor.length : 0 %></span> / 300 caracteres
                         </div>
                         <span class="error-message"></span>
                     </div>
@@ -172,10 +183,11 @@
                             class="form-textarea"
                             maxlength="300"
                             rows="4"
+                            <% if (isReadOnly) { %>readonly<% } %>
                             required
-                        ></textarea>
+                        ><%= existingData ? existingData.segmentoClientes : '' %></textarea>
                         <div class="char-counter">
-                            <span class="current-chars">0</span> / 300 caracteres
+                            <span class="current-chars"><%= existingData && existingData.segmentoClientes ? existingData.segmentoClientes.length : 0 %></span> / 300 caracteres
                         </div>
                         <span class="error-message"></span>
                     </div>
@@ -190,10 +202,11 @@
                             class="form-textarea"
                             maxlength="300"
                             rows="4"
+                            <% if (isReadOnly) { %>readonly<% } %>
                             required
-                        ></textarea>
+                        ><%= existingData ? existingData.canalesVenta : '' %></textarea>
                         <div class="char-counter">
-                            <span class="current-chars">0</span> / 300 caracteres
+                            <span class="current-chars"><%= existingData && existingData.canalesVenta ? existingData.canalesVenta.length : 0 %></span> / 300 caracteres
                         </div>
                         <span class="error-message"></span>
                     </div>
@@ -208,10 +221,11 @@
                             class="form-textarea"
                             maxlength="300"
                             rows="4"
+                            <% if (isReadOnly) { %>readonly<% } %>
                             required
-                        ></textarea>
+                        ><%= existingData ? existingData.fuentesIngreso : '' %></textarea>
                         <div class="char-counter">
-                            <span class="current-chars">0</span> / 300 caracteres
+                            <span class="current-chars"><%= existingData && existingData.fuentesIngreso ? existingData.fuentesIngreso.length : 0 %></span> / 300 caracteres
                         </div>
                         <span class="error-message"></span>
                     </div>
@@ -226,21 +240,21 @@
                 <div class="form-row">
                     <div class="form-group">
                         <label for="ventasNetas" class="form-label">Ventas netas promedio al mes</label>
-                        <select id="ventasNetas" name="ventasNetas" class="form-input" required>
+                        <select id="ventasNetas" name="ventasNetas" class="form-input" <% if (isReadOnly) { %>disabled<% } %> required>
                             <option value="">Seleccione una opción</option>
-                            <option value="menos_1_smmlv">Menos de 1 SMMLV</option>
-                            <option value="1_3_smmlv">1 - 3 SMMLV</option>
-                            <option value="3_mas_smmlv">3 o más SMMLV</option>
+                            <option value="menos_1_smmlv" <%= existingData && existingData.ventasNetas === 'menos_1_smmlv' ? 'selected' : '' %>>Menos de 1 SMMLV</option>
+                            <option value="1_3_smmlv" <%= existingData && existingData.ventasNetas === '1_3_smmlv' ? 'selected' : '' %>>1 - 3 SMMLV</option>
+                            <option value="3_mas_smmlv" <%= existingData && existingData.ventasNetas === '3_mas_smmlv' ? 'selected' : '' %>>3 o más SMMLV</option>
                         </select>
                         <span class="error-message"></span>
                     </div>
                     <div class="form-group">
                         <label for="rentabilidad" class="form-label">Rentabilidad mensual aproximada</label>
-                        <select id="rentabilidad" name="rentabilidad" class="form-input" required>
+                        <select id="rentabilidad" name="rentabilidad" class="form-input" <% if (isReadOnly) { %>disabled<% } %> required>
                             <option value="">Seleccione una opción</option>
-                            <option value="menos_medio_smmlv">Menos de ½ SMMLV</option>
-                            <option value="medio_1_smmlv">½ y 1 SMMLV</option>
-                            <option value="2_mas_smmlv">2 o más SMMLV</option>
+                            <option value="menos_medio_smmlv" <%= existingData && existingData.rentabilidad === 'menos_medio_smmlv' ? 'selected' : '' %>>Menos de ½ SMMLV</option>
+                            <option value="medio_1_smmlv" <%= existingData && existingData.rentabilidad === 'medio_1_smmlv' ? 'selected' : '' %>>½ y 1 SMMLV</option>
+                            <option value="2_mas_smmlv" <%= existingData && existingData.rentabilidad === '2_mas_smmlv' ? 'selected' : '' %>>2 o más SMMLV</option>
                         </select>
                         <span class="error-message"></span>
                     </div>
@@ -249,23 +263,23 @@
                 <div class="form-row">
                     <div class="form-group">
                         <label for="fuentesFinanciamiento" class="form-label">Fuentes de financiamiento</label>
-                        <select id="fuentesFinanciamiento" name="fuentesFinanciamiento" class="form-input" required>
+                        <select id="fuentesFinanciamiento" name="fuentesFinanciamiento" class="form-input" <% if (isReadOnly) { %>disabled<% } %> required>
                             <option value="">Seleccione una opción</option>
-                            <option value="recursos_propios">Recursos propios</option>
-                            <option value="credito_bancario">Crédito bancario</option>
-                            <option value="inversionistas">Inversionistas</option>
-                            <option value="subsidios">Subsidios gubernamentales</option>
-                            <option value="mixto">Mixto</option>
+                            <option value="recursos_propios" <%= existingData && existingData.fuentesFinanciamiento === 'recursos_propios' ? 'selected' : '' %>>Recursos propios</option>
+                            <option value="credito_bancario" <%= existingData && existingData.fuentesFinanciamiento === 'credito_bancario' ? 'selected' : '' %>>Crédito bancario</option>
+                            <option value="inversionistas" <%= existingData && existingData.fuentesFinanciamiento === 'inversionistas' ? 'selected' : '' %>>Inversionistas</option>
+                            <option value="subsidios" <%= existingData && existingData.fuentesFinanciamiento === 'subsidios' ? 'selected' : '' %>>Subsidios gubernamentales</option>
+                            <option value="mixto" <%= existingData && existingData.fuentesFinanciamiento === 'mixto' ? 'selected' : '' %>>Mixto</option>
                         </select>
                         <span class="error-message"></span>
                     </div>
                     <div class="form-group">
                         <label for="costosFijos" class="form-label">Costos fijos mensuales</label>
-                        <select id="costosFijos" name="costosFijos" class="form-input" required>
+                        <select id="costosFijos" name="costosFijos" class="form-input" <% if (isReadOnly) { %>disabled<% } %> required>
                             <option value="">Seleccione una opción</option>
-                            <option value="menos_medio_smmlv">Menos de ½ SMMLV</option>
-                            <option value="medio_1_smmlv">½ y 1 SMMLV</option>
-                            <option value="2_mas_smmlv">2 o más SMMLV</option>
+                            <option value="menos_medio_smmlv" <%= existingData && existingData.costosFijos === 'menos_medio_smmlv' ? 'selected' : '' %>>Menos de ½ SMMLV</option>
+                            <option value="medio_1_smmlv" <%= existingData && existingData.costosFijos === 'medio_1_smmlv' ? 'selected' : '' %>>½ y 1 SMMLV</option>
+                            <option value="2_mas_smmlv" <%= existingData && existingData.costosFijos === '2_mas_smmlv' ? 'selected' : '' %>>2 o más SMMLV</option>
                         </select>
                         <span class="error-message"></span>
                     </div>
@@ -280,11 +294,11 @@
                 <div class="form-row">
                     <div class="form-group full-width">
                         <label for="formacionEmpresarial" class="form-label">Nivel de formación empresarial</label>
-                        <select id="formacionEmpresarial" name="formacionEmpresarial" class="form-input" required>
+                        <select id="formacionEmpresarial" name="formacionEmpresarial" class="form-input" <% if (isReadOnly) { %>disabled<% } %> required>
                             <option value="">Seleccione una opción</option>
-                            <option value="sin_formacion">Sin formación empresarial</option>
-                            <option value="tecnica_profesional">Con formación técnica/profesional</option>
-                            <option value="administracion_emprendimiento">Con formación en administración/emprendimiento</option>
+                            <option value="sin_formacion" <%= existingData && existingData.formacionEmpresarial === 'sin_formacion' ? 'selected' : '' %>>Sin formación empresarial</option>
+                            <option value="tecnica_profesional" <%= existingData && existingData.formacionEmpresarial === 'tecnica_profesional' ? 'selected' : '' %>>Con formación técnica/profesional</option>
+                            <option value="administracion_emprendimiento" <%= existingData && existingData.formacionEmpresarial === 'administracion_emprendimiento' ? 'selected' : '' %>>Con formación en administración/emprendimiento</option>
                         </select>
                         <span class="error-message"></span>
                     </div>
@@ -293,19 +307,19 @@
                 <div class="form-row">
                     <div class="form-group">
                         <label for="personalCapacitado" class="form-label">¿Personal capacitado?</label>
-                        <select id="personalCapacitado" name="personalCapacitado" class="form-input" required>
+                        <select id="personalCapacitado" name="personalCapacitado" class="form-input" <% if (isReadOnly) { %>disabled<% } %> required>
                             <option value="">Seleccione una opción</option>
-                            <option value="si">Sí</option>
-                            <option value="no">No</option>
+                            <option value="si" <%= existingData && existingData.personalCapacitado === 'si' ? 'selected' : '' %>>Sí</option>
+                            <option value="no" <%= existingData && existingData.personalCapacitado === 'no' ? 'selected' : '' %>>No</option>
                         </select>
                         <span class="error-message"></span>
                     </div>
                     <div class="form-group">
                         <label for="rolesDefinidos" class="form-label">¿Roles definidos en el emprendimiento?</label>
-                        <select id="rolesDefinidos" name="rolesDefinidos" class="form-input" required>
+                        <select id="rolesDefinidos" name="rolesDefinidos" class="form-input" <% if (isReadOnly) { %>disabled<% } %> required>
                             <option value="">Seleccione una opción</option>
-                            <option value="si">Sí</option>
-                            <option value="no">No</option>
+                            <option value="si" <%= existingData && existingData.rolesDefinidos === 'si' ? 'selected' : '' %>>Sí</option>
+                            <option value="no" <%= existingData && existingData.rolesDefinidos === 'no' ? 'selected' : '' %>>No</option>
                         </select>
                         <span class="error-message"></span>
                     </div>
@@ -320,6 +334,8 @@
                             name="cantidadEmpleados" 
                             class="form-input"
                             min="0"
+                            value="<%= existingData ? existingData.cantidadEmpleados : '' %>"
+                            <% if (isReadOnly) { %>readonly<% } %>
                             required
                         >
                         <span class="error-message"></span>
@@ -335,9 +351,11 @@
                 <button type="button" class="btn-navigation btn-next" id="btnNext">
                     Siguiente
                 </button>
+                <% if (!isReadOnly) { %>
                 <button type="submit" class="btn-navigation btn-submit" id="btnSubmit" style="display: none;">
                     Enviar Información
                 </button>
+                <% } %>
             </div>
         </form>
     </div>
@@ -349,6 +367,7 @@
 // Estado del formulario
 let currentSection = 1;
 const totalSections = 4;
+const isReadOnly = <%= isReadOnly ? 'true' : 'false' %>;
 
 // Actualizar contadores de caracteres
 document.querySelectorAll('.form-textarea').forEach(textarea => {
@@ -360,31 +379,34 @@ document.querySelectorAll('.form-textarea').forEach(textarea => {
     });
 });
 
-// Validación de celular (solo números y que empiece con 3)
-document.getElementById('celularEncargado').addEventListener('input', function(e) {
-    this.value = this.value.replace(/[^0-9]/g, '');
-    if (this.value.length > 0 && this.value[0] !== '3') {
-        showError(this, 'El celular debe comenzar con 3');
-    } else if (this.value.length > 0 && this.value.length < 10) {
-        showError(this, 'El celular debe tener 10 dígitos');
-    } else {
-        clearError(this);
-    }
-});
+// Solo aplicar validaciones si NO está en modo de solo lectura
+if (!isReadOnly) {
+    // Validación de celular (solo números y que empiece con 3)
+    document.getElementById('celularEncargado').addEventListener('input', function(e) {
+        this.value = this.value.replace(/[^0-9]/g, '');
+        if (this.value.length > 0 && this.value[0] !== '3') {
+            showError(this, 'El celular debe comenzar con 3');
+        } else if (this.value.length > 0 && this.value.length < 10) {
+            showError(this, 'El celular debe tener 10 dígitos');
+        } else {
+            clearError(this);
+        }
+    });
 
-// Validación de año
-document.getElementById('anioCreacion').addEventListener('input', function(e) {
-    const year = parseInt(this.value);
-    if (year < 1900) {
-        this.value = 1900;
-    } else if (year > 2025) {
-        this.value = 2025;
-    }
-    // No permitir números negativos
-    if (this.value < 0) {
-        this.value = Math.abs(this.value);
-    }
-});
+    // Validación de año
+    document.getElementById('anioCreacion').addEventListener('input', function(e) {
+        const year = parseInt(this.value);
+        if (year < 1900) {
+            this.value = 1900;
+        } else if (year > 2025) {
+            this.value = 2025;
+        }
+        // No permitir números negativos
+        if (this.value < 0) {
+            this.value = Math.abs(this.value);
+        }
+    });
+}
 
 // Funciones de validación
 function showError(input, message) {
@@ -525,6 +547,12 @@ document.querySelectorAll('.progress-step').forEach(step => {
 // Validación final al enviar
 document.getElementById('caracterizacionForm').addEventListener('submit', function(e) {
     e.preventDefault();
+    
+    // Si está en modo de solo lectura, no permitir el envío
+    if (isReadOnly) {
+        alert('Este formulario está en modo de solo lectura. No se pueden realizar cambios.');
+        return;
+    }
     
     // Validar todas las secciones
     let allValid = true;
