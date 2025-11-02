@@ -33,7 +33,6 @@ class AdminController {
                 order: [['registrationDate', 'DESC']]
             });
 
-            console.log(businesses);
             
             res.json({
                 success: true,
@@ -238,6 +237,148 @@ class AdminController {
             console.error('Error al mostrar página de emprendimientos:', error);
             res.status(500).send('Error al cargar la página de emprendimientos');
         }
+    }
+
+    /**
+     * Mostrar dashboard detallado de un emprendimiento específico
+     */
+    async showBusinessDashboard(req, res) {
+        try {
+            const { id } = req.params;
+
+            const business = await Business.findOne({
+                where: { id },
+                include: [
+                    { 
+                        model: User,
+                        attributes: ['id', 'email', 'firstName', 'lastName', 'phoneContact'],
+                        required: false
+                    },
+                    { 
+                        model: BusinessModel,
+                        required: false
+                    },
+                    { 
+                        model: Finance,
+                        required: false
+                    },
+                    { 
+                        model: WorkTeam,
+                        required: false
+                    },
+                    { 
+                        model: Rating,
+                        required: false
+                    }
+                ]
+            });
+
+            if (!business) {
+                return res.status(404).send('Emprendimiento no encontrado');
+            }
+
+            // Preparar datos del dashboard similar al del emprendedor
+            let caracterizacion = null;
+            
+            if (business.Rating) {
+                const rating = business.Rating;
+                const maxTotal = 13;
+                const totalScore = parseInt(rating.totalScore) || 0;
+                const totalPercentage = parseFloat(rating.totalPercentage) || 0;
+
+                const getEstadoLabel = (classification) => {
+                    const labels = {
+                        'idea_inicial': 'Idea Inicial',
+                        'en_desarrollo': 'En Desarrollo',
+                        'consolidado': 'Consolidado'
+                    };
+                    return labels[classification] || 'Sin clasificar';
+                };
+
+                caracterizacion = {
+                    puntajeTotal: totalScore,
+                    maxTotal: maxTotal,
+                    porcentaje: parseFloat(totalPercentage.toFixed(2)),
+                    estado: getEstadoLabel(rating.globalClassification),
+                    secciones: [
+                        {
+                            nombre: 'Datos Generales',
+                            puntaje: parseInt(rating.generalDataScore) || 0,
+                            max: 3,
+                            porcentaje: parseFloat((((parseInt(rating.generalDataScore) || 0) / 3) * 100).toFixed(2))
+                        },
+                        {
+                            nombre: 'Finanzas',
+                            puntaje: parseInt(rating.financeScore) || 0,
+                            max: 6,
+                            porcentaje: parseFloat((((parseInt(rating.financeScore) || 0) / 6) * 100).toFixed(2))
+                        },
+                        {
+                            nombre: 'Equipo de Trabajo',
+                            puntaje: parseInt(rating.workTeamScore) || 0,
+                            max: 4,
+                            porcentaje: parseFloat((((parseInt(rating.workTeamScore) || 0) / 4) * 100).toFixed(2))
+                        }
+                    ],
+                    emprendimiento: {
+                        nombre: business.name,
+                        sector: business.economicSector,
+                        anioCreacion: business.creationYear,
+                        encargado: business.managerName
+                    },
+                    fechaCalculo: rating.calculationDate
+                };
+            }
+
+            // Preparar datos del formulario de caracterización
+            const businessData = {
+                nombreEmprendimiento: business.name,
+                anioCreacion: business.creationYear,
+                sectorEconomico: business.economicSector,
+                nombreEncargado: business.managerName,
+                celularEncargado: business.managerContact,
+                correoEncargado: business.managerEmail,
+                tiempoOperacion: business.operationMonths,
+                propuestaValor: business.BusinessModel?.valueProposition || '',
+                segmentoClientes: business.BusinessModel?.customerSegment || '',
+                canalesVenta: business.BusinessModel?.salesChannels || '',
+                fuentesIngreso: business.BusinessModel?.incomeSources || '',
+                ventasNetas: business.Finance?.monthlyNetSales || '',
+                rentabilidad: business.Finance?.monthlyProfitability || '',
+                fuentesFinanciamiento: business.Finance?.financingSources || '',
+                costosFijos: business.Finance?.monthlyFixedCosts || '',
+                formacionEmpresarial: business.WorkTeam?.businessTrainingLevel || '',
+                personalCapacitado: business.WorkTeam?.hasTrainedStaff ? 'si' : 'no',
+                rolesDefinidos: business.WorkTeam?.hasDefinedRoles ? 'si' : 'no',
+                cantidadEmpleados: business.WorkTeam?.employeeCount || 0
+            };
+
+            res.render('admin/business-detail', {
+                title: `Detalle: ${business.name} - Adelante Sumercé`,
+                currentPage: 'admin-emprendimientos',
+                user: req.session.user,
+                business: business,
+                caracterizacion: caracterizacion,
+                formData: businessData,
+                userData: business.User
+            });
+
+        } catch (error) {
+            console.error('Error al mostrar dashboard del emprendimiento:', error);
+            res.status(500).send('Error al cargar el dashboard del emprendimiento');
+        }
+    }
+
+    /**
+     * Obtener label de estado según clasificación
+     */
+    getEstadoLabel(classification) {
+        const labels = {
+            'idea_inicial': 'Idea Inicial',
+            'en_desarrollo': 'En Desarrollo',
+            'consolidado': 'Consolidado'
+        };
+        return labels[classification] || 'Sin clasificar';
     }
 }
 

@@ -12,6 +12,9 @@ router.get('/dashboard', adminController.showAdminDashboard);
 // Página de emprendimientos
 router.get('/emprendimientos', adminController.showEmprendimientos);
 
+// Dashboard detallado de un emprendimiento específico
+router.get('/emprendimientos/:id', adminController.showBusinessDashboard);
+
 // API: Obtener todos los emprendimientos
 router.get('/api/businesses', adminController.getAllBusinesses);
 
