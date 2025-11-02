@@ -10,16 +10,31 @@ class AdminController {
                 include: [
                     { 
                         model: User,
-                        attributes: ['id', 'email', 'firstName', 'lastName', 'phoneContact']
+                        attributes: ['id', 'email', 'firstName', 'lastName', 'phoneContact'],
+                        required: false
                     },
-                    { model: BusinessModel },
-                    { model: Finance },
-                    { model: WorkTeam },
-                    { model: Rating }
+                    { 
+                        model: BusinessModel,
+                        required: false
+                    },
+                    { 
+                        model: Finance,
+                        required: false
+                    },
+                    { 
+                        model: WorkTeam,
+                        required: false
+                    },
+                    { 
+                        model: Rating,
+                        required: false
+                    }
                 ],
                 order: [['registrationDate', 'DESC']]
             });
 
+            console.log(businesses);
+            
             res.json({
                 success: true,
                 count: businesses.length,
@@ -47,12 +62,25 @@ class AdminController {
                 include: [
                     { 
                         model: User,
-                        attributes: ['id', 'email', 'firstName', 'lastName', 'phoneContact']
+                        attributes: ['id', 'email', 'firstName', 'lastName', 'phoneContact'],
+                        required: false
                     },
-                    { model: BusinessModel },
-                    { model: Finance },
-                    { model: WorkTeam },
-                    { model: Rating }
+                    { 
+                        model: BusinessModel,
+                        required: false
+                    },
+                    { 
+                        model: Finance,
+                        required: false
+                    },
+                    { 
+                        model: WorkTeam,
+                        required: false
+                    },
+                    { 
+                        model: Rating,
+                        required: false
+                    }
                 ]
             });
 
@@ -85,33 +113,57 @@ class AdminController {
             const totalBusinesses = await Business.count();
             const totalUsers = await User.count({ where: { role: 'emprendedor' } });
 
-            // Contar por clasificación
-            const byClassification = await Rating.findAll({
+            // Contar por clasificación usando el nombre de columna correcto
+            const classificationCounts = await Rating.findAll({
                 attributes: [
-                    'globalClassification',
-                    [Business.sequelize.fn('COUNT', Business.sequelize.col('globalClassification')), 'count']
+                    [Rating.sequelize.col('clasificacion_global'), 'classification'],
+                    [Rating.sequelize.fn('COUNT', Rating.sequelize.col('clasificacion_global')), 'count']
                 ],
-                group: ['globalClassification'],
+                group: ['clasificacion_global'],
                 raw: true
             });
 
-            // Contar por sector económico
-            const bySector = await Business.findAll({
+            // Convertir array a objeto para facilitar el acceso
+            const byClassification = {
+                idea_inicial: 0,
+                en_desarrollo: 0,
+                consolidado: 0
+            };
+            
+            classificationCounts.forEach(item => {
+                if (item.classification) {
+                    byClassification[item.classification] = parseInt(item.count);
+                }
+            });
+
+            // Contar por sector económico usando el nombre de columna correcto
+            const sectorCounts = await Business.findAll({
                 attributes: [
-                    'economicSector',
-                    [Business.sequelize.fn('COUNT', Business.sequelize.col('economicSector')), 'count']
+                    [Business.sequelize.col('sector_economico'), 'sector'],
+                    [Business.sequelize.fn('COUNT', Business.sequelize.col('sector_economico')), 'count']
                 ],
-                group: ['economicSector'],
+                group: ['sector_economico'],
                 raw: true
             });
+
+            // Calcular promedio de score
+            const avgScoreResult = await Rating.findOne({
+                attributes: [
+                    [Rating.sequelize.fn('AVG', Rating.sequelize.col('puntaje_total')), 'averageScore']
+                ],
+                raw: true
+            });
+
+            const averageScore = avgScoreResult?.averageScore || 0;
 
             res.json({
                 success: true,
                 data: {
                     totalBusinesses,
                     totalUsers,
-                    byClassification,
-                    bySector
+                    classificationCounts: byClassification,
+                    bySector: sectorCounts,
+                    averageScore: parseFloat(averageScore)
                 }
             });
         } catch (error) {
@@ -169,6 +221,22 @@ class AdminController {
         } catch (error) {
             console.error('Error al mostrar dashboard del administrador:', error);
             res.status(500).send('Error al cargar el panel de administración');
+        }
+    }
+
+    /**
+     * Mostrar página de emprendimientos
+     */
+    async showEmprendimientos(req, res) {
+        try {
+            res.render('admin/emprendimientos', {
+                title: 'Emprendimientos - Adelante Sumercé',
+                currentPage: 'admin-emprendimientos',
+                user: req.session.user
+            });
+        } catch (error) {
+            console.error('Error al mostrar página de emprendimientos:', error);
+            res.status(500).send('Error al cargar la página de emprendimientos');
         }
     }
 }

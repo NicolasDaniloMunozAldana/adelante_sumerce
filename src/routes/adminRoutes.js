@@ -9,6 +9,9 @@ router.use(ensureAdmin);
 // Dashboard del administrador
 router.get('/dashboard', adminController.showAdminDashboard);
 
+// Página de emprendimientos
+router.get('/emprendimientos', adminController.showEmprendimientos);
+
 // API: Obtener todos los emprendimientos
 router.get('/api/businesses', adminController.getAllBusinesses);
 
