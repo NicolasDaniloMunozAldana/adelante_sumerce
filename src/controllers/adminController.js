@@ -1,4 +1,6 @@
 const { Business, BusinessModel, Finance, WorkTeam, Rating, User } = require('../models');
+const comparativeReportService = require('../services/comparativeReportService');
+const adminReportService = require('../services/adminReportService');
 
 class AdminController {
     /**
@@ -379,6 +381,96 @@ class AdminController {
             'consolidado': 'Consolidado'
         };
         return labels[classification] || 'Sin clasificar';
+    }
+
+    /**
+     * Generar reporte comparativo en PDF
+     */
+    async generateComparativePDF(req, res) {
+        try {
+            const { classification, sector } = req.query;
+            const filters = {};
+
+            if (classification) filters.classification = classification;
+            if (sector) filters.sector = sector;
+
+            const pdf = await comparativeReportService.generateComparativePDF(filters);
+
+            res.setHeader('Content-Type', 'application/pdf');
+            res.setHeader('Content-Disposition', `attachment; filename=reporte-comparativo-${Date.now()}.pdf`);
+            res.send(pdf);
+
+        } catch (error) {
+            console.error('Error generando reporte PDF:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Error al generar el reporte PDF',
+                error: error.message
+            });
+        }
+    }
+
+    /**
+     * Generar reporte comparativo en Excel
+     */
+    async generateComparativeExcel(req, res) {
+        try {
+            const { classification, sector } = req.query;
+            const filters = {};
+
+            if (classification) filters.classification = classification;
+            if (sector) filters.sector = sector;
+
+            const buffer = await comparativeReportService.generateComparativeExcel(filters);
+
+            res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+            res.setHeader('Content-Disposition', `attachment; filename=reporte-comparativo-${Date.now()}.xlsx`);
+            res.send(buffer);
+
+        } catch (error) {
+            console.error('Error generando reporte Excel:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Error al generar el reporte Excel',
+                error: error.message
+            });
+        }
+    }
+
+    /**
+     * Generar reporte individual de un emprendimiento para el administrador
+     */
+    async generateBusinessPDF(req, res) {
+        try {
+            const { id } = req.params;
+
+            // Verificar que el emprendimiento existe
+            const business = await Business.findOne({
+                where: { id },
+                include: [{ model: Rating }]
+            });
+
+            if (!business || !business.Rating) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'No se encontró caracterización para este emprendimiento'
+                });
+            }
+
+            const pdf = await adminReportService.generateBusinessReport(id);
+
+            res.setHeader('Content-Type', 'application/pdf');
+            res.setHeader('Content-Disposition', `attachment; filename=evaluacion-${business.name.replace(/\s+/g, '-')}-${Date.now()}.pdf`);
+            res.send(pdf);
+
+        } catch (error) {
+            console.error('Error generando reporte individual:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Error al generar el reporte',
+                error: error.message
+            });
+        }
     }
 }
 
