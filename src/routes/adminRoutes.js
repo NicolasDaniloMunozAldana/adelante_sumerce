@@ -27,4 +27,8 @@ router.get('/api/statistics', adminController.getStatistics);
 // API: Obtener todos los usuarios emprendedores
 router.get('/api/users', adminController.getAllUsers);
 
+// Rutas para reportes comparativos
+router.get('/reportes/generar-pdf', adminController.generateComparativePDF);
+router.get('/reportes/generar-excel', adminController.generateComparativeExcel);
+
 module.exports = router;
