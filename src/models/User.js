@@ -55,6 +55,12 @@ User.init({
       }
     }
   },
+  role: {
+    type: DataTypes.ENUM('emprendedor', 'administrador'),
+    allowNull: false,
+    defaultValue: 'emprendedor',
+    field: 'rol'
+  },
   registrationDate: {
     type: DataTypes.DATE,
     defaultValue: DataTypes.NOW,

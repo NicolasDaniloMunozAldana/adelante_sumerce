@@ -57,7 +57,8 @@ class AuthService {
         passwordHash: hashedPassword,
         phoneContact: userData.celular,
         firstName: userData.nombres,
-        lastName: userData.apellidos
+        lastName: userData.apellidos,
+        role: 'emprendedor' // Por defecto, los usuarios registrados son emprendedores
       });
 
       return user;

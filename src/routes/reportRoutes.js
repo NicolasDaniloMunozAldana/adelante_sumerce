@@ -1,12 +1,12 @@
 const express = require('express');
 const router = express.Router();
 const reportService = require('../services/reportService');
-const authMiddleware = require('../middlewares/authMiddleware');
+const { ensureAuthenticated } = require('../middlewares/authMiddleware');
 
 /**
  * Ruta para generar el reporte PDF
  */
-router.get('/generate-pdf', authMiddleware, async (req, res) => {
+router.get('/generate-pdf', ensureAuthenticated, async (req, res) => {
     try {
         const userId = req.session.user.id;
         

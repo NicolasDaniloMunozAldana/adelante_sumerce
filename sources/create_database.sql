@@ -10,7 +10,8 @@ CREATE TABLE usuarios (
     contacto_celular VARCHAR(20),
     fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     nombre VARCHAR(100),
-    apellido VARCHAR(100)
+    apellido VARCHAR(100),
+    rol ENUM('emprendedor', 'administrador') DEFAULT 'emprendedor'
 );
 
 -- Tabla de emprendimientos
