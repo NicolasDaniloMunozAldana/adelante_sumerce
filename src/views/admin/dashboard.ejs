@@ -1,0 +1,317 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar-admin') %>
+
+<style>
+    /* Admin Dashboard Styles - Basado en home.ejs */
+    .welcome-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: calc(100vh - 200px);
+        padding: 1px 10px 40px 20px;
+    }
+
+    .welcome-card {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        padding: 48px;
+        max-width: 1200px;
+        width: 100%;
+        text-align: center;
+    }
+
+    .welcome-icon {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 32px;
+    }
+
+    .admin-icon {
+        font-size: 80px;
+    }
+
+    .welcome-title {
+        font-size: 36px;
+        font-weight: 700;
+        color: #0033ff;
+        margin-bottom: 16px;
+        letter-spacing: -0.5px;
+        font-family: 'Poppins', sans-serif;
+    }
+
+    .welcome-subtitle {
+        font-size: 20px;
+        color: #1a2332;
+        margin-bottom: 24px;
+        font-weight: 500;
+        font-family: 'Poppins', sans-serif;
+    }
+
+    .welcome-description {
+        font-size: 16px;
+        line-height: 1.8;
+        color: #4b5563;
+        margin: 0 auto 40px auto;
+        max-width: 800px;
+        font-family: 'Poppins', sans-serif;
+        font-weight: 400;
+    }
+
+    .welcome-description strong {
+        color: #1a2332;
+        font-weight: 600;
+    }
+
+    /* Quick Access Cards */
+    .quick-access-section {
+        margin-top: 50px;
+        padding: 40px 0;
+    }
+
+    .section-title {
+        font-size: 24px;
+        font-weight: 600;
+        color: #1a2332;
+        margin-bottom: 30px;
+        font-family: 'Poppins', sans-serif;
+        text-align: center;
+    }
+
+    .quick-links {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 25px;
+        margin-top: 30px;
+    }
+
+    .quick-link-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 35px;
+        border-radius: 16px;
+        text-decoration: none;
+        color: white;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+
+    .quick-link-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 12px 25px rgba(102, 126, 234, 0.4);
+    }
+
+    .quick-link-card .icon {
+        font-size: 56px;
+        margin-bottom: 20px;
+    }
+
+    .quick-link-card h3 {
+        margin: 0 0 12px 0;
+        font-size: 22px;
+        font-weight: 600;
+    }
+
+    .quick-link-card p {
+        margin: 0;
+        opacity: 0.95;
+        font-size: 15px;
+        line-height: 1.6;
+    }
+
+    /* Stats Section */
+    .stats-section {
+        margin-top: 50px;
+        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+        padding: 40px;
+        border-radius: 16px;
+        border: 1px solid #e2e8f0;
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 25px;
+        margin-top: 25px;
+    }
+
+    .stat-item {
+        background: white;
+        padding: 25px;
+        border-radius: 12px;
+        text-align: center;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        transition: transform 0.2s ease;
+    }
+
+    .stat-item:hover {
+        transform: translateY(-3px);
+    }
+
+    .stat-icon {
+        font-size: 42px;
+        margin-bottom: 12px;
+    }
+
+    .stat-value {
+        font-size: 32px;
+        font-weight: 700;
+        color: #0033ff;
+        margin: 10px 0;
+        font-family: 'Poppins', sans-serif;
+    }
+
+    .stat-label {
+        font-size: 14px;
+        color: #6b7280;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-family: 'Poppins', sans-serif;
+    }
+
+    .inspirational-text {
+        margin-top: 50px;
+        text-align: center;
+        max-width: 900px;
+        margin-left: auto;
+        margin-right: auto;
+        padding: 40px 60px;
+    }
+
+    .inspirational-text p {
+        font-family: 'Poppins', sans-serif;
+        font-size: 20px;
+        line-height: 2;
+        color: #0033ff;
+        margin-bottom: 15px;
+        font-style: italic;
+    }
+
+    .inspirational-text strong {
+        font-weight: 700;
+        color: #0033ff;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .welcome-card {
+            padding: 32px 24px;
+        }
+
+        .welcome-title {
+            font-size: 28px;
+        }
+
+        .welcome-subtitle {
+            font-size: 18px;
+        }
+
+        .welcome-description {
+            font-size: 15px;
+        }
+
+        .quick-links {
+            grid-template-columns: 1fr;
+        }
+
+        .stats-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .inspirational-text {
+            padding: 30px 40px;
+        }
+
+        .inspirational-text p {
+            font-size: 18px;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .welcome-card {
+            padding: 24px 20px;
+        }
+
+        .admin-icon {
+            font-size: 60px;
+        }
+
+        .welcome-title {
+            font-size: 24px;
+        }
+
+        .welcome-subtitle {
+            font-size: 16px;
+        }
+
+        .welcome-description {
+            font-size: 14px;
+        }
+
+        .stats-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .inspirational-text {
+            padding: 20px 20px;
+        }
+
+        .inspirational-text p {
+            font-size: 16px;
+        }
+    }
+</style>
+
+<!-- Welcome Section -->
+<div class="welcome-container">
+    <div class="welcome-card">
+        <h1 class="welcome-title">Panel de Administración</h1>
+        <p class="welcome-subtitle">Sistema de Gestión de Emprendimientos</p>
+        <p class="welcome-description">
+            Bienvenido, <strong><%= user.firstName %> <%= user.lastName %></strong>. 
+            Desde este panel puedes gestionar, analizar y acompañar todos los emprendimientos 
+            registrados en la plataforma <strong>"Salga Adelante Sumercé"</strong>.
+        </p>
+
+        <!-- Inspirational Text -->
+        <div class="inspirational-text">
+            <p><strong>Tu rol como administrador es fundamental</strong> para el crecimiento de cada emprendimiento.</p>
+            <p>Cada dato que analizas, <strong>cada emprendedor que acompañas, transforma vidas y comunidades.</strong></p>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Cargar estadísticas al cargar la página
+    document.addEventListener('DOMContentLoaded', function() {
+        loadStatistics();
+    });
+
+    async function loadStatistics() {
+        try {
+            const response = await fetch('/admin/api/statistics');
+            const data = await response.json();
+            
+            if (data.success) {
+                const stats = data.data;
+                
+                // Actualizar valores en el DOM
+                document.getElementById('totalEmprendimientos').textContent = stats.totalBusinesses || 0;
+                document.getElementById('totalEmprendedores').textContent = stats.totalUsers || 0;
+                document.getElementById('enDesarrollo').textContent = stats.classificationCounts?.en_desarrollo || 0;
+                
+                // Calcular y mostrar promedio de score
+                const avgScore = stats.averageScore || 0;
+                document.getElementById('promedioScore').textContent = avgScore.toFixed(1);
+            }
+        } catch (error) {
+            console.error('Error cargando estadísticas:', error);
+            // Mantener los guiones si hay error
+        }
+    }
+</script>
+
+<%- include('../partials/footer') %>

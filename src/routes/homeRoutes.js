@@ -1,9 +1,9 @@
 const express = require('express');
 const router = express.Router();
 const homeController = require('../controllers/homeController');
-const ensureAuthenticated = require('../middlewares/authMiddleware');
+const { ensureAuthenticated } = require('../middlewares/authMiddleware');
 
-// Rutas protegidas
+// Rutas protegidas (para usuarios autenticados, cualquier rol)
 router.get('/', ensureAuthenticated, homeController.showHome);
 router.get('/home', ensureAuthenticated, homeController.showHome);
 router.get('/dashboard', ensureAuthenticated, homeController.showDashboard);

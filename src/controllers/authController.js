@@ -55,10 +55,16 @@ class AuthController {
           email: user.email,
           firstName: user.firstName,
           lastName: user.lastName,
+          rol: user.role, // Incluir el rol del usuario
           isAuthenticated: true
         };
 
-        return res.redirect('/home');
+        // Redirigir según el rol
+        if (user.role === 'administrador') {
+          return res.redirect('/admin/dashboard');
+        } else {
+          return res.redirect('/home');
+        }
       }
 
       // If authentication fails
@@ -142,6 +148,7 @@ class AuthController {
       req.session.user = {
         id: user.id,
         email: user.email,
+        rol: user.role, // Incluir el rol del usuario
         isAuthenticated: true
       };
 

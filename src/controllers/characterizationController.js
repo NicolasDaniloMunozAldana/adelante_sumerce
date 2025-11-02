@@ -39,7 +39,6 @@ exports.showCharacterizationForm = async (req, res) => {
                 cantidadEmpleados: existingBusiness.WorkTeam?.employeeCount || 0
             };
             
-            console.log('📋 Usuario ya tiene emprendimiento registrado. Mostrando datos en modo lectura.');
             
             res.render('home/caracterizacion', { 
                 existingData: businessData,
