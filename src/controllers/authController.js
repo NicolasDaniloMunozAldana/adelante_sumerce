@@ -8,7 +8,11 @@ class AuthController {
     try {
       // If already logged in, redirect directly
       if (req.session.user) {
-        return res.redirect('/');
+        if (req.session.user.rol === "administrador") {
+          return res.redirect("/admin/dashboard");
+        } else {
+          return res.redirect("/");
+        }
       }
 
       res.render('auth/login', {
@@ -142,20 +146,10 @@ class AuthController {
         celular,
         nombres,
         apellidos
-      });
+      });      
 
-      // Create session
-      req.session.user = {
-        id: user.id,
-        email: user.email,
-        rol: user.role, // Incluir el rol del usuario
-        isAuthenticated: true
-      };
-
-      res.render('auth/login', {
-        title: 'Iniciar Sesión - Adelante Sumercé',
-        error: null
-      });
+      res.redirect('/login');
+      
     } catch (error) {
       console.error('Error in registration:', error);
       res.render('auth/register', {
