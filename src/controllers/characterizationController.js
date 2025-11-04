@@ -42,12 +42,14 @@ exports.showCharacterizationForm = async (req, res) => {
             
             res.render('home/caracterizacion', { 
                 existingData: businessData,
-                isReadOnly: true 
+                isReadOnly: true,
+                user: req.session.user
             });
         } else {
             res.render('home/caracterizacion', { 
                 existingData: null,
-                isReadOnly: false 
+                isReadOnly: false,
+                user: req.session.user
             });
         }
     } catch (error) {

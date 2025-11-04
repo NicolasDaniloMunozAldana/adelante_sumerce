@@ -8,7 +8,11 @@ class AuthController {
     try {
       // If already logged in, redirect directly
       if (req.session.user) {
-        return res.redirect('/');
+        if (req.session.user.rol === "administrador") {
+          return res.redirect("/admin/dashboard");
+        } else {
+          return res.redirect("/");
+        }
       }
 
       res.render('auth/login', {

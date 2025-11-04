@@ -46,18 +46,10 @@ const adminRoutes = require('./routes/adminRoutes');
 // Usar rutas
 app.use('/', authRoutes); // Rutas de autenticación
 app.use('/', homeRoutes); // Rutas principales en la raíz
+app.use('/', require('./routes/generalRoutes'));
 app.use('/caracterizacion', characterizationRoutes); // Rutas de caracterización
 app.use('/reportes', reportRoutes); // Rutas de reportes
 app.use('/admin', adminRoutes); // Rutas de administrador
-
-// Ruta por defecto - redirecciona al login si no está autenticado
-app.get('/', (req, res) => {
-  if (!req.session.user) {
-    res.redirect('/auth/login');
-  } else {
-    res.redirect('/home');
-  }
-});
 
 // Manejo de errores 404
 app.use((req, res) => {
