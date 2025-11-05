@@ -8,6 +8,7 @@
   "main": "src/index.js",
   "scripts": {
     "build": "npx puppeteer browsers install chrome",
+    "postinstall": "npx puppeteer browsers install chrome",
     "start": "node src/index.js",
     "dev": "nodemon src/index.js",
     "lint": "eslint .",
