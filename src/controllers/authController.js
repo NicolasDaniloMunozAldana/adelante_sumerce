@@ -15,9 +15,13 @@ class AuthController {
         }
       }
 
+      // Verificar si viene del registro exitoso
+      const registered = req.query.registered === 'true';
+
       res.render('auth/login', {
         title: 'Iniciar Sesión - Adelante Sumercé',
-        error: null
+        error: null,
+        registered: registered
       });
     } catch (error) {
       console.error('Error showing login form:', error);
@@ -36,7 +40,8 @@ class AuthController {
       if (!email || !password) {
         return res.render('auth/login', {
           title: 'Iniciar Sesión - Adelante Sumercé',
-          error: 'Por favor ingrese su correo electrónico y contraseña'
+          error: 'Por favor ingrese su correo electrónico y contraseña',
+          registered: false
         });
       }
 
@@ -45,7 +50,8 @@ class AuthController {
       if (!emailRegex.test(email)) {
         return res.render('auth/login', {
           title: 'Iniciar Sesión - Adelante Sumercé',
-          error: 'Por favor ingrese un correo electrónico válido'
+          error: 'Por favor ingrese un correo electrónico válido',
+          registered: false
         });
       }
 
@@ -74,14 +80,16 @@ class AuthController {
       // If authentication fails
       return res.render('auth/login', {
         title: 'Iniciar Sesión - Adelante Sumercé',
-        error: 'Correo electrónico o contraseña incorrectos'
+        error: 'Correo electrónico o contraseña incorrectos',
+        registered: false
       });
 
     } catch (error) {
       console.error('Error processing login:', error);
       res.render('auth/login', {
         title: 'Iniciar Sesión - Adelante Sumercé',
-        error: 'Error processing request'
+        error: 'Error processing request',
+        registered: false
       });
     }
   }
@@ -148,7 +156,8 @@ class AuthController {
         apellidos
       });      
 
-      res.redirect('/login');
+      // Redirigir con mensaje de éxito
+      res.redirect('/login?registered=true');
       
     } catch (error) {
       console.error('Error in registration:', error);
