@@ -1,5 +1,86 @@
 <%- include('../partials/header') %>
 <link rel="stylesheet" href="/css/caracterizacion.css">
+<!-- Flatpickr CSS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<style>
+    /* Estilos personalizados para el selector de año */
+    .flatpickr-calendar {
+        font-family: 'Poppins', sans-serif;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        border-radius: 12px;
+        border: 1px solid #e5e7eb;
+    }
+    
+    .flatpickr-months {
+        background: #667eea;
+        border-radius: 12px 12px 0 0;
+    }
+    
+    .flatpickr-current-month {
+        color: white;
+        font-weight: 600;
+    }
+    
+    .flatpickr-monthDropdown-months {
+        background: #667eea;
+        color: white;
+        font-weight: 600;
+        border: none;
+        outline: none;
+    }
+    
+    .flatpickr-monthDropdown-months option {
+        background: white;
+        color: #333;
+    }
+    
+    .numInputWrapper input {
+        background: #667eea;
+        color: white;
+        font-weight: 600;
+        border: none;
+    }
+    
+    .flatpickr-months .flatpickr-prev-month:hover svg,
+    .flatpickr-months .flatpickr-next-month:hover svg {
+        fill: white;
+    }
+    
+    .flatpickr-months .flatpickr-prev-month svg,
+    .flatpickr-months .flatpickr-next-month svg {
+        fill: rgba(255, 255, 255, 0.8);
+    }
+    
+    .flatpickr-day.selected {
+        background: #667eea;
+        border-color: #667eea;
+    }
+    
+    .flatpickr-day:hover {
+        background: #e9ecef;
+        border-color: #667eea;
+    }
+    
+    .flatpickr-day.today {
+        border-color: #667eea;
+        color: #667eea;
+        font-weight: 600;
+    }
+    
+    .flatpickr-day.today:hover {
+        background: #667eea;
+        color: white;
+    }
+    
+    /* Hacer el input de año más visual */
+    #anioCreacion {
+        cursor: pointer;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23667eea' stroke-width='2'%3E%3Crect x='3' y='4' width='18' height='18' rx='2' ry='2'%3E%3C/rect%3E%3Cline x1='16' y1='2' x2='16' y2='6'%3E%3C/line%3E%3Cline x1='8' y1='2' x2='8' y2='6'%3E%3C/line%3E%3Cline x1='3' y1='10' x2='21' y2='10'%3E%3C/line%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 12px center;
+        padding-right: 40px;
+    }
+</style>
 <%- include('../partials/navbar') %>
 
 <!-- Breadcrumb -->
@@ -60,12 +141,11 @@
                     <div class="form-group">
                         <label for="anioCreacion" class="form-label">Año de creación del emprendimiento</label>
                         <input 
-                            type="number" 
+                            type="text" 
                             id="anioCreacion" 
                             name="anioCreacion" 
                             class="form-input"
-                            min="1900"
-                            max="2025"
+                            placeholder="Seleccione el año"
                             value="<%= existingData ? existingData.anioCreacion : '' %>"
                             <% if (isReadOnly) { %>readonly<% } %>
                             required
@@ -363,11 +443,46 @@
 
 <%- include('../partials/footer') %>
 
+<!-- Flatpickr JS -->
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/es.js"></script>
+
 <script>
 // Estado del formulario
 let currentSection = 1;
 const totalSections = 4;
 const isReadOnly = <%= isReadOnly ? 'true' : 'false' %>;
+
+// Inicializar Flatpickr para el año solo si NO está en modo de solo lectura
+if (!isReadOnly) {
+    flatpickr("#anioCreacion", {
+        locale: "es",
+        dateFormat: "Y",
+        defaultDate: "<%= existingData && existingData.anioCreacion ? existingData.anioCreacion : new Date().getFullYear() %>",
+        minDate: "1900-01-01",
+        maxDate: new Date(),
+        plugins: [
+            function(fp) {
+                return {
+                    onReady: function() {
+                        // Personalizar el selector para mostrar solo años
+                        fp.calendarContainer.classList.add('year-only-picker');
+                    }
+                };
+            }
+        ],
+        onChange: function(selectedDates, dateStr, instance) {
+            // Solo guardar el año
+            const year = selectedDates[0] ? selectedDates[0].getFullYear() : '';
+            instance.input.value = year;
+        },
+        onOpen: function(selectedDates, dateStr, instance) {
+            // Ir directamente a la vista de años
+            instance.currentYear = selectedDates[0] ? selectedDates[0].getFullYear() : new Date().getFullYear();
+            instance.redraw();
+        }
+    });
+}
 
 // Actualizar contadores de caracteres
 document.querySelectorAll('.form-textarea').forEach(textarea => {
@@ -390,20 +505,6 @@ if (!isReadOnly) {
             showError(this, 'El celular debe tener 10 dígitos');
         } else {
             clearError(this);
-        }
-    });
-
-    // Validación de año
-    document.getElementById('anioCreacion').addEventListener('input', function(e) {
-        const year = parseInt(this.value);
-        if (year < 1900) {
-            this.value = 1900;
-        } else if (year > 2025) {
-            this.value = 2025;
-        }
-        // No permitir números negativos
-        if (this.value < 0) {
-            this.value = Math.abs(this.value);
         }
     });
 }
@@ -550,7 +651,13 @@ document.getElementById('caracterizacionForm').addEventListener('submit', functi
     
     // Si está en modo de solo lectura, no permitir el envío
     if (isReadOnly) {
-        alert('Este formulario está en modo de solo lectura. No se pueden realizar cambios.');
+        Swal.fire({
+            icon: 'info',
+            title: 'Modo solo lectura',
+            text: 'Este formulario está en modo de solo lectura. No se pueden realizar cambios.',
+            confirmButtonColor: '#667eea',
+            confirmButtonText: 'Entendido'
+        });
         return;
     }
     
@@ -562,39 +669,91 @@ document.getElementById('caracterizacionForm').addEventListener('submit', functi
             // Ir a la primera sección con errores
             currentSection = i;
             showSection(currentSection);
+            Swal.fire({
+                icon: 'error',
+                title: 'Campos incompletos',
+                text: `Por favor complete todos los campos requeridos en la sección ${i}`,
+                confirmButtonColor: '#667eea',
+                confirmButtonText: 'Entendido'
+            });
             break;
         }
     }
     
     if (allValid) {
-        // Recoger todos los datos del formulario
-        const formData = new FormData(this);
-        const data = {};
-        formData.forEach((value, key) => {
-            data[key] = value;
-        });
+        // Mostrar confirmación antes de enviar
+        Swal.fire({
+            icon: 'question',
+            title: '¿Confirmar envío?',
+            text: '¿Está seguro de que desea guardar la caracterización?',
+            showCancelButton: true,
+            confirmButtonColor: '#667eea',
+            cancelButtonColor: '#6b7280',
+            confirmButtonText: 'Sí, guardar',
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Recoger todos los datos del formulario
+                const formData = new FormData(this);
+                const data = {};
+                formData.forEach((value, key) => {
+                    data[key] = value;
+                });
 
-        // Enviar datos al servidor
-        fetch('/caracterizacion/save', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(data)
-        })
-        .then(response => response.json())
-        .then(result => {
-            if (result.success) {
-                alert('¡Caracterización guardada exitosamente!');
-                // Redirigir a la página de resultados
-                window.location.href = `/dashboard`;
-            } else {
-                alert('Error al guardar la caracterización: ' + result.message);
+                // Mostrar loading
+                Swal.fire({
+                    title: 'Guardando...',
+                    text: 'Por favor espere',
+                    allowOutsideClick: false,
+                    allowEscapeKey: false,
+                    showConfirmButton: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+
+                // Enviar datos al servidor
+                fetch('/caracterizacion/save', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                })
+                .then(response => response.json())
+                .then(result => {
+                    if (result.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: '¡Caracterización guardada!',
+                            text: 'Su caracterización ha sido guardada exitosamente',
+                            confirmButtonColor: '#667eea',
+                            confirmButtonText: 'Ver Dashboard'
+                        }).then(() => {
+                            // Redirigir a la página de resultados
+                            window.location.href = `/dashboard`;
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error al guardar',
+                            text: result.message || 'Ocurrió un error al guardar la caracterización',
+                            confirmButtonColor: '#667eea',
+                            confirmButtonText: 'Entendido'
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error de conexión',
+                        text: 'Error al guardar la caracterización. Por favor, intente nuevamente.',
+                        confirmButtonColor: '#667eea',
+                        confirmButtonText: 'Entendido'
+                    });
+                });
             }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('Error al guardar la caracterización. Por favor, intente nuevamente.');
         });
     }
 });

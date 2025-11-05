@@ -814,6 +814,15 @@
                 </button>
             </div>
         `;
+        
+        // Mostrar también SweetAlert
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: message,
+            confirmButtonColor: '#667eea',
+            confirmButtonText: 'Entendido'
+        });
     }
 
     // Función para generar reportes
@@ -898,6 +907,17 @@
                 ${successText}
             `;
 
+            // Mostrar SweetAlert de éxito
+            Swal.fire({
+                icon: 'success',
+                title: tipo === 'pdf' ? '¡PDF Generado!' : '¡Excel Generado!',
+                text: 'El reporte ha sido descargado exitosamente',
+                timer: 2000,
+                showConfirmButton: false,
+                toast: true,
+                position: 'top-end'
+            });
+
             setTimeout(() => {
                 button.innerHTML = originalHTML;
                 button.disabled = false;
@@ -923,7 +943,14 @@
                 button.classList.remove('loading');
             }, 2000);
 
-            alert('Error al generar el reporte. Por favor, intenta nuevamente.');
+            // Mostrar SweetAlert de error
+            Swal.fire({
+                icon: 'error',
+                title: 'Error al generar reporte',
+                text: 'Ocurrió un error al generar el reporte. Por favor, intenta nuevamente.',
+                confirmButtonColor: '#667eea',
+                confirmButtonText: 'Entendido'
+            });
         }
     }
 
