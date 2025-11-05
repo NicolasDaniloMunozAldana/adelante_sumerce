@@ -29,14 +29,15 @@ class AdminReportService {
             // Generar PDF
             const browser = await puppeteer.launch({
             headless: true,
+            executablePath: '/usr/bin/chromium',
             args: [
                 '--no-sandbox',
                 '--disable-setuid-sandbox',
                 '--disable-dev-shm-usage',
-                '--disable-gpu'
+                '--disable-gpu',
+                '--single-process'
             ]
             });
-
 
             const page = await browser.newPage();
             await page.setContent(html, { waitUntil: 'networkidle0' });
