@@ -25,11 +25,19 @@ class ReportService {
 
             // Generar HTML del reporte
             const html = this.generateReportHTML(business);
+            
+            const chromePath = '/opt/render/.cache/puppeteer/chrome/linux-142.0.7444.59/chrome-linux64/chrome';
 
             // Generar PDF
             const browser = await puppeteer.launch({
                 headless: true,
-                args: ['--no-sandbox', '--disable-setuid-sandbox']
+                executablePath: chromePath,
+                args: [
+                    '--no-sandbox',
+                    '--disable-setuid-sandbox',
+                    '--disable-dev-shm-usage',
+                    '--disable-gpu'
+                ]
             });
 
             const page = await browser.newPage();
