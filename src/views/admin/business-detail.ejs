@@ -916,6 +916,17 @@ document.addEventListener('DOMContentLoaded', function() {
                     ¡Descargado!
                 `;
 
+                // Mostrar SweetAlert de éxito
+                Swal.fire({
+                    icon: 'success',
+                    title: '¡PDF Generado!',
+                    text: 'El reporte ha sido descargado exitosamente',
+                    timer: 2000,
+                    showConfirmButton: false,
+                    toast: true,
+                    position: 'top-end'
+                });
+
                 setTimeout(() => {
                     this.innerHTML = originalHTML;
                     this.classList.remove('loading');
@@ -941,7 +952,14 @@ document.addEventListener('DOMContentLoaded', function() {
                     this.disabled = false;
                 }, 2000);
 
-                alert('Error al generar el reporte. Por favor, intenta nuevamente.');
+                // Mostrar SweetAlert de error
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error al generar PDF',
+                    text: 'Ocurrió un error al generar el reporte. Por favor, intenta nuevamente.',
+                    confirmButtonColor: '#667eea',
+                    confirmButtonText: 'Entendido'
+                });
             }
         });
     }

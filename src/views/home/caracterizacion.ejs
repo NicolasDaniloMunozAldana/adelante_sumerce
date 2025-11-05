@@ -550,7 +550,13 @@ document.getElementById('caracterizacionForm').addEventListener('submit', functi
     
     // Si está en modo de solo lectura, no permitir el envío
     if (isReadOnly) {
-        alert('Este formulario está en modo de solo lectura. No se pueden realizar cambios.');
+        Swal.fire({
+            icon: 'info',
+            title: 'Modo solo lectura',
+            text: 'Este formulario está en modo de solo lectura. No se pueden realizar cambios.',
+            confirmButtonColor: '#667eea',
+            confirmButtonText: 'Entendido'
+        });
         return;
     }
     
@@ -562,39 +568,91 @@ document.getElementById('caracterizacionForm').addEventListener('submit', functi
             // Ir a la primera sección con errores
             currentSection = i;
             showSection(currentSection);
+            Swal.fire({
+                icon: 'error',
+                title: 'Campos incompletos',
+                text: `Por favor complete todos los campos requeridos en la sección ${i}`,
+                confirmButtonColor: '#667eea',
+                confirmButtonText: 'Entendido'
+            });
             break;
         }
     }
     
     if (allValid) {
-        // Recoger todos los datos del formulario
-        const formData = new FormData(this);
-        const data = {};
-        formData.forEach((value, key) => {
-            data[key] = value;
-        });
+        // Mostrar confirmación antes de enviar
+        Swal.fire({
+            icon: 'question',
+            title: '¿Confirmar envío?',
+            text: '¿Está seguro de que desea guardar la caracterización?',
+            showCancelButton: true,
+            confirmButtonColor: '#667eea',
+            cancelButtonColor: '#6b7280',
+            confirmButtonText: 'Sí, guardar',
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Recoger todos los datos del formulario
+                const formData = new FormData(this);
+                const data = {};
+                formData.forEach((value, key) => {
+                    data[key] = value;
+                });
 
-        // Enviar datos al servidor
-        fetch('/caracterizacion/save', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(data)
-        })
-        .then(response => response.json())
-        .then(result => {
-            if (result.success) {
-                alert('¡Caracterización guardada exitosamente!');
-                // Redirigir a la página de resultados
-                window.location.href = `/dashboard`;
-            } else {
-                alert('Error al guardar la caracterización: ' + result.message);
+                // Mostrar loading
+                Swal.fire({
+                    title: 'Guardando...',
+                    text: 'Por favor espere',
+                    allowOutsideClick: false,
+                    allowEscapeKey: false,
+                    showConfirmButton: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+
+                // Enviar datos al servidor
+                fetch('/caracterizacion/save', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                })
+                .then(response => response.json())
+                .then(result => {
+                    if (result.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: '¡Caracterización guardada!',
+                            text: 'Su caracterización ha sido guardada exitosamente',
+                            confirmButtonColor: '#667eea',
+                            confirmButtonText: 'Ver Dashboard'
+                        }).then(() => {
+                            // Redirigir a la página de resultados
+                            window.location.href = `/dashboard`;
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error al guardar',
+                            text: result.message || 'Ocurrió un error al guardar la caracterización',
+                            confirmButtonColor: '#667eea',
+                            confirmButtonText: 'Entendido'
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error de conexión',
+                        text: 'Error al guardar la caracterización. Por favor, intente nuevamente.',
+                        confirmButtonColor: '#667eea',
+                        confirmButtonText: 'Entendido'
+                    });
+                });
             }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('Error al guardar la caracterización. Por favor, intente nuevamente.');
         });
     }
 });

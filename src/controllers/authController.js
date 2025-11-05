@@ -15,9 +15,13 @@ class AuthController {
         }
       }
 
+      // Verificar si viene del registro exitoso
+      const registered = req.query.registered === 'true';
+
       res.render('auth/login', {
         title: 'Iniciar Sesión - Adelante Sumercé',
-        error: null
+        error: null,
+        registered: registered
       });
     } catch (error) {
       console.error('Error showing login form:', error);
@@ -148,7 +152,8 @@ class AuthController {
         apellidos
       });      
 
-      res.redirect('/login');
+      // Redirigir con mensaje de éxito
+      res.redirect('/login?registered=true');
       
     } catch (error) {
       console.error('Error in registration:', error);
