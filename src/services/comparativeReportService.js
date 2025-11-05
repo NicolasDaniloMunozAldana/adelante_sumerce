@@ -17,19 +17,18 @@ class ComparativeReportService {
 
             // Generar HTML del reporte
             const html = this.generateComparativeHTML(businesses);
-            const chromePath = '/opt/render/.cache/puppeteer/chrome/linux-142.0.7444.59/chrome-linux64/chrome';
 
             // Generar PDF
             const browser = await puppeteer.launch({
-                headless: true,
-                executablePath: chromePath,
-                args: [
-                    '--no-sandbox',
-                    '--disable-setuid-sandbox',
-                    '--disable-dev-shm-usage',
-                    '--disable-gpu'
-                ]
+            headless: true,
+            args: [
+                '--no-sandbox',
+                '--disable-setuid-sandbox',
+                '--disable-dev-shm-usage',
+                '--disable-gpu'
+            ]
             });
+
 
             const page = await browser.newPage();
             await page.setContent(html, { waitUntil: 'networkidle0' });
