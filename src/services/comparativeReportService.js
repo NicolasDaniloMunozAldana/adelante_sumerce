@@ -20,15 +20,8 @@ class ComparativeReportService {
 
             // Generar PDF
             const browser = await puppeteer.launch({
-            headless: true,
-            executablePath: '/usr/bin/chromium',
-            args: [
-                '--no-sandbox',
-                '--disable-setuid-sandbox',
-                '--disable-dev-shm-usage',
-                '--disable-gpu',
-                '--single-process'
-            ]
+                headless: true,
+                args: ['--no-sandbox', '--disable-setuid-sandbox']
             });
 
             const page = await browser.newPage();
