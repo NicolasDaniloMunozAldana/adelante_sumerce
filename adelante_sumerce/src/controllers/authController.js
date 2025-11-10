@@ -6,8 +6,10 @@ class AuthController {
    */
   showLoginForm(req, res) {
     try {
-      // Si ya está autenticado, redirigir
-      if (req.session?.user?.isAuthenticated) {
+      // Si ya tiene un accessToken válido en las cookies, redirigir
+      const accessToken = req.cookies?.accessToken;
+      if (accessToken) {
+        // Opcionalmente verificar si es válido antes de redirigir
         return res.redirect('/');
       }
 
@@ -55,33 +57,21 @@ class AuthController {
       if (result.success) {
         const { user, accessToken, refreshToken } = result.data;
 
-        // Guardar tokens en cookies httpOnly
+        // Guardar SOLO tokens en cookies httpOnly (stateless)
         res.cookie('accessToken', accessToken, {
           httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
           maxAge: 15 * 60 * 1000, // 15 minutos
-          sameSite: 'lax'
+          sameSite: 'strict'
         });
         res.cookie('refreshToken', refreshToken, {
           httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
           maxAge: 7 * 24 * 60 * 60 * 1000, // 7 días
-          sameSite: 'lax'
+          sameSite: 'strict'
         });
 
-        // Crear sesión (para retrocompatibilidad con vistas)
-        req.session.user = {
-          id: user.id,
-          email: user.email,
-          firstName: user.firstName,
-          lastName: user.lastName,
-          rol: user.role,
-          isAuthenticated: true
-        };
-
-        // Guardar tokens en sesión también
-        req.session.accessToken = accessToken;
-        req.session.refreshToken = refreshToken;
-
-        // Redirigir según el rol
+        // Redirigir según el rol (extraído del token, no de sesión)
         if (user.role === 'administrador') {
           return res.redirect('/admin/dashboard');
         } else {
@@ -113,11 +103,11 @@ class AuthController {
   }
 
   /**
-   * Cierra la sesión del usuario
+   * Cierra la sesión del usuario (stateless - solo revoca tokens)
    */
   async logout(req, res) {
     try {
-      const refreshToken = req.cookies?.refreshToken || req.session?.refreshToken;
+      const refreshToken = req.cookies?.refreshToken;
       
       if (refreshToken) {
         try {
@@ -127,17 +117,12 @@ class AuthController {
         }
       }
 
-      // Limpiar cookies
+      // Limpiar SOLO cookies de tokens (no hay sesión)
       res.clearCookie('accessToken');
       res.clearCookie('refreshToken');
 
-      // Destruir sesión
-      req.session.destroy(err => {
-        if (err) {
-          console.error('Error al cerrar sesión:', err);
-        }
-        res.redirect('/login');
-      });
+      // Redirigir al login (completamente stateless)
+      res.redirect('/login');
     } catch (error) {
       console.error('Error en logout:', error);
       res.redirect('/login');
@@ -200,32 +185,21 @@ class AuthController {
       if (result.success) {
         const { user, accessToken, refreshToken } = result.data;
 
-        // Guardar tokens en cookies
+        // Guardar SOLO tokens en cookies (stateless)
         res.cookie('accessToken', accessToken, {
           httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
           maxAge: 15 * 60 * 1000,
-          sameSite: 'lax'
+          sameSite: 'strict'
         });
         res.cookie('refreshToken', refreshToken, {
           httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
           maxAge: 7 * 24 * 60 * 60 * 1000,
-          sameSite: 'lax'
+          sameSite: 'strict'
         });
 
-        // Crear sesión
-        req.session.user = {
-          id: user.id,
-          email: user.email,
-          firstName: user.firstName,
-          lastName: user.lastName,
-          rol: user.role,
-          isAuthenticated: true
-        };
-
-        req.session.accessToken = accessToken;
-        req.session.refreshToken = refreshToken;
-
-        // Redirigir al home
+        // Redirigir al home (sin sesión, solo JWT)
         return res.redirect('/home');
       }
 

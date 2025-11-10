@@ -3,37 +3,39 @@ const { Business, BusinessModel, Finance, WorkTeam } = require('../models');
 
 /**
  * Controller para las páginas principales de la aplicación
+ * NOTA: req.user viene del JWT (middleware ensureAuthenticated)
+ * res.locals.user está disponible en vistas gracias a injectUserToViews
  */
 
 // Mostrar la página de inicio
 exports.showHome = (req, res) => {
     res.render('home/home', {
         title: 'Inicio - Salga Adelante Sumercé',
-        currentPage: 'home',
-        user: req.session.user
+        currentPage: 'home'
+        // user está disponible en res.locals.user (de injectUserToViews)
     });
 };
 
 // Mostrar el dashboard
 exports.showDashboard = async (req, res) => {
     try {
-        const userId = req.session.user.id;        
-        
+        const userId = req.user.id; // Desde JWT
+
         // Obtener los datos de caracterización del usuario
         const caracterizacion = await dashboardService.getDashboardData(userId);
-        
+
         res.render('home/dashboard', {
             title: 'Dashboard - Salga Adelante Sumercé',
             currentPage: 'dashboard',
-            user: req.session.user,
             caracterizacion: caracterizacion
+            // user está disponible en res.locals.user (de injectUserToViews)
         });
     } catch (error) {
         console.error('Error al cargar el dashboard:', error);
+
         res.status(500).render('home/dashboard', {
             title: 'Dashboard - Salga Adelante Sumercé',
             currentPage: 'dashboard',
-            user: req.session.user,
             caracterizacion: null,
             error: 'Error al cargar los datos del dashboard'
         });
@@ -43,8 +45,8 @@ exports.showDashboard = async (req, res) => {
 // Mostrar la página de caracterización
 exports.showCaracterizacion = async (req, res) => {
     try {
-        const userId = req.session.user.id;
-        
+        const userId = req.user.id; // Desde JWT
+
         // Verificar si el usuario ya tiene un emprendimiento registrado
         const existingBusiness = await Business.findOne({
             where: { userId },
@@ -78,23 +80,21 @@ exports.showCaracterizacion = async (req, res) => {
                 rolesDefinidos: existingBusiness.WorkTeam?.hasDefinedRoles ? 'si' : 'no',
                 cantidadEmpleados: existingBusiness.WorkTeam?.employeeCount || 0
             };
-            
-            console.log('📋 Usuario ya tiene emprendimiento registrado. Mostrando datos en modo lectura.');
-            
+
             res.render('home/caracterizacion', {
                 title: 'Caracterización - Salga Adelante Sumercé',
                 currentPage: 'caracterizacion',
-                user: req.session.user,
                 existingData: businessData,
                 isReadOnly: true
+                // user está disponible en res.locals.user
             });
         } else {
             res.render('home/caracterizacion', {
                 title: 'Caracterización - Salga Adelante Sumercé',
                 currentPage: 'caracterizacion',
-                user: req.session.user,
                 existingData: null,
                 isReadOnly: false
+                // user está disponible en res.locals.user
             });
         }
     } catch (error) {
@@ -103,20 +103,20 @@ exports.showCaracterizacion = async (req, res) => {
     }
 };
 
-// Mostrar la página de soporte
+// Mostrar página de soporte
 exports.showSoporte = (req, res) => {
     res.render('home/soporte', {
         title: 'Soporte - Salga Adelante Sumercé',
-        currentPage: 'soporte',
-        user: req.session.user
+        currentPage: 'soporte'
+        // user está disponible en res.locals.user
     });
 };
 
-// Mostrar la página de contacto
+// Mostrar página de contacto
 exports.showContacto = (req, res) => {
     res.render('home/contacto', {
         title: 'Contacto - Salga Adelante Sumercé',
-        currentPage: 'contacto',
-        user: req.session.user
+        currentPage: 'contacto'
+        // user está disponible en res.locals.user
     });
 };

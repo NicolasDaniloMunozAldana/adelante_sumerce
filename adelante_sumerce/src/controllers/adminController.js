@@ -216,8 +216,8 @@ class AdminController {
         try {
             res.render('admin/dashboard', {
                 title: 'Panel de Administración - Adelante Sumercé',
-                currentPage: 'admin-dashboard',
-                user: req.session.user
+                currentPage: 'admin-dashboard'
+                // user está disponible en res.locals.user (de injectUserToViews)
             });
         } catch (error) {
             console.error('Error al mostrar dashboard del administrador:', error);
@@ -232,8 +232,8 @@ class AdminController {
         try {
             res.render('admin/emprendimientos', {
                 title: 'Emprendimientos - Adelante Sumercé',
-                currentPage: 'admin-emprendimientos',
-                user: req.session.user
+                currentPage: 'admin-emprendimientos'
+                // user está disponible en res.locals.user (de injectUserToViews)
             });
         } catch (error) {
             console.error('Error al mostrar página de emprendimientos:', error);
@@ -358,11 +358,11 @@ class AdminController {
             res.render('admin/business-detail', {
                 title: `Detalle: ${business.name} - Adelante Sumercé`,
                 currentPage: 'admin-emprendimientos',
-                user: req.session.user,
                 business: business,
                 caracterizacion: caracterizacion,
                 formData: businessData,
                 userData: business.User
+                // user está disponible en res.locals.user (de injectUserToViews)
             });
 
         } catch (error) {

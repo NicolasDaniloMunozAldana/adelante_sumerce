@@ -1,20 +1,14 @@
 const authServiceClient = require('../services/authServiceClient');
 
 /**
- * Middleware para manejar la autenticación con JWT
+ * Middleware para manejar la autenticación con JWT (100% stateless)
  * Verifica el access token y lo refresca automáticamente si expiró
  */
 async function ensureAuthenticated(req, res, next) {
   try {
-    // Intentar obtener tokens de las cookies o del body/query
+    // Obtener tokens SOLO de las cookies (stateless)
     let accessToken = req.cookies?.accessToken;
     let refreshToken = req.cookies?.refreshToken;
-
-    // Si no están en cookies, buscar en sesión (retrocompatibilidad)
-    if (!accessToken && req.session?.accessToken) {
-      accessToken = req.session.accessToken;
-      refreshToken = req.session.refreshToken;
-    }
 
     if (!accessToken) {
       return res.redirect('/login');
@@ -24,16 +18,8 @@ async function ensureAuthenticated(req, res, next) {
       // Verificar el access token
       const result = await authServiceClient.verifyToken(accessToken);
       
-      // Adjuntar información del usuario a la sesión/request
+      // Adjuntar información del usuario al request (extraída del JWT)
       req.user = result.data.user;
-      req.session.user = {
-        id: result.data.user.id,
-        email: result.data.user.email,
-        firstName: result.data.user.firstName,
-        lastName: result.data.user.lastName,
-        rol: result.data.user.role,
-        isAuthenticated: true
-      };
       
       return next();
     } catch (error) {
@@ -45,57 +31,58 @@ async function ensureAuthenticated(req, res, next) {
           
           const refreshResult = await authServiceClient.refreshToken(refreshToken, ipAddress, userAgent);
           
-          // Actualizar tokens
+          // Actualizar tokens en cookies (stateless)
           const newAccessToken = refreshResult.data.accessToken;
           const newRefreshToken = refreshResult.data.refreshToken;
           
-          // Guardar en cookies
           res.cookie('accessToken', newAccessToken, {
             httpOnly: true,
-            maxAge: 15 * 60 * 1000 // 15 minutos
+            secure: process.env.NODE_ENV === 'production',
+            maxAge: 15 * 60 * 1000, // 15 minutos
+            sameSite: 'strict'
           });
           res.cookie('refreshToken', newRefreshToken, {
             httpOnly: true,
-            maxAge: 7 * 24 * 60 * 60 * 1000 // 7 días
+            secure: process.env.NODE_ENV === 'production',
+            maxAge: 7 * 24 * 60 * 60 * 1000, // 7 días
+            sameSite: 'strict'
           });
           
-          // Guardar en sesión
-          req.session.accessToken = newAccessToken;
-          req.session.refreshToken = newRefreshToken;
-          req.session.user = {
-            id: refreshResult.data.user.id,
-            email: refreshResult.data.user.email,
-            firstName: refreshResult.data.user.firstName,
-            lastName: refreshResult.data.user.lastName,
-            rol: refreshResult.data.user.role,
-            isAuthenticated: true
-          };
-          
+          // Adjuntar información del usuario al request (desde JWT)
           req.user = refreshResult.data.user;
+          
           return next();
         } catch (refreshError) {
-          // Si no se pudo refrescar, redirigir al login
+          // Si no se pudo refrescar, limpiar cookies y redirigir al login
+          res.clearCookie('accessToken');
+          res.clearCookie('refreshToken');
           return res.redirect('/login');
         }
       }
       
+      // Si hay cualquier otro error, redirigir al login
+      res.clearCookie('accessToken');
+      res.clearCookie('refreshToken');
       return res.redirect('/login');
     }
   } catch (error) {
     console.error('Error en middleware de autenticación:', error);
+    res.clearCookie('accessToken');
+    res.clearCookie('refreshToken');
     return res.redirect('/login');
   }
 }
 
 /**
- * Middleware para verificar que el usuario es administrador
+ * Middleware para verificar que el usuario es administrador (stateless)
  */
 function ensureAdmin(req, res, next) {
-  if (!req.session?.user?.isAuthenticated) {
+  // El usuario debe estar disponible desde req.user (no desde sesión)
+  if (!req.user) {
     return res.redirect('/login');
   }
 
-  if (req.session.user.rol !== 'administrador') {
+  if (req.user.role !== 'administrador') {
     return res.status(403).json({
       success: false,
       message: 'Acceso denegado. Solo administradores pueden acceder a este recurso.'
@@ -106,14 +93,15 @@ function ensureAdmin(req, res, next) {
 }
 
 /**
- * Middleware para verificar que el usuario es emprendedor
+ * Middleware para verificar que el usuario es emprendedor (stateless)
  */
 function ensureEmprendedor(req, res, next) {
-  if (!req.session?.user?.isAuthenticated) {
+  // El usuario debe estar disponible desde req.user (no desde sesión)
+  if (!req.user) {
     return res.redirect('/login');
   }
 
-  if (req.session.user.rol !== 'emprendedor') {
+  if (req.user.role !== 'emprendedor') {
     return res.status(403).json({
       success: false,
       message: 'Acceso denegado. Solo emprendedores pueden acceder a este recurso.'

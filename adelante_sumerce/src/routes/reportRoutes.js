@@ -5,10 +5,11 @@ const { ensureAuthenticated } = require('../middlewares/authMiddleware');
 
 /**
  * Ruta para generar el reporte PDF
+ * El userId se obtiene de req.user (JWT), no de sesión
  */
 router.get('/generate-pdf', ensureAuthenticated, async (req, res) => {
     try {
-        const userId = req.session.user.id;
+        const userId = req.user.id; // Desde JWT, no desde sesión
         
         // Generar el PDF
         const pdf = await reportService.generateBusinessReport(userId);

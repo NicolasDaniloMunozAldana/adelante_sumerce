@@ -2,9 +2,11 @@ const express = require('express');
 const router = express.Router();
 const adminController = require('../controllers/adminController');
 const { ensureAuthenticated, ensureAdmin } = require('../middlewares/authMiddleware');
+const { injectUserToViews } = require('../middlewares/viewDataMiddleware');
 
 // Todas las rutas de administrador requieren autenticación y rol de administrador
-router.use(ensureAuthenticated, ensureAdmin);
+// El middleware injectUserToViews pasa req.user a las vistas EJS
+router.use(ensureAuthenticated, ensureAdmin, injectUserToViews);
 
 // Dashboard del administrador
 router.get('/dashboard', adminController.showAdminDashboard);

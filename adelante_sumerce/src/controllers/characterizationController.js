@@ -3,7 +3,7 @@ const characterizationService = require('../services/characterizationService');
 
 exports.showCharacterizationForm = async (req, res) => {
     try {
-        const userId = req.session.user.id;
+        const userId = req.user.id; // Desde JWT (req.user), no desde sesión
         
         // Verificar si el usuario ya tiene un emprendimiento registrado
         const existingBusiness = await Business.findOne({
@@ -58,7 +58,7 @@ exports.showCharacterizationForm = async (req, res) => {
 
 exports.saveCharacterization = async (req, res) => {
     try {
-        const userId =  req.session.user.id;
+        const userId = req.user.id; // Desde JWT (req.user), no desde sesión
         
         console.log('🟢 [saveCharacterization] Usuario autenticado:', userId);
         console.log('📩 [saveCharacterization] Datos recibidos en req.body:', req.body);

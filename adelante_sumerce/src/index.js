@@ -1,6 +1,5 @@
 const express = require('express');
 const path = require('path');
-const session = require('express-session');
 const cookieParser = require('cookie-parser');
 const sequelize = require('./config/database');
 require('dotenv').config();
@@ -25,18 +24,7 @@ app.set('views', path.join(__dirname, 'views'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, '../public')));
-app.use(cookieParser());
-
-// Configuración de sesiones (mantenemos para retrocompatibilidad)
-app.use(session({
-  secret: process.env.SESSION_SECRET || 'supersecurepassword',
-  resave: false,
-  saveUninitialized: false,
-  cookie: {
-    httpOnly: true,
-    maxAge: 1000 * 60 * 60 * 24 * 7 // 7 días
-  }
-}));
+app.use(cookieParser()); // SOLO cookies para JWT (stateless)
 
 // Importar rutas
 const authRoutes = require('./routes/authRoutes');
@@ -52,16 +40,14 @@ app.use('/caracterizacion', characterizationRoutes); // Rutas de caracterizació
 app.use('/reportes', reportRoutes); // Rutas de reportes
 app.use('/admin', adminRoutes); // Rutas de administrador
 
-// Ruta por defecto - redirecciona al login si no está autenticado
+// Ruta por defecto - redirecciona al login si no tiene token
 app.get('/', (req, res) => {
-  if (!req.session?.user?.isAuthenticated) {
+  const accessToken = req.cookies?.accessToken;
+  if (!accessToken) {
     res.redirect('/login');
   } else {
-    if (req.session.user.rol === 'administrador') {
-      res.redirect('/admin/dashboard');
-    } else {
-      res.redirect('/home');
-    }
+    // Redirigir a home, el middleware se encarga de verificar roles
+    res.redirect('/home');
   }
 });
 
