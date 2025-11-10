@@ -60,9 +60,6 @@ exports.saveCharacterization = async (req, res) => {
     try {
         const userId = req.user.id; // Desde JWT (req.user), no desde sesión
         
-        console.log('🟢 [saveCharacterization] Usuario autenticado:', userId);
-        console.log('📩 [saveCharacterization] Datos recibidos en req.body:', req.body);
-
         // Datos generales (Sección A)
         const businessData = {
             userId,
@@ -74,7 +71,6 @@ exports.saveCharacterization = async (req, res) => {
             managerEmail: req.body.correoEncargado,
             operationMonths: req.body.tiempoOperacion
         };
-        console.log('📊 Datos Generales:', businessData);
 
         // Modelo de Negocio (Sección B)
         const businessModelData = {
@@ -83,7 +79,6 @@ exports.saveCharacterization = async (req, res) => {
             salesChannels: req.body.canalesVenta,
             incomeSources: req.body.fuentesIngreso
         };
-        console.log('📦 Modelo de Negocio:', businessModelData);
 
         // Finanzas (Sección C)
         const financeData = {
@@ -92,7 +87,6 @@ exports.saveCharacterization = async (req, res) => {
             financingSources: req.body.fuentesFinanciamiento,
             monthlyFixedCosts: req.body.costosFijos
         };
-        console.log('💰 Finanzas:', financeData);
 
         // Equipo de Trabajo (Sección D)
         const workTeamData = {
@@ -101,7 +95,6 @@ exports.saveCharacterization = async (req, res) => {
             hasDefinedRoles: req.body.rolesDefinidos === 'si',
             employeeCount: parseInt(req.body.cantidadEmpleados) || 0
         };
-        console.log('👥 Equipo de Trabajo:', workTeamData);
 
         // Guardar toda la información y calcular puntajes
         const result = await characterizationService.saveCharacterization(
@@ -111,7 +104,6 @@ exports.saveCharacterization = async (req, res) => {
             workTeamData
         );
 
-        console.log('✅ [saveCharacterization] Resultado del servicio:', result);
 
         res.json({
             success: true,
@@ -120,7 +112,7 @@ exports.saveCharacterization = async (req, res) => {
         });
 
     } catch (error) {
-        console.error('❌ Error al guardar la caracterización:', error);
+        console.error('Error al guardar la caracterización:', error);
         res.status(500).json({
             success: false,
             message: 'Error al guardar la caracterización',
