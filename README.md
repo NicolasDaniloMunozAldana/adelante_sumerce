@@ -1,1 +1,264 @@
-# adelante_sumerce
+# Adelante Sumercé - Arquitectura de Microservicios
+
+Sistema de gestión comercial para emprendedores, refactorizado con arquitectura de microservicios y autenticación JWT.
+
+## 🎯 Características Principales
+
+- ✅ **Autenticación JWT**: Access tokens de corta duración + Refresh tokens rotativos
+- ✅ **Microservicios**: Autenticación separada del negocio principal
+- ✅ **Sliding Session**: Sensación de sesión infinita sin comprometer seguridad
+- ✅ **Gestión de Roles**: Administrador y Emprendedor
+- ✅ **Retrocompatibilidad**: Código original intacto, nueva implementación en paralelo
+- ✅ **Caracterización de Emprendimientos**: Formularios y reportes
+- ✅ **Dashboard Administrativo**: Métricas y reportes comparativos
+
+## 📁 Estructura del Proyecto
+
+```
+adelante_sumerce/
+│
+├── auth_service/              # Microservicio de autenticación
+│   ├── src/
+│   │   ├── config/           # Configuración y DB
+│   │   ├── controllers/      # Controladores
+│   │   ├── middlewares/      # Autenticación, validación, errores
+│   │   ├── models/           # Modelos Sequelize (User, RefreshToken)
+│   │   ├── repositories/     # Capa de acceso a datos
+│   │   ├── routes/           # Definición de rutas
+│   │   ├── services/         # Lógica de negocio
+│   │   ├── utils/            # JWT, helpers
+│   │   └── index.js          # Entry point
+│   ├── migrations/           # Scripts SQL
+│   ├── package.json
+│   └── README.md
+│
+├── adelante_sumerce/          # Aplicación principal (Frontend + API)
+│   ├── src/
+│   │   ├── config/
+│   │   ├── controllers/
+│   │   │   ├── authController.js        # Original (sesiones)
+│   │   │   ├── authControllerJWT.js     # Nuevo (JWT)
+│   │   │   └── ...
+│   │   ├── middlewares/
+│   │   │   ├── authMiddleware.js        # Original
+│   │   │   ├── authMiddlewareJWT.js     # Nuevo
+│   │   ├── models/
+│   │   ├── routes/
+│   │   │   ├── *Routes.js               # Originales
+│   │   │   ├── *RoutesJWT.js            # Nuevas
+│   │   ├── services/
+│   │   │   ├── authServiceClient.js     # Cliente del auth service
+│   │   │   └── ...
+│   │   ├── views/
+│   │   ├── index.js                     # Original (sesiones)
+│   │   └── indexJWT.js                  # Nuevo (JWT)
+│   └── package.json
+│
+├── sources/                   # Scripts SQL iniciales
+├── MIGRATION_GUIDE.md        # Guía completa de migración
+├── start.sh                  # Script para iniciar ambos servicios
+├── stop.sh                   # Script para detener servicios
+└── README.md                 # Este archivo
+```
+
+## 🚀 Inicio Rápido
+
+### Prerequisitos
+
+- Node.js >= 14.x
+- MySQL >= 5.7
+- npm o yarn
+
+### 1. Configurar Base de Datos
+
+```bash
+# Crear la base de datos
+mysql -u root -p
+CREATE DATABASE adelante_sumerce;
+exit;
+
+# Ejecutar script inicial
+mysql -u root -p adelante_sumerce < sources/create_database.sql
+
+# Ejecutar migraciones para JWT
+mysql -u root -p adelante_sumerce < auth_service/migrations/001_add_refresh_tokens.sql
+```
+
+### 2. Instalación y Configuración
+
+```bash
+# Hacer scripts ejecutables
+chmod +x start.sh stop.sh
+
+# Iniciar servicios (instala dependencias automáticamente)
+./start.sh
+```
+
+El script `start.sh` automáticamente:
+- Verifica puertos disponibles
+- Instala dependencias si no están
+- Configura archivos .env
+- Inicia ambos servicios
+- Muestra logs en tiempo real
+
+### 3. Acceder a la Aplicación
+
+- **Frontend**: http://localhost:3030
+- **Auth Service**: http://localhost:3001
+- **Health Check**: http://localhost:3001/api/health
+
+### 4. Detener Servicios
+
+```bash
+./stop.sh
+```
+
+## 📖 Documentación Completa
+
+- **[MIGRATION_GUIDE.md](./MIGRATION_GUIDE.md)**: Guía completa de migración y arquitectura
+- **[auth_service/README.md](./auth_service/README.md)**: API del microservicio de autenticación
+
+## 🔐 Cómo Funciona la Autenticación JWT
+
+### Flujo Simplificado
+
+```
+1. Usuario hace login
+   ↓
+2. Recibe Access Token (15min) + Refresh Token (7 días)
+   ↓
+3. Access token se usa para requests
+   ↓
+4. Cuando expira, se refresca automáticamente
+   ↓
+5. Sesión se mantiene "infinita" sin que el usuario lo note
+```
+
+Ver detalles completos en [MIGRATION_GUIDE.md](./MIGRATION_GUIDE.md#-cómo-funciona)
+
+## 🛡️ Seguridad
+
+- JWT firmados y verificados
+- Cookies httpOnly (no accesibles desde JS)
+- Refresh tokens rotativos (un solo uso)
+- Rate limiting
+- CORS configurado
+- Passwords hasheados con bcrypt
+
+## 📊 Roles
+
+- **Emprendedor**: Gestiona su emprendimiento, genera reportes individuales
+- **Administrador**: Ve todos los emprendimientos, genera reportes comparativos
+
+## 🧪 Testing Rápido
+
+```bash
+# Verificar que auth service funciona
+curl http://localhost:3001/api/health
+
+# Registrar usuario
+curl -X POST http://localhost:3001/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "test@example.com",
+    "password": "password123",
+    "confirmPassword": "password123",
+    "celular": "3001234567",
+    "nombres": "Test",
+    "apellidos": "User"
+  }'
+```
+
+Más ejemplos en [MIGRATION_GUIDE.md](./MIGRATION_GUIDE.md#-testing)
+
+## 📝 Scripts Disponibles
+
+### Inicio Rápido
+```bash
+./start.sh      # Inicia ambos servicios
+./stop.sh       # Detiene ambos servicios
+```
+
+### Auth Service
+```bash
+cd auth_service
+npm start       # Producción
+npm run dev     # Desarrollo
+```
+
+### Frontend
+```bash
+cd adelante_sumerce
+npm run start:jwt   # Producción con JWT
+npm run dev:jwt     # Desarrollo con JWT
+npm start           # Versión original (sesiones)
+npm run dev         # Desarrollo original
+```
+
+## 🐛 Troubleshooting
+
+### Servicios no inician
+```bash
+# Verificar que MySQL esté corriendo
+mysql -u root -p -e "SELECT 1;"
+
+# Verificar puertos libres
+lsof -i :3001
+lsof -i :3030
+```
+
+### Ver logs
+```bash
+tail -f logs/auth_service.log
+tail -f logs/frontend.log
+```
+
+Más soluciones en [MIGRATION_GUIDE.md](./MIGRATION_GUIDE.md#-troubleshooting)
+
+## 🔄 Versiones
+
+Este proyecto mantiene **dos versiones en paralelo**:
+
+| Versión | Autenticación | Archivos | Comando |
+|---------|---------------|----------|---------|
+| Original | express-session | Sin sufijo | `npm run dev` |
+| Nueva | JWT + Microservicio | Sufijo `JWT` | `npm run dev:jwt` |
+
+**Recomendado**: Usar versión JWT (nueva implementación)
+
+## 📦 Deployment
+
+Ver guía completa de deployment en [MIGRATION_GUIDE.md](./MIGRATION_GUIDE.md#-deployment)
+
+Opciones:
+- Docker Compose
+- Servidores separados
+- Cloud providers (AWS, Azure, GCP)
+
+## 🔧 Mantenimiento
+
+```bash
+# Limpiar tokens expirados (ejecutar periódicamente)
+mysql -u root -p adelante_sumerce < auth_service/migrations/cleanup_tokens.sql
+```
+
+Configurar cron job:
+```cron
+0 3 * * * mysql -u root adelante_sumerce < /ruta/cleanup_tokens.sql
+```
+
+## 🤝 Contribución
+
+1. Fork el proyecto
+2. Crear rama feature (`git checkout -b feature/nueva-funcionalidad`)
+3. Commit cambios (`git commit -am 'Agregar funcionalidad'`)
+4. Push (`git push origin feature/nueva-funcionalidad`)
+5. Crear Pull Request
+
+## 📄 Licencia
+
+ISC
+
+---
+
+**¿Necesitas ayuda?** Consulta [MIGRATION_GUIDE.md](./MIGRATION_GUIDE.md) para información detallada.

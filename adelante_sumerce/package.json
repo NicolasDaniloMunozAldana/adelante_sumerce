@@ -8,7 +8,9 @@
   "main": "src/index.js",
   "scripts": {
     "start": "node src/index.js",
+    "start:jwt": "node src/indexJWT.js",
     "dev": "nodemon src/index.js",
+    "dev:jwt": "nodemon src/indexJWT.js",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "test": "jest --runInBand"
@@ -16,6 +18,7 @@
   "dependencies": {
     "axios": "^1.11.0",
     "bcryptjs": "^3.0.2",
+    "cookie-parser": "^1.4.6",
     "dotenv": "^17.2.1",
     "ejs": "^3.1.10",
     "exceljs": "^4.4.0",
