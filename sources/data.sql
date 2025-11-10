@@ -1,10 +1,8 @@
 
 INSERT INTO usuarios (id, email, password_hash, contacto_celular, nombre, apellido, rol)
 VALUES
-(1,  'adelante@gmail.com',    '$2b$10$wq.D5pw1/0KK3TELCKyQTezDu0kcPyE.D2YV3aHvV5Jsw6XPSPZZm', '3101110001', 'Salga Adelante', 'Adelante Sumerce', 'administrador')
-------------------------------------------------------
--- 1) USUARIOS (ID 3 AL 17)
-------------------------------------------------------
+(1,  'adelante@gmail.com',    '$2b$10$wq.D5pw1/0KK3TELCKyQTezDu0kcPyE.D2YV3aHvV5Jsw6XPSPZZm', '3101110001', 'Salga Adelante', 'Adelante Sumerce', 'administrador');
+
 INSERT INTO usuarios (id, email, password_hash, contacto_celular, nombre, apellido, rol)
 VALUES
 (3,  'ana.martinez@example.com',    'password_hash_1', '3101110001', 'Ana',      'Martínez', 'emprendedor'),
@@ -23,11 +21,7 @@ VALUES
 (16, 'roberto.castillo@example.com', 'password_hash_14','3101110014', 'Roberto',  'Castillo', 'emprendedor'),
 (17, 'valentina.oro@example.com',    'password_hash_15','3101110015', 'Valentina','Oro',      'emprendedor');
 
-------------------------------------------------------
--- 2) EMPRENDIMIENTOS (ID 3 AL 17)
--- Sectores corregidos a:
--- agricultura, manufactura, comercio, servicios, tecnologia, turismo, construccion, otro
-------------------------------------------------------
+
 INSERT INTO emprendimientos (id, usuario_id, nombre_emprendimiento, año_creacion, sector_economico, nombre_encargado, contacto_encargado, email_encargado, tiempo_operacion_meses)
 VALUES
 (3,  3,  'Panadería La Esquina',        2022, 'comercio',       'Ana Martínez',     '3101110001', 'ana.martinez@example.com',    '12_24_meses'),
@@ -46,9 +40,7 @@ VALUES
 (16, 16, 'Reciclaje Creativo',          2023, 'otro',           'Roberto Castillo', '3101110014', 'roberto.castillo@example.com','6_12_meses'),
 (17, 17, 'Tienda Online 24/7',          2020, 'comercio',       'Valentina Oro',    '3101110015', 'valentina.oro@example.com',   '12_24_meses');
 
-------------------------------------------------------
--- 3) MODELO DE NEGOCIO (3–17)
-------------------------------------------------------
+
 INSERT INTO modelo_negocio (emprendimiento_id, propuesta_valor, segmento_clientes, canales_venta, fuentes_ingreso)
 VALUES
 (3,  'Pan fresco artesanal diario, ingredientes locales', 'Vecinos y cafeterías locales', 'Venta directa, pedidos por teléfono', 'Venta por unidad, pedidos recurrentes'),
@@ -67,9 +59,7 @@ VALUES
 (16, 'Reciclaje y productos de diseño con residuos', 'Empresas y consumidores creativos', 'Tienda online y puntos de acopio', 'Venta producto, recolección a domicilio'),
 (17, 'Tienda online con envíos 24/7', 'Compradores en línea', 'E-commerce, redes', 'Venta por producto, afiliados');
 
-------------------------------------------------------
--- 4) FINANZAS (3–17)
-------------------------------------------------------
+
 INSERT INTO finanzas (emprendimiento_id, ventas_netas_mes, rentabilidad_mensual, fuentes_financiamiento, costos_fijos_mensuales)
 VALUES
 (3,  '1_3_smmlv',      'medio_1_smmlv',      'recursos_propios',  'menos_medio_smmlv'),
@@ -88,9 +78,7 @@ VALUES
 (16, '1_3_smmlv',      'medio_1_smmlv',      'credito_bancario',  'medio_1_smmlv'),
 (17, '1_3_smmlv',      'medio_1_smmlv',      'recursos_propios',  'medio_1_smmlv');
 
-------------------------------------------------------
--- 5) EQUIPO DE TRABAJO (3–17)
-------------------------------------------------------
+
 INSERT INTO equipo_trabajo (emprendimiento_id, nivel_formacion_empresarial, personal_capacitado, roles_definidos, cantidad_empleados)
 VALUES
 (3,  'tecnica_profesional',            TRUE,  TRUE, 4),
@@ -109,9 +97,7 @@ VALUES
 (16, 'tecnica_profesional',            TRUE,  TRUE,2),
 (17, 'administracion_emprendimiento',  TRUE,  TRUE,3);
 
-------------------------------------------------------
--- 7) CALIFICACIONES (3–17)
-------------------------------------------------------
+
 INSERT INTO calificaciones (emprendimiento_id, puntaje_datos_generales, puntaje_modelo_negocio, puntaje_finanzas, puntaje_equipo_trabajo, puntaje_impacto_social, puntaje_total, porcentaje_total, clasificacion_global)
 VALUES
 (3,  8, 10, 7,  8,  6,  39,  78.00, 'en_desarrollo'),
