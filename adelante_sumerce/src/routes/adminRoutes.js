@@ -1,10 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const adminController = require('../controllers/adminController');
-const { ensureAdmin } = require('../middlewares/authMiddleware');
+const { ensureAuthenticated, ensureAdmin } = require('../middlewares/authMiddleware');
 
 // Todas las rutas de administrador requieren autenticación y rol de administrador
-router.use(ensureAdmin);
+router.use(ensureAuthenticated, ensureAdmin);
 
 // Dashboard del administrador
 router.get('/dashboard', adminController.showAdminDashboard);

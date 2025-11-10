@@ -8,9 +8,7 @@
   "main": "src/index.js",
   "scripts": {
     "start": "node src/index.js",
-    "start:jwt": "node src/indexJWT.js",
     "dev": "nodemon src/index.js",
-    "dev:jwt": "nodemon src/indexJWT.js",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "test": "jest --runInBand"

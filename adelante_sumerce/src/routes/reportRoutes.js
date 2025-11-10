@@ -21,7 +21,6 @@ router.get('/generate-pdf', ensureAuthenticated, async (req, res) => {
         // Enviar el PDF
         res.send(pdf);
 
-
     } catch (error) {
         res.status(500).json({
             success: false,

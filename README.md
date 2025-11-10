@@ -36,22 +36,18 @@ adelante_sumerce/
 │   ├── src/
 │   │   ├── config/
 │   │   ├── controllers/
-│   │   │   ├── authController.js        # Original (sesiones)
-│   │   │   ├── authControllerJWT.js     # Nuevo (JWT)
+│   │   │   ├── authController.js        # Autenticación con JWT
 │   │   │   └── ...
 │   │   ├── middlewares/
-│   │   │   ├── authMiddleware.js        # Original
-│   │   │   ├── authMiddlewareJWT.js     # Nuevo
+│   │   │   ├── authMiddleware.js        # Middleware JWT
 │   │   ├── models/
 │   │   ├── routes/
-│   │   │   ├── *Routes.js               # Originales
-│   │   │   ├── *RoutesJWT.js            # Nuevas
+│   │   │   ├── *Routes.js               # Rutas con JWT
 │   │   ├── services/
 │   │   │   ├── authServiceClient.js     # Cliente del auth service
 │   │   │   └── ...
 │   │   ├── views/
-│   │   ├── index.js                     # Original (sesiones)
-│   │   └── indexJWT.js                  # Nuevo (JWT)
+│   │   └── index.js                     # Entry point con JWT
 │   └── package.json
 │
 ├── sources/                   # Scripts SQL iniciales
@@ -189,10 +185,8 @@ npm run dev     # Desarrollo
 ### Frontend
 ```bash
 cd adelante_sumerce
-npm run start:jwt   # Producción con JWT
-npm run dev:jwt     # Desarrollo con JWT
-npm start           # Versión original (sesiones)
-npm run dev         # Desarrollo original
+npm start       # Producción con JWT
+npm run dev     # Desarrollo con JWT
 ```
 
 ## 🐛 Troubleshooting
@@ -215,16 +209,16 @@ tail -f logs/frontend.log
 
 Más soluciones en [MIGRATION_GUIDE.md](./MIGRATION_GUIDE.md#-troubleshooting)
 
-## 🔄 Versiones
+## 🔄 Implementación
 
-Este proyecto mantiene **dos versiones en paralelo**:
+Este proyecto utiliza **autenticación JWT** con microservicio independiente:
 
-| Versión | Autenticación | Archivos | Comando |
-|---------|---------------|----------|---------|
-| Original | express-session | Sin sufijo | `npm run dev` |
-| Nueva | JWT + Microservicio | Sufijo `JWT` | `npm run dev:jwt` |
-
-**Recomendado**: Usar versión JWT (nueva implementación)
+| Característica | Implementación |
+|----------------|----------------|
+| Autenticación | JWT + Refresh Tokens |
+| Arquitectura | Microservicios |
+| Sesiones | Sliding session (infinita) |
+| Comando | `npm run dev` |
 
 ## 📦 Deployment
 

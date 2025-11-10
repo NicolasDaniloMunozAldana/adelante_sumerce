@@ -1,6 +1,7 @@
 const express = require('express');
 const path = require('path');
 const session = require('express-session');
+const cookieParser = require('cookie-parser');
 const sequelize = require('./config/database');
 require('dotenv').config();
 
@@ -24,15 +25,16 @@ app.set('views', path.join(__dirname, 'views'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, '../public')));
+app.use(cookieParser());
 
-// Configuración de sesiones
+// Configuración de sesiones (mantenemos para retrocompatibilidad)
 app.use(session({
   secret: process.env.SESSION_SECRET || 'supersecurepassword',
   resave: false,
   saveUninitialized: false,
   cookie: {
     httpOnly: true,
-    maxAge: 1000 * 60 * 60 // 1 hora
+    maxAge: 1000 * 60 * 60 * 24 * 7 // 7 días
   }
 }));
 
@@ -52,10 +54,14 @@ app.use('/admin', adminRoutes); // Rutas de administrador
 
 // Ruta por defecto - redirecciona al login si no está autenticado
 app.get('/', (req, res) => {
-  if (!req.session.user) {
-    res.redirect('/auth/login');
+  if (!req.session?.user?.isAuthenticated) {
+    res.redirect('/login');
   } else {
-    res.redirect('/home');
+    if (req.session.user.rol === 'administrador') {
+      res.redirect('/admin/dashboard');
+    } else {
+      res.redirect('/home');
+    }
   }
 });
 
@@ -66,7 +72,14 @@ app.use((req, res) => {
 
 // Iniciar servidor
 app.listen(PORT, () => {
-  console.log(`Servidor corriendo en http://localhost:${PORT}`);
+  console.log(`
+╔══════════════════════════════════════╗
+║   Adelante Sumercé Running        ║
+║   Port: ${PORT}                      ║
+║   URL: http://localhost:${PORT}      ║
+║   Auth: JWT + Refresh Tokens         ║
+╚══════════════════════════════════════╝
+  `);
 });
 
 module.exports = app;
