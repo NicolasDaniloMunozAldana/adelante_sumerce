@@ -1,59 +1,37 @@
 const express = require('express');
 const router = express.Router();
-const kafkaProducer = require('../kafka/kafkaProducer');
+const reportRequestService = require('../services/reportRequestService');
 const { ensureAuthenticated } = require('../middlewares/authMiddleware');
-const { Business, BusinessModel, Finance, WorkTeam, Rating } = require('../models');
 
 /**
- * Ruta para solicitar generación de reporte PDF
- * Envía un evento a Kafka para que el microservicio lo procese
+ * Rutas para solicitudes de reportes de usuario
+ * Estas rutas NO generan reportes directamente, sino que envían
+ * eventos a Kafka para que el microservicio report_service los procese
+ */
+
+/**
+ * GET /api/reports/generate-pdf
+ * Solicita la generación de un reporte PDF del emprendimiento del usuario
+ * El reporte será generado por el microservicio y enviado por email
  */
 router.get('/generate-pdf', ensureAuthenticated, async (req, res) => {
     try {
         const userId = req.user.id;
         const userEmail = req.user.email;
 
-        // Obtener datos del emprendimiento
-        const business = await Business.findOne({
-            where: { userId },
-            include: [
-                { model: BusinessModel },
-                { model: Finance },
-                { model: WorkTeam },
-                { model: Rating }
-            ],
-            order: [['id', 'DESC']]
-        });
+        // Delegar la lógica al servicio
+        const result = await reportRequestService.requestUserReport(userId, userEmail);
 
-        if (!business) {
-            return res.status(404).json({
-                success: false,
-                message: 'No se encontró caracterización para este usuario'
-            });
-        }
-
-        // Convertir a JSON plano para Kafka
-        const businessData = business.toJSON();
-
-        // Enviar evento a Kafka
-        await kafkaProducer.sendGenerateUserReportEvent(
-            userId,
-            userEmail,
-            businessData
-        );
-
-        // Responder inmediatamente al usuario
-        res.json({
-            success: true,
-            message: 'Tu reporte está siendo generado y será enviado a tu correo electrónico',
-            email: userEmail
-        });
+        res.json(result);
 
     } catch (error) {
         console.error('Error al solicitar generación de reporte:', error);
-        res.status(500).json({
+
+        const statusCode = error.statusCode || 500;
+        
+        res.status(statusCode).json({
             success: false,
-            message: 'Error al solicitar la generación del reporte',
+            message: error.message || 'Error al solicitar la generación del reporte',
             error: error.message
         });
     }
