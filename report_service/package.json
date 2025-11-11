@@ -1,0 +1,26 @@
+{
+  "name": "report_service",
+  "version": "1.0.0",
+  "description": "Microservicio de generación y envío de reportes por correo",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "nodemon src/index.js",
+    "test": "jest"
+  },
+  "keywords": ["reports", "kafka", "microservice"],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "kafkajs": "^2.2.4",
+    "puppeteer": "^24.27.0",
+    "exceljs": "^4.4.0",
+    "nodemailer": "^7.0.6",
+    "dotenv": "^17.2.1",
+    "winston": "^3.11.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.10",
+    "jest": "^30.0.5"
+  }
+}

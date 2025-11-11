@@ -1,6 +1,5 @@
 const { Business, BusinessModel, Finance, WorkTeam, Rating, User } = require('../models');
-const comparativeReportService = require('../services/comparativeReportService');
-const adminReportService = require('../services/adminReportService');
+const kafkaProducer = require('../kafka/kafkaProducer');
 
 class AdminController {
     /**
@@ -385,6 +384,7 @@ class AdminController {
 
     /**
      * Generar reporte comparativo en PDF
+     * Envía un evento a Kafka para que el microservicio lo procese
      */
     async generateComparativePDF(req, res) {
         try {
@@ -394,17 +394,57 @@ class AdminController {
             if (classification) filters.classification = classification;
             if (sector) filters.sector = sector;
 
-            const pdf = await comparativeReportService.generateComparativePDF(filters);
+            // Obtener todos los emprendimientos según los filtros
+            const whereClause = {};
+            if (sector) whereClause.economicSector = sector;
 
-            res.setHeader('Content-Type', 'application/pdf');
-            res.setHeader('Content-Disposition', `attachment; filename=reporte-comparativo-${Date.now()}.pdf`);
-            res.send(pdf);
+            const businesses = await Business.findAll({
+                where: whereClause,
+                include: [
+                    { model: User },
+                    { model: BusinessModel },
+                    { model: Finance },
+                    { model: WorkTeam },
+                    { model: Rating }
+                ],
+                order: [['id', 'ASC']]
+            });
+
+            // Filtrar por clasificación si se especificó
+            let filteredBusinesses = businesses;
+            if (classification) {
+                filteredBusinesses = businesses.filter(b => b.Rating?.globalClassification === classification);
+            }
+
+            if (filteredBusinesses.length === 0) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'No se encontraron emprendimientos para generar el reporte'
+                });
+            }
+
+            // Convertir a JSON plano para Kafka
+            const businessesData = filteredBusinesses.map(b => b.toJSON());
+
+            // Enviar evento a Kafka
+            await kafkaProducer.sendGenerateComparativePDFEvent(
+                req.user.email,
+                businessesData,
+                filters
+            );
+
+            res.json({
+                success: true,
+                message: `El reporte comparativo PDF está siendo generado y será enviado a ${req.user.email}`,
+                businessCount: businessesData.length,
+                email: req.user.email
+            });
 
         } catch (error) {
-            console.error('Error generando reporte PDF:', error);
+            console.error('Error solicitando reporte PDF:', error);
             res.status(500).json({
                 success: false,
-                message: 'Error al generar el reporte PDF',
+                message: 'Error al solicitar el reporte PDF',
                 error: error.message
             });
         }
@@ -412,6 +452,7 @@ class AdminController {
 
     /**
      * Generar reporte comparativo en Excel
+     * Envía un evento a Kafka para que el microservicio lo procese
      */
     async generateComparativeExcel(req, res) {
         try {
@@ -421,17 +462,57 @@ class AdminController {
             if (classification) filters.classification = classification;
             if (sector) filters.sector = sector;
 
-            const buffer = await comparativeReportService.generateComparativeExcel(filters);
+            // Obtener todos los emprendimientos según los filtros
+            const whereClause = {};
+            if (sector) whereClause.economicSector = sector;
 
-            res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-            res.setHeader('Content-Disposition', `attachment; filename=reporte-comparativo-${Date.now()}.xlsx`);
-            res.send(buffer);
+            const businesses = await Business.findAll({
+                where: whereClause,
+                include: [
+                    { model: User },
+                    { model: BusinessModel },
+                    { model: Finance },
+                    { model: WorkTeam },
+                    { model: Rating }
+                ],
+                order: [['id', 'ASC']]
+            });
+
+            // Filtrar por clasificación si se especificó
+            let filteredBusinesses = businesses;
+            if (classification) {
+                filteredBusinesses = businesses.filter(b => b.Rating?.globalClassification === classification);
+            }
+
+            if (filteredBusinesses.length === 0) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'No se encontraron emprendimientos para generar el reporte'
+                });
+            }
+
+            // Convertir a JSON plano para Kafka
+            const businessesData = filteredBusinesses.map(b => b.toJSON());
+
+            // Enviar evento a Kafka
+            await kafkaProducer.sendGenerateComparativeExcelEvent(
+                req.user.email,
+                businessesData,
+                filters
+            );
+
+            res.json({
+                success: true,
+                message: `El reporte comparativo Excel está siendo generado y será enviado a ${req.user.email}`,
+                businessCount: businessesData.length,
+                email: req.user.email
+            });
 
         } catch (error) {
-            console.error('Error generando reporte Excel:', error);
+            console.error('Error solicitando reporte Excel:', error);
             res.status(500).json({
                 success: false,
-                message: 'Error al generar el reporte Excel',
+                message: 'Error al solicitar el reporte Excel',
                 error: error.message
             });
         }
@@ -439,15 +520,22 @@ class AdminController {
 
     /**
      * Generar reporte individual de un emprendimiento para el administrador
+     * Envía un evento a Kafka para que el microservicio lo procese
      */
     async generateBusinessPDF(req, res) {
         try {
             const { id } = req.params;
 
-            // Verificar que el emprendimiento existe
+            // Obtener el emprendimiento con todas sus relaciones
             const business = await Business.findOne({
                 where: { id },
-                include: [{ model: Rating }]
+                include: [
+                    { model: User, attributes: ['id', 'email', 'firstName', 'lastName', 'phoneContact'] },
+                    { model: BusinessModel },
+                    { model: Finance },
+                    { model: WorkTeam },
+                    { model: Rating }
+                ]
             });
 
             if (!business || !business.Rating) {
@@ -457,17 +545,28 @@ class AdminController {
                 });
             }
 
-            const pdf = await adminReportService.generateBusinessReport(id);
+            // Convertir a JSON plano para Kafka
+            const businessData = business.toJSON();
 
-            res.setHeader('Content-Type', 'application/pdf');
-            res.setHeader('Content-Disposition', `attachment; filename=evaluacion-${business.name.replace(/\s+/g, '-')}-${Date.now()}.pdf`);
-            res.send(pdf);
+            // Enviar evento a Kafka
+            await kafkaProducer.sendGenerateAdminReportEvent(
+                id,
+                req.user.email,
+                businessData
+            );
+
+            res.json({
+                success: true,
+                message: `El reporte de evaluación del emprendimiento "${business.name}" está siendo generado y será enviado a ${req.user.email}`,
+                businessName: business.name,
+                email: req.user.email
+            });
 
         } catch (error) {
-            console.error('Error generando reporte individual:', error);
+            console.error('Error solicitando reporte individual:', error);
             res.status(500).json({
                 success: false,
-                message: 'Error al generar el reporte',
+                message: 'Error al solicitar el reporte',
                 error: error.message
             });
         }
