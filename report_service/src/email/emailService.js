@@ -181,7 +181,7 @@ class EmailService {
             </head>
             <body>
                 <div class="header">
-                    <h1>🚀 Salga Adelante Sumercé</h1>
+                    <h1>Salga Adelante Sumercé</h1>
                 </div>
                 <div class="content">
                     <h2>¡Tu reporte está listo!</h2>
@@ -190,8 +190,8 @@ class EmailService {
                     <p>Encontrarás el archivo adjunto en este correo electrónico.</p>
                     <p><strong>Detalles del reporte:</strong></p>
                     <ul>
-                        <li>📅 Fecha de generación: ${new Date().toLocaleDateString('es-CO')}</li>
-                        <li>⏰ Hora: ${new Date().toLocaleTimeString('es-CO')}</li>
+                        <li>Fecha de generación: ${new Date().toLocaleDateString('es-CO')}</li>
+                        <li>Hora: ${new Date().toLocaleTimeString('es-CO')}</li>
                     </ul>
                     <p>Si tienes alguna pregunta o necesitas asistencia, no dudes en contactarnos.</p>
                 </div>
@@ -250,7 +250,7 @@ class EmailService {
             </head>
             <body>
                 <div class="header">
-                    <h1>⚠️ Error en generación de reporte</h1>
+                    <h1>Error en generación de reporte</h1>
                 </div>
                 <div class="content">
                     <h2>Hubo un problema al generar tu reporte</h2>
