@@ -357,6 +357,7 @@ class AdminController {
             res.render('admin/business-detail', {
                 title: `Detalle: ${business.name} - Adelante Sumercé`,
                 currentPage: 'admin-emprendimientos',
+                user: req.user,
                 business: business,
                 caracterizacion: caracterizacion,
                 formData: businessData,
