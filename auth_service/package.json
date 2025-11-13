@@ -9,19 +9,19 @@
     "test": "jest --runInBand"
   },
   "dependencies": {
-    "express": "^5.1.0",
-    "dotenv": "^17.2.1",
     "bcryptjs": "^3.0.2",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.1",
+    "express": "^5.1.0",
+    "express-rate-limit": "^7.4.0",
+    "express-validator": "^7.0.1",
+    "helmet": "^8.0.0",
     "jsonwebtoken": "^9.0.2",
     "mysql2": "^3.15.3",
-    "sequelize": "^6.37.7",
-    "cors": "^2.8.5",
-    "helmet": "^8.0.0",
-    "express-rate-limit": "^7.4.0",
-    "express-validator": "^7.0.1"
+    "sequelize": "^6.37.7"
   },
   "devDependencies": {
-    "nodemon": "^3.1.10",
-    "jest": "^30.0.5"
+    "jest": "^30.2.0",
+    "nodemon": "^3.1.10"
   }
 }

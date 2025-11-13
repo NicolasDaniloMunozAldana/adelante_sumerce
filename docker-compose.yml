@@ -1,0 +1,241 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8.0
+    environment:
+      - MYSQL_ROOT_PASSWORD=${DB_PASSWORD}
+      - MYSQL_DATABASE=${DB_NAME}
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./sources/create_database.sql:/docker-entrypoint-initdb.d/01-create_database.sql
+      - ./auth_service/migrations/001_add_refresh_tokens.sql:/docker-entrypoint-initdb.d/02-add_refresh_tokens.sql
+    networks:
+      - backend
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 5
+      healthcheck:
+        test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${DB_PASSWORD}"]
+        interval: 30s
+        timeout: 10s
+        retries: 5
+        start_period: 40s
+
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    networks:
+      - backend
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 5
+
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    depends_on:
+      - zookeeper
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'true'
+    networks:
+      - backend
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 5
+    healthcheck:
+      test: ["CMD", "kafka-broker-api-versions", "--bootstrap-server", "localhost:9092"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+
+  auth_service:
+    image: ${REGISTRY:-localhost}/auth_service:${VERSION:-latest}
+    build:
+      context: ./auth_service
+      dockerfile: Dockerfile
+    environment:
+      PORT: ${PORT}
+      NODE_ENV: ${NODE_ENV}
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT}
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
+      JWT_ACCESS_EXPIRATION: ${JWT_ACCESS_EXPIRATION}
+      JWT_REFRESH_EXPIRATION: ${JWT_REFRESH_EXPIRATION}
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS}
+    networks:
+      - backend
+    depends_on:
+      - mysql
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+      update_config:
+        parallelism: 1
+        delay: 10s
+        failure_action: rollback
+      rollback_config:
+        parallelism: 1
+        delay: 10s
+
+  report_service:
+    image: ${REGISTRY:-localhost}/report_service:${VERSION:-latest}
+    build:
+      context: ./report_service
+      dockerfile: Dockerfile
+    environment:
+      NODE_ENV: production
+      KAFKA_BROKERS: ${KAFKA_BROKERS}
+      KAFKA_CLIENT_ID: ${KAFKA_CLIENT_ID}
+      KAFKA_GROUP_ID: ${KAFKA_GROUP_ID}
+      SMTP_HOST: ${SMTP_HOST}
+      SMTP_PORT: ${SMTP_PORT}
+      SMTP_SECURE: ${SMTP_SECURE}
+      SMTP_USER: ${SMTP_USER}
+      SMTP_PASSWORD: ${SMTP_PASSWORD}
+      SERVICE_NAME: ${SERVICE_NAME}
+      LOG_LEVEL: ${LOG_LEVEL}
+      TOPIC_GENERATE_ADMIN_REPORT: ${TOPIC_GENERATE_ADMIN_REPORT}
+      TOPIC_GENERATE_COMPARATIVE_REPORT: ${TOPIC_GENERATE_COMPARATIVE_REPORT}
+      TOPIC_GENERATE_USER_REPORT: ${TOPIC_GENERATE_USER_REPORT}
+      TOPIC_REPORT_GENERATED: ${TOPIC_REPORT_GENERATED}
+      TOPIC_REPORT_FAILED: ${TOPIC_REPORT_FAILED}
+    volumes:
+      - report_logs:/app/logs
+    networks:
+      - backend
+    depends_on:
+      - kafka
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+      update_config:
+        parallelism: 1
+        delay: 10s
+        failure_action: rollback
+  
+  adelante_sumerce:
+    image: ${REGISTRY:-localhost}/adelante_sumerce:${VERSION:-latest}
+    build:
+      context: ./adelante_sumerce
+      dockerfile: Dockerfile
+    environment:
+      PORT: ${PORT}
+      NODE_ENV: production
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT}
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      SESSION_SECRET: ${SESSION_SECRET}
+      AUTH_SERVICE_URL: http://auth_service:3001/api/auth
+      KAFKA_BROKERS: ${KAFKA_BROKERS}
+      EMAIL_HOST: ${SMTP_HOST}
+      EMAIL_PORT: ${SMTP_PORT}
+      EMAIL_USER: ${SMTP_USER}
+      EMAIL_PASSWORD: ${SMTP_PASSWORD}
+    networks:
+      - backend
+      - frontend
+    depends_on:
+      - mysql
+      - auth_service
+      - kafka
+    deploy:
+      replicas: 3
+      restart_policy:
+        condition: any
+        delay: 5s
+        max_attempts: 5
+      update_config:
+        parallelism: 1
+        delay: 10s
+        failure_action: rollback
+        order: start-first
+      rollback_config:
+        parallelism: 1
+        delay: 10s
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    networks:
+      - frontend
+    depends_on:
+      - adelante_sumerce
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+      restart_policy:
+        condition: on-failure
+      update_config:
+        parallelism: 1
+        delay: 10s
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 128M
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+networks:
+  frontend:
+    driver: overlay
+  backend:
+    driver: overlay
+    internal: true
+
+volumes:
+  mysql_data:
+    driver: local
+  report_logs:
+    driver: local

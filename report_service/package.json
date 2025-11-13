@@ -8,19 +8,23 @@
     "dev": "nodemon src/index.js",
     "test": "jest"
   },
-  "keywords": ["reports", "kafka", "microservice"],
+  "keywords": [
+    "reports",
+    "kafka",
+    "microservice"
+  ],
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "kafkajs": "^2.2.4",
-    "puppeteer": "^24.27.0",
-    "exceljs": "^4.4.0",
-    "nodemailer": "^7.0.6",
     "dotenv": "^17.2.1",
+    "exceljs": "^4.4.0",
+    "kafkajs": "^2.2.4",
+    "nodemailer": "^7.0.6",
+    "puppeteer": "^24.27.0",
     "winston": "^3.11.0"
   },
   "devDependencies": {
-    "nodemon": "^3.1.10",
-    "jest": "^30.0.5"
+    "jest": "^30.2.0",
+    "nodemon": "^3.1.10"
   }
 }
