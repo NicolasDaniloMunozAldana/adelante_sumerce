@@ -1,5 +1,5 @@
 const dashboardService = require('../services/dashboardService');
-const { Business, BusinessModel, Finance, WorkTeam } = require('../models');
+const characterizationService = require('../services/characterizationService');
 
 /**
  * Controller para las páginas principales de la aplicación
@@ -21,7 +21,7 @@ exports.showDashboard = async (req, res) => {
     try {
         const userId = req.user.id; // Desde JWT
 
-        // Obtener los datos de caracterización del usuario
+        // Obtener los datos de caracterización del usuario (con caché)
         const caracterizacion = await dashboardService.getDashboardData(userId);
 
         res.render('home/dashboard', {
@@ -47,15 +47,8 @@ exports.showCaracterizacion = async (req, res) => {
     try {
         const userId = req.user.id; // Desde JWT
 
-        // Verificar si el usuario ya tiene un emprendimiento registrado
-        const existingBusiness = await Business.findOne({
-            where: { userId },
-            include: [
-                { model: BusinessModel },
-                { model: Finance },
-                { model: WorkTeam }
-            ]
-        });
+        // Usar el servicio con caché que funciona aunque la BD esté caída
+        const existingBusiness = await characterizationService.getCharacterizationByUserId(userId);
 
         // Si ya tiene un emprendimiento, pasar los datos a la vista
         if (existingBusiness) {
@@ -99,7 +92,12 @@ exports.showCaracterizacion = async (req, res) => {
         }
     } catch (error) {
         console.error('Error al mostrar el formulario de caracterización:', error);
-        res.status(500).send('Error al cargar el formulario');
+        
+        // Si hay un error (BD caída y no hay caché), mostrar mensaje apropiado
+        res.status(500).render('error', {
+            message: 'No se pudo cargar el formulario de caracterización. Por favor, intente más tarde.',
+            error: process.env.NODE_ENV === 'development' ? error : {}
+        });
     }
 };
 
