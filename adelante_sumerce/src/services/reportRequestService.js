@@ -1,5 +1,6 @@
 const { Business, BusinessModel, Finance, WorkTeam, Rating } = require('../models');
 const kafkaProducer = require('../kafka/kafkaProducer');
+const cacheService = require('./cacheService');
 
 /**
  * Servicio para manejar las solicitudes de generación de reportes
@@ -43,16 +44,24 @@ class ReportRequestService {
      * @throws {Error} Si no se encuentra el emprendimiento
      */
     async fetchBusinessDataForUser(userId) {
-        const business = await Business.findOne({
-            where: { userId },
-            include: [
-                { model: BusinessModel },
-                { model: Finance },
-                { model: WorkTeam },
-                { model: Rating }
-            ],
-            order: [['id', 'DESC']]
-        });
+        const cacheKey = cacheService.generateCacheKey('report:business-data', { userId });
+
+        // Usar caché crítico ya que estos datos son para reportes
+        const business = await cacheService.getCriticalData(
+            cacheKey,
+            async () => {
+                return await Business.findOne({
+                    where: { userId },
+                    include: [
+                        { model: BusinessModel },
+                        { model: Finance },
+                        { model: WorkTeam },
+                        { model: Rating }
+                    ],
+                    order: [['id', 'DESC']]
+                });
+            }
+        );
 
         if (!business) {
             const error = new Error('No se encontró caracterización para este usuario');
@@ -70,12 +79,21 @@ class ReportRequestService {
      * @returns {Promise<boolean>} True si existe, false si no
      */
     async hasBusinessCharacterization(userId) {
-        const count = await Business.count({
-            where: { userId },
-            include: [{ model: Rating }]
-        });
+        const cacheKey = cacheService.generateCacheKey('report:has-business', { userId });
 
-        return count > 0;
+        const result = await cacheService.getOrFetch(
+            cacheKey,
+            async () => {
+                const count = await Business.count({
+                    where: { userId },
+                    include: [{ model: Rating }]
+                });
+                return count > 0;
+            },
+            1800 // 30 minutos
+        );
+
+        return result;
     }
 }
 

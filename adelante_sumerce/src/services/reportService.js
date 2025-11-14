@@ -1,5 +1,6 @@
 const puppeteer = require('puppeteer');
 const { Business, BusinessModel, Finance, WorkTeam, Rating } = require('../models');
+const cacheService = require('./cacheService');
 
 class ReportService {
     /**
@@ -8,17 +9,24 @@ class ReportService {
     async generateBusinessReport(userId) {
         //Ahora acas solo va a enviar los datos como JSON
         try {
-            // Obtener toda la información del emprendimiento
-            const business = await Business.findOne({
-                where: { userId },
-                include: [
-                    { model: BusinessModel },
-                    { model: Finance },
-                    { model: WorkTeam },
-                    { model: Rating }
-                ],
-                order: [['id', 'DESC']]
-            });
+            // Obtener toda la información del emprendimiento desde cache
+            const cacheKey = cacheService.generateCacheKey('business_report', { userId });
+            const business = await cacheService.getCriticalData(
+                cacheKey,
+                async () => {
+                    return await Business.findOne({
+                        where: { userId },
+                        include: [
+                            { model: BusinessModel },
+                            { model: Finance },
+                            { model: WorkTeam },
+                            { model: Rating }
+                        ],
+                        order: [['id', 'DESC']]
+                    });
+                },
+                24 * 60 * 60 // 24 horas - datos críticos para reportes
+            );
 
             if (!business) {
                 throw new Error('No se encontró caracterización para este usuario');

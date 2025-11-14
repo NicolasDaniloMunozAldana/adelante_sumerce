@@ -1,5 +1,6 @@
 const { Business, BusinessModel, Finance, WorkTeam, Rating, User } = require('../models');
 const kafkaProducer = require('../kafka/kafkaProducer');
+const cacheService = require('../services/cacheService');
 
 class AdminController {
     /**
@@ -7,32 +8,40 @@ class AdminController {
      */
     async getAllBusinesses(req, res) {
         try {
-            const businesses = await Business.findAll({
-                include: [
-                    { 
-                        model: User,
-                        attributes: ['id', 'email', 'firstName', 'lastName', 'phoneContact'],
-                        required: false
-                    },
-                    { 
-                        model: BusinessModel,
-                        required: false
-                    },
-                    { 
-                        model: Finance,
-                        required: false
-                    },
-                    { 
-                        model: WorkTeam,
-                        required: false
-                    },
-                    { 
-                        model: Rating,
-                        required: false
-                    }
-                ],
-                order: [['registrationDate', 'DESC']]
-            });
+            const cacheKey = cacheService.generateCacheKey('admin:all-businesses');
+
+            const businesses = await cacheService.getOrFetch(
+                cacheKey,
+                async () => {
+                    return await Business.findAll({
+                        include: [
+                            { 
+                                model: User,
+                                attributes: ['id', 'email', 'firstName', 'lastName', 'phoneContact'],
+                                required: false
+                            },
+                            { 
+                                model: BusinessModel,
+                                required: false
+                            },
+                            { 
+                                model: Finance,
+                                required: false
+                            },
+                            { 
+                                model: WorkTeam,
+                                required: false
+                            },
+                            { 
+                                model: Rating,
+                                required: false
+                            }
+                        ],
+                        order: [['registrationDate', 'DESC']]
+                    });
+                },
+                1800 // 30 minutos
+            );
 
             
             res.json({
@@ -56,33 +65,39 @@ class AdminController {
     async getBusinessById(req, res) {
         try {
             const { id } = req.params;
+            const cacheKey = cacheService.generateCacheKey('admin:business', { businessId: id });
 
-            const business = await Business.findOne({
-                where: { id },
-                include: [
-                    { 
-                        model: User,
-                        attributes: ['id', 'email', 'firstName', 'lastName', 'phoneContact'],
-                        required: false
-                    },
-                    { 
-                        model: BusinessModel,
-                        required: false
-                    },
-                    { 
-                        model: Finance,
-                        required: false
-                    },
-                    { 
-                        model: WorkTeam,
-                        required: false
-                    },
-                    { 
-                        model: Rating,
-                        required: false
-                    }
-                ]
-            });
+            const business = await cacheService.getCriticalData(
+                cacheKey,
+                async () => {
+                    return await Business.findOne({
+                        where: { id },
+                        include: [
+                            { 
+                                model: User,
+                                attributes: ['id', 'email', 'firstName', 'lastName', 'phoneContact'],
+                                required: false
+                            },
+                            { 
+                                model: BusinessModel,
+                                required: false
+                            },
+                            { 
+                                model: Finance,
+                                required: false
+                            },
+                            { 
+                                model: WorkTeam,
+                                required: false
+                            },
+                            { 
+                                model: Rating,
+                                required: false
+                            }
+                        ]
+                    });
+                }
+            );
 
             if (!business) {
                 return res.status(404).json({
@@ -110,61 +125,71 @@ class AdminController {
      */
     async getStatistics(req, res) {
         try {
-            const totalBusinesses = await Business.count();
-            const totalUsers = await User.count({ where: { role: 'emprendedor' } });
+            const cacheKey = cacheService.generateCacheKey('admin:statistics');
 
-            // Contar por clasificación usando el nombre de columna correcto
-            const classificationCounts = await Rating.findAll({
-                attributes: [
-                    [Rating.sequelize.col('clasificacion_global'), 'classification'],
-                    [Rating.sequelize.fn('COUNT', Rating.sequelize.col('clasificacion_global')), 'count']
-                ],
-                group: ['clasificacion_global'],
-                raw: true
-            });
+            const statistics = await cacheService.getOrFetch(
+                cacheKey,
+                async () => {
+                    const totalBusinesses = await Business.count();
+                    const totalUsers = await User.count({ where: { role: 'emprendedor' } });
 
-            // Convertir array a objeto para facilitar el acceso
-            const byClassification = {
-                idea_inicial: 0,
-                en_desarrollo: 0,
-                consolidado: 0
-            };
-            
-            classificationCounts.forEach(item => {
-                if (item.classification) {
-                    byClassification[item.classification] = parseInt(item.count);
-                }
-            });
+                    // Contar por clasificación usando el nombre de columna correcto
+                    const classificationCounts = await Rating.findAll({
+                        attributes: [
+                            [Rating.sequelize.col('clasificacion_global'), 'classification'],
+                            [Rating.sequelize.fn('COUNT', Rating.sequelize.col('clasificacion_global')), 'count']
+                        ],
+                        group: ['clasificacion_global'],
+                        raw: true
+                    });
 
-            // Contar por sector económico usando el nombre de columna correcto
-            const sectorCounts = await Business.findAll({
-                attributes: [
-                    [Business.sequelize.col('sector_economico'), 'sector'],
-                    [Business.sequelize.fn('COUNT', Business.sequelize.col('sector_economico')), 'count']
-                ],
-                group: ['sector_economico'],
-                raw: true
-            });
+                    // Convertir array a objeto para facilitar el acceso
+                    const byClassification = {
+                        idea_inicial: 0,
+                        en_desarrollo: 0,
+                        consolidado: 0
+                    };
+                    
+                    classificationCounts.forEach(item => {
+                        if (item.classification) {
+                            byClassification[item.classification] = parseInt(item.count);
+                        }
+                    });
 
-            // Calcular promedio de score
-            const avgScoreResult = await Rating.findOne({
-                attributes: [
-                    [Rating.sequelize.fn('AVG', Rating.sequelize.col('puntaje_total')), 'averageScore']
-                ],
-                raw: true
-            });
+                    // Contar por sector económico usando el nombre de columna correcto
+                    const sectorCounts = await Business.findAll({
+                        attributes: [
+                            [Business.sequelize.col('sector_economico'), 'sector'],
+                            [Business.sequelize.fn('COUNT', Business.sequelize.col('sector_economico')), 'count']
+                        ],
+                        group: ['sector_economico'],
+                        raw: true
+                    });
 
-            const averageScore = avgScoreResult?.averageScore || 0;
+                    // Calcular promedio de score
+                    const avgScoreResult = await Rating.findOne({
+                        attributes: [
+                            [Rating.sequelize.fn('AVG', Rating.sequelize.col('puntaje_total')), 'averageScore']
+                        ],
+                        raw: true
+                    });
+
+                    const averageScore = avgScoreResult?.averageScore || 0;
+
+                    return {
+                        totalBusinesses,
+                        totalUsers,
+                        classificationCounts: byClassification,
+                        bySector: sectorCounts,
+                        averageScore: parseFloat(averageScore)
+                    };
+                },
+                1800 // 30 minutos
+            );
 
             res.json({
                 success: true,
-                data: {
-                    totalBusinesses,
-                    totalUsers,
-                    classificationCounts: byClassification,
-                    bySector: sectorCounts,
-                    averageScore: parseFloat(averageScore)
-                }
+                data: statistics
             });
         } catch (error) {
             console.error('Error al obtener estadísticas:', error);
@@ -181,17 +206,25 @@ class AdminController {
      */
     async getAllUsers(req, res) {
         try {
-            const users = await User.findAll({
-                where: { role: 'emprendedor' },
-                attributes: ['id', 'email', 'firstName', 'lastName', 'phoneContact', 'registrationDate'],
-                include: [
-                    {
-                        model: Business,
-                        attributes: ['id', 'name', 'economicSector']
-                    }
-                ],
-                order: [['registrationDate', 'DESC']]
-            });
+            const cacheKey = cacheService.generateCacheKey('admin:all-users');
+
+            const users = await cacheService.getOrFetch(
+                cacheKey,
+                async () => {
+                    return await User.findAll({
+                        where: { role: 'emprendedor' },
+                        attributes: ['id', 'email', 'firstName', 'lastName', 'phoneContact', 'registrationDate'],
+                        include: [
+                            {
+                                model: Business,
+                                attributes: ['id', 'name', 'economicSector']
+                            }
+                        ],
+                        order: [['registrationDate', 'DESC']]
+                    });
+                },
+                1800 // 30 minutos
+            );
 
             res.json({
                 success: true,
@@ -246,33 +279,39 @@ class AdminController {
     async showBusinessDashboard(req, res) {
         try {
             const { id } = req.params;
+            const cacheKey = cacheService.generateCacheKey('admin:business-dashboard', { businessId: id });
 
-            const business = await Business.findOne({
-                where: { id },
-                include: [
-                    { 
-                        model: User,
-                        attributes: ['id', 'email', 'firstName', 'lastName', 'phoneContact'],
-                        required: false
-                    },
-                    { 
-                        model: BusinessModel,
-                        required: false
-                    },
-                    { 
-                        model: Finance,
-                        required: false
-                    },
-                    { 
-                        model: WorkTeam,
-                        required: false
-                    },
-                    { 
-                        model: Rating,
-                        required: false
-                    }
-                ]
-            });
+            const business = await cacheService.getCriticalData(
+                cacheKey,
+                async () => {
+                    return await Business.findOne({
+                        where: { id },
+                        include: [
+                            { 
+                                model: User,
+                                attributes: ['id', 'email', 'firstName', 'lastName', 'phoneContact'],
+                                required: false
+                            },
+                            { 
+                                model: BusinessModel,
+                                required: false
+                            },
+                            { 
+                                model: Finance,
+                                required: false
+                            },
+                            { 
+                                model: WorkTeam,
+                                required: false
+                            },
+                            { 
+                                model: Rating,
+                                required: false
+                            }
+                        ]
+                    });
+                }
+            );
 
             if (!business) {
                 return res.status(404).send('Emprendimiento no encontrado');
@@ -395,21 +434,32 @@ class AdminController {
             if (classification) filters.classification = classification;
             if (sector) filters.sector = sector;
 
-            // Obtener todos los emprendimientos según los filtros
+            // Obtener todos los emprendimientos según los filtros desde cache
             const whereClause = {};
             if (sector) whereClause.economicSector = sector;
 
-            const businesses = await Business.findAll({
-                where: whereClause,
-                include: [
-                    { model: User },
-                    { model: BusinessModel },
-                    { model: Finance },
-                    { model: WorkTeam },
-                    { model: Rating }
-                ],
-                order: [['id', 'ASC']]
+            const cacheKey = cacheService.generateCacheKey('comparative_businesses', { 
+                sector, 
+                classification 
             });
+            
+            const businesses = await cacheService.getCriticalData(
+                cacheKey,
+                async () => {
+                    return await Business.findAll({
+                        where: whereClause,
+                        include: [
+                            { model: User },
+                            { model: BusinessModel },
+                            { model: Finance },
+                            { model: WorkTeam },
+                            { model: Rating }
+                        ],
+                        order: [['id', 'ASC']]
+                    });
+                },
+                24 * 60 * 60 // 24 horas - datos críticos para reportes
+            );
 
             // Filtrar por clasificación si se especificó
             let filteredBusinesses = businesses;
@@ -463,21 +513,32 @@ class AdminController {
             if (classification) filters.classification = classification;
             if (sector) filters.sector = sector;
 
-            // Obtener todos los emprendimientos según los filtros
+            // Obtener todos los emprendimientos según los filtros desde cache
             const whereClause = {};
             if (sector) whereClause.economicSector = sector;
 
-            const businesses = await Business.findAll({
-                where: whereClause,
-                include: [
-                    { model: User },
-                    { model: BusinessModel },
-                    { model: Finance },
-                    { model: WorkTeam },
-                    { model: Rating }
-                ],
-                order: [['id', 'ASC']]
+            const cacheKey = cacheService.generateCacheKey('comparative_businesses', { 
+                sector, 
+                classification 
             });
+            
+            const businesses = await cacheService.getCriticalData(
+                cacheKey,
+                async () => {
+                    return await Business.findAll({
+                        where: whereClause,
+                        include: [
+                            { model: User },
+                            { model: BusinessModel },
+                            { model: Finance },
+                            { model: WorkTeam },
+                            { model: Rating }
+                        ],
+                        order: [['id', 'ASC']]
+                    });
+                },
+                24 * 60 * 60 // 24 horas - datos críticos para reportes
+            );
 
             // Filtrar por clasificación si se especificó
             let filteredBusinesses = businesses;
@@ -527,17 +588,24 @@ class AdminController {
         try {
             const { id } = req.params;
 
-            // Obtener el emprendimiento con todas sus relaciones
-            const business = await Business.findOne({
-                where: { id },
-                include: [
-                    { model: User, attributes: ['id', 'email', 'firstName', 'lastName', 'phoneContact'] },
-                    { model: BusinessModel },
-                    { model: Finance },
-                    { model: WorkTeam },
-                    { model: Rating }
-                ]
-            });
+            // Obtener el emprendimiento con todas sus relaciones desde cache
+            const cacheKey = cacheService.generateCacheKey('business_full', { id });
+            const business = await cacheService.getCriticalData(
+                cacheKey,
+                async () => {
+                    return await Business.findOne({
+                        where: { id },
+                        include: [
+                            { model: User, attributes: ['id', 'email', 'firstName', 'lastName', 'phoneContact'] },
+                            { model: BusinessModel },
+                            { model: Finance },
+                            { model: WorkTeam },
+                            { model: Rating }
+                        ]
+                    });
+                },
+                24 * 60 * 60 // 24 horas - datos críticos para reportes
+            );
 
             if (!business || !business.Rating) {
                 return res.status(404).json({
