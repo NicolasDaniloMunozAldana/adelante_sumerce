@@ -1,0 +1,67 @@
+<!-- Chatbot Component -->
+<div id="chatbot-container">
+    <!-- Mensaje de bienvenida inicial (solo se muestra al entrar por primera vez) -->
+    <div id="chatbot-welcome-tooltip" class="chatbot-welcome-tooltip" style="display: none;">
+        <button class="close-tooltip" onclick="closeChatbotTooltip()">&times;</button>
+        <p>👋 ¡Hola! Soy tu asistente virtual. Estoy aquí para ayudarte con cualquier duda sobre la caracterización de tu emprendimiento.</p>
+    </div>
+
+    <!-- Botón flotante del chatbot -->
+    <button id="chatbot-button" class="chatbot-button" onclick="toggleChatbot()" aria-label="Abrir asistente virtual">
+        <img src="/images/logo_assistant.png" alt="Asistente">
+        <span id="chatbot-badge" class="chatbot-badge" style="display: none;">1</span>
+    </button>
+
+    <!-- Ventana del chatbot -->
+    <div id="chatbot-window" class="chatbot-window">
+        <!-- Header -->
+        <div class="chatbot-header">
+            <div class="chatbot-header-info">
+                <div class="chatbot-header-avatar">
+                    <img src="/images/logo_login.png" alt="Asistente">
+                </div>
+                <div class="chatbot-header-text">
+                    <h3>Asistente Virtual</h3>
+                    <p>Salga Adelante Sumercé</p>
+                </div>
+            </div>
+            <button class="chatbot-close" onclick="toggleChatbot()" aria-label="Cerrar chatbot">×</button>
+        </div>
+
+        <!-- Mensajes -->
+        <div id="chatbot-messages" class="chatbot-messages">
+            <!-- Los mensajes se agregarán dinámicamente aquí -->
+        </div>
+
+        <!-- Sugerencias rápidas -->
+        <div id="chatbot-suggestions" class="chatbot-suggestions">
+            <!-- Las sugerencias se agregarán dinámicamente aquí -->
+        </div>
+
+        <!-- Input -->
+        <div class="chatbot-input-container">
+            <textarea 
+                id="chatbot-input" 
+                class="chatbot-input" 
+                placeholder="Escribe tu mensaje..." 
+                maxlength="1000"
+                rows="1"
+                onkeypress="handleChatbotKeyPress(event)"
+                oninput="autoResizeTextarea(this)"
+            ></textarea>
+            <button 
+                id="chatbot-send-btn" 
+                class="chatbot-send-btn" 
+                onclick="sendChatbotMessage()"
+                aria-label="Enviar mensaje"
+            >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/>
+                </svg>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Script del chatbot -->
+<script src="/js/chatbot.js"></script>
