@@ -42,6 +42,7 @@ const homeRoutes = require('./routes/homeRoutes');
 const characterizationRoutes = require('./routes/characterizationRoutes');
 const reportRoutes = require('./routes/reportRoutes');
 const adminRoutes = require('./routes/adminRoutes');
+const chatbotRoutes = require('./routes/chatbotRoutes');
 
 // Usar rutas
 app.use('/', authRoutes); // Rutas de autenticación
@@ -49,6 +50,7 @@ app.use('/', homeRoutes); // Rutas principales en la raíz
 app.use('/caracterizacion', characterizationRoutes); // Rutas de caracterización
 app.use('/reportes', reportRoutes); // Rutas de reportes
 app.use('/admin', adminRoutes); // Rutas de administrador
+app.use('/api/chatbot', chatbotRoutes); // Rutas del chatbot
 
 // Ruta por defecto - redirecciona al login si no tiene token
 app.get('/', (req, res) => {
