@@ -1,26 +1,80 @@
 const { User } = require('../models');
+const cacheService = require('../services/cacheService');
 
 class UserRepository {
   /**
    * Encuentra un usuario por email
+   * Primero intenta desde caché, si falla intenta desde BD
    */
   async findByEmail(email) {
     try {
-      return await User.findOne({ where: { email } });
+      // Intentar obtener desde caché
+      const cachedUser = await cacheService.getUserByEmail(email);
+      if (cachedUser) {
+        console.log('📦 Usuario obtenido desde caché');
+        // Devolver el usuario con todos sus datos (incluye passwordHash para validación)
+        return cachedUser;
+      }
+
+      // Si no está en caché, buscar en BD
+      const user = await User.findOne({ where: { email } });
+      
+      // Si se encuentra, guardar en caché (con passwordHash)
+      if (user) {
+        await cacheService.setUser(user);
+      }
+      
+      return user;
     } catch (error) {
       console.error('Error finding user by email:', error);
+      
+      // Si la BD falla, intentar desde caché como fallback
+      console.log('⚠️  Base de datos no disponible, intentando caché...');
+      const cachedUser = await cacheService.getUserByEmail(email);
+      
+      if (cachedUser) {
+        console.log('✅ Usuario recuperado desde caché (BD caída)');
+        return cachedUser;
+      }
+      
       throw error;
     }
   }
 
   /**
    * Encuentra un usuario por ID
+   * Primero intenta desde caché, si falla intenta desde BD
    */
   async findById(id) {
     try {
-      return await User.findByPk(id);
+      // Intentar obtener desde caché
+      const cachedUser = await cacheService.getUserById(id);
+      if (cachedUser) {
+        console.log('📦 Usuario obtenido desde caché');
+        return cachedUser;
+      }
+
+      // Si no está en caché, buscar en BD
+      const user = await User.findByPk(id);
+      
+      // Si se encuentra, guardar en caché
+      if (user) {
+        await cacheService.setUser(user);
+      }
+      
+      return user;
     } catch (error) {
       console.error('Error finding user by id:', error);
+      
+      // Si la BD falla, intentar desde caché como fallback
+      console.log('⚠️  Base de datos no disponible, intentando caché...');
+      const cachedUser = await cacheService.getUserById(id);
+      
+      if (cachedUser) {
+        console.log('✅ Usuario recuperado desde caché (BD caída)');
+        return cachedUser;
+      }
+      
       throw error;
     }
   }
@@ -30,7 +84,12 @@ class UserRepository {
    */
   async create(userData) {
     try {
-      return await User.create(userData);
+      const user = await User.create(userData);
+      
+      // Guardar en caché
+      await cacheService.setUser(user);
+      
+      return user;
     } catch (error) {
       console.error('Error creating user:', error);
       throw error;
@@ -46,7 +105,14 @@ class UserRepository {
       if (!user) {
         return null;
       }
-      return await user.update(userData);
+      
+      const updatedUser = await user.update(userData);
+      
+      // Invalidar y actualizar caché
+      await cacheService.invalidateUser(id, user.email);
+      await cacheService.setUser(updatedUser);
+      
+      return updatedUser;
     } catch (error) {
       console.error('Error updating user:', error);
       throw error;

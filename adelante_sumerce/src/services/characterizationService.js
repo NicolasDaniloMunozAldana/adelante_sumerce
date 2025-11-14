@@ -1,5 +1,6 @@
 const { Business, BusinessModel, Finance, WorkTeam, Rating } = require('../models');
 const sequelize = require('../config/database');
+const cacheService = require('./cacheService');
 
 class CharacterizationService {
     calculateOperationTimeScore(operationMonths) {
@@ -110,7 +111,25 @@ class CharacterizationService {
 
             await t.commit();
 
-            return {
+            // 7. INVALIDAR CACHÉS relacionados con este usuario
+            await cacheService.invalidateUserCache(businessData.userId);
+            
+            // También invalidar el caché de dashboard y lista de emprendimientos
+            const dashboardKey = cacheService.generateCacheKey('dashboard:user', { 
+                userId: businessData.userId 
+            });
+            const businessesKey = cacheService.generateCacheKey('businesses:user', { 
+                userId: businessData.userId 
+            });
+            await cacheService.delete(dashboardKey);
+            await cacheService.delete(businessesKey);
+
+            // 8. CACHEAR los nuevos datos inmediatamente (datos críticos)
+            const cacheKey = cacheService.generateCacheKey('characterization:user', { 
+                userId: businessData.userId 
+            });
+            
+            const result = {
                 business,
                 rating,
                 scores: {
@@ -122,6 +141,11 @@ class CharacterizationService {
                 }
             };
 
+            // Guardar en caché con TTL extendido (datos críticos)
+            await cacheService.set(cacheKey, result, cacheService.CRITICAL_DATA_TTL);
+
+            return result;
+
         } catch (error) {
             await t.rollback();
             throw error;
@@ -129,21 +153,62 @@ class CharacterizationService {
     }
 
     async getCharacterizationResults(businessId) {
-        const results = await Business.findOne({
-            where: { id: businessId },
-            include: [
-                { model: BusinessModel },
-                { model: Finance },
-                { model: WorkTeam },
-                { model: Rating }
-            ]
+        const cacheKey = cacheService.generateCacheKey('characterization:business', { 
+            businessId 
         });
 
-        if (!results) {
-            throw new Error('No se encontró la caracterización');
-        }
+        // Usar getCriticalData para datos críticos que deben servirse aunque la BD esté caída
+        return await cacheService.getCriticalData(
+            cacheKey,
+            async () => {
+                const results = await Business.findOne({
+                    where: { id: businessId },
+                    include: [
+                        { model: BusinessModel },
+                        { model: Finance },
+                        { model: WorkTeam },
+                        { model: Rating }
+                    ]
+                });
 
-        return results;
+                if (!results) {
+                    throw new Error('No se encontró la caracterización');
+                }
+
+                return results;
+            }
+        );
+    }
+
+    /**
+     * Obtiene la caracterización de un usuario por su ID
+     * Datos críticos que deben servirse aunque la BD esté caída
+     * @param {number} userId - ID del usuario
+     * @returns {Promise<Object|null>} Datos de caracterización o null
+     */
+    async getCharacterizationByUserId(userId) {
+        const cacheKey = cacheService.generateCacheKey('characterization:user', { 
+            userId 
+        });
+
+        // Usar getCriticalData para datos críticos que deben servirse aunque la BD esté caída
+        return await cacheService.getCriticalData(
+            cacheKey,
+            async () => {
+                const business = await Business.findOne({
+                    where: { userId },
+                    include: [
+                        { model: BusinessModel },
+                        { model: Finance },
+                        { model: WorkTeam },
+                        { model: Rating }
+                    ]
+                });
+
+                // Retornar null si no existe (no es un error)
+                return business;
+            }
+        );
     }
 }
 

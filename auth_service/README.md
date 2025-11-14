@@ -7,6 +7,8 @@ Microservicio de autenticación para la plataforma Adelante Sumercé. Implementa
 - ✅ Autenticación con JWT (JSON Web Tokens)
 - ✅ Access tokens de corta duración (15 minutos por defecto)
 - ✅ Refresh tokens rotativos (sliding session) para sesiones prolongadas
+- ✅ **Caché con Redis para alta disponibilidad**
+- ✅ **Fallback automático a caché si la BD cae**
 - ✅ Gestión de roles (administrador, emprendedor)
 - ✅ Registro de usuarios
 - ✅ Cierre de sesión individual y masivo
@@ -20,6 +22,7 @@ Microservicio de autenticación para la plataforma Adelante Sumercé. Implementa
 
 - Node.js >= 14.x
 - MySQL >= 5.7
+- **Redis >= 6.x** (opcional pero recomendado)
 - npm o yarn
 
 ## 🛠️ Instalación
@@ -41,6 +44,12 @@ DB_HOST=localhost
 DB_NAME=adelante_sumerce
 DB_USER=root
 DB_PASSWORD=tu_password
+
+# Redis (opcional pero recomendado)
+REDIS_HOST=localhost
+REDIS_PORT=6379
+REDIS_PASSWORD=
+REDIS_DB=1
 
 JWT_ACCESS_SECRET=genera-un-secreto-muy-seguro-aqui
 JWT_REFRESH_SECRET=genera-otro-secreto-muy-seguro-aqui
@@ -192,15 +201,19 @@ Authorization: Bearer {accessToken}
 ### Health Check
 
 #### GET `/api/health`
-Verifica el estado del servicio.
+Verifica el estado del servicio, Redis y base de datos.
 
 **Response:**
 ```json
 {
   "success": true,
   "message": "Auth service is healthy",
-  "timestamp": "2025-11-09T...",
-  "uptime": 1234.56
+  "timestamp": "2025-11-12T...",
+  "uptime": 1234.56,
+  "services": {
+    "database": "connected",
+    "redis": "connected"
+  }
 }
 ```
 
@@ -232,15 +245,32 @@ Verifica el estado del servicio.
 ```
 src/
 ├── config/           # Configuraciones
+│   ├── database.js   # Configuración de MySQL
+│   ├── redis.js      # Configuración de Redis
+│   └── index.js      # Config general
 ├── controllers/      # Controladores (lógica de endpoints)
 ├── middlewares/      # Middlewares (autenticación, validación, errores)
 ├── models/          # Modelos de Sequelize
-├── repositories/    # Capa de acceso a datos
+├── repositories/    # Capa de acceso a datos (con caché integrado)
 ├── routes/          # Definición de rutas
 ├── services/        # Lógica de negocio
+│   ├── authService.js
+│   └── cacheService.js  # Servicio de caché Redis
 ├── utils/           # Utilidades (JWT, errores, respuestas)
 └── index.js         # Punto de entrada
 ```
+
+### Sistema de Caché
+
+El servicio implementa un **sistema de caché robusto con Redis** que:
+
+- 📦 Almacena usuarios en caché durante 2 horas
+- ⚡ Consulta primero Redis antes que la BD (Cache-Aside Pattern)
+- 🛡️ **Fallback automático**: Si la BD cae, sirve datos desde caché
+- 🔄 Auto-reconexión a Redis si se pierde la conexión
+- ✅ Funciona sin Redis (graceful degradation)
+
+**Para más detalles, ver:** [REDIS_CACHE.md](./REDIS_CACHE.md)
 
 ## 🔧 Mantenimiento
 
@@ -273,6 +303,10 @@ npm test
 | DB_NAME | Nombre de la BD | adelante_sumerce |
 | DB_USER | Usuario de MySQL | root |
 | DB_PASSWORD | Contraseña de MySQL | |
+| REDIS_HOST | Host de Redis | localhost |
+| REDIS_PORT | Puerto de Redis | 6379 |
+| REDIS_PASSWORD | Contraseña de Redis | |
+| REDIS_DB | Base de datos Redis | 0 |
 | JWT_ACCESS_SECRET | Secreto para access tokens | (requerido) |
 | JWT_REFRESH_SECRET | Secreto para refresh tokens | (requerido) |
 | JWT_ACCESS_EXPIRATION | Duración access token | 15m |

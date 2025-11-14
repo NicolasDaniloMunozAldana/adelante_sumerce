@@ -2,6 +2,7 @@ const express = require('express');
 const path = require('path');
 const cookieParser = require('cookie-parser');
 const sequelize = require('./config/database');
+const { connectRedis } = require('./config/redis');
 require('dotenv').config();
 
 const app = express();
@@ -10,10 +11,19 @@ const PORT = process.env.PORT || 3030;
 // Test database connection
 sequelize.authenticate()
   .then(() => {
-    console.log('Conexión a la base de datos establecida correctamente.');
+    console.log('✅ Conexión a la base de datos establecida correctamente.');
   })
   .catch(err => {
-    console.error('No se pudo conectar a la base de datos:', err);
+    console.error('❌ No se pudo conectar a la base de datos:', err);
+  });
+
+// Connect to Redis
+connectRedis()
+  .then(() => {
+    console.log('✅ Redis conectado correctamente.');
+  })
+  .catch(err => {
+    console.error('⚠️  No se pudo conectar a Redis (caché deshabilitado):', err.message);
   });
 
 // Configuración del motor de plantillas EJS
@@ -64,8 +74,52 @@ app.listen(PORT, () => {
 ║   Port: ${PORT}                      ║
 ║   URL: http://localhost:${PORT}      ║
 ║   Auth: JWT + Refresh Tokens         ║
+║   Cache: Redis Enabled                ║
 ╚══════════════════════════════════════╝
   `);
+});
+
+// Manejo de cierre graceful
+const { disconnectRedis } = require('./config/redis');
+
+process.on('SIGINT', async () => {
+  console.log('\n🛑 Cerrando aplicación...');
+  
+  try {
+    await disconnectRedis();
+    console.log('✅ Redis desconectado correctamente.');
+  } catch (err) {
+    console.error('⚠️  Error al desconectar Redis:', err.message);
+  }
+  
+  try {
+    await sequelize.close();
+    console.log('✅ Base de datos desconectada correctamente.');
+  } catch (err) {
+    console.error('⚠️  Error al desconectar la base de datos:', err.message);
+  }
+  
+  process.exit(0);
+});
+
+process.on('SIGTERM', async () => {
+  console.log('\n🛑 Cerrando aplicación...');
+  
+  try {
+    await disconnectRedis();
+    console.log('✅ Redis desconectado correctamente.');
+  } catch (err) {
+    console.error('⚠️  Error al desconectar Redis:', err.message);
+  }
+  
+  try {
+    await sequelize.close();
+    console.log('✅ Base de datos desconectada correctamente.');
+  } catch (err) {
+    console.error('⚠️  Error al desconectar la base de datos:', err.message);
+  }
+  
+  process.exit(0);
 });
 
 module.exports = app;

@@ -5,15 +5,8 @@ exports.showCharacterizationForm = async (req, res) => {
     try {
         const userId = req.user.id; // Desde JWT (req.user), no desde sesión
         
-        // Verificar si el usuario ya tiene un emprendimiento registrado
-        const existingBusiness = await Business.findOne({
-            where: { userId },
-            include: [
-                { model: BusinessModel },
-                { model: Finance },
-                { model: WorkTeam }
-            ]
-        });
+        // Usar el servicio con caché que funciona aunque la BD esté caída
+        const existingBusiness = await characterizationService.getCharacterizationByUserId(userId);
 
         // Si ya tiene un emprendimiento, pasar los datos a la vista
         if (existingBusiness) {
@@ -52,7 +45,12 @@ exports.showCharacterizationForm = async (req, res) => {
         }
     } catch (error) {
         console.error('Error al mostrar el formulario de caracterización:', error);
-        res.status(500).send('Error al cargar el formulario');
+        
+        // Si hay un error (BD caída y no hay caché), mostrar mensaje apropiado
+        res.status(500).render('error', {
+            message: 'No se pudo cargar el formulario de caracterización. Por favor, intente más tarde.',
+            error: process.env.NODE_ENV === 'development' ? error : {}
+        });
     }
 };
 
@@ -125,6 +123,8 @@ exports.saveCharacterization = async (req, res) => {
 exports.getCharacterizationResults = async (req, res) => {
     try {
         const businessId = req.params.businessId;
+        
+        // Usar el servicio con caché
         const results = await characterizationService.getCharacterizationResults(businessId);
         
         if (req.headers['accept'] === 'application/json') {
@@ -150,7 +150,7 @@ exports.getCharacterizationResults = async (req, res) => {
         } else {
             res.status(500).render('error', {
                 message: 'Error al obtener los resultados de la caracterización',
-                error: error
+                error: process.env.NODE_ENV === 'development' ? error : {}
             });
         }
     }

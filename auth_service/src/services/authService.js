@@ -4,6 +4,7 @@ const refreshTokenRepository = require('../repositories/RefreshTokenRepository')
 const jwtUtils = require('../utils/jwtUtils');
 const config = require('../config');
 const ApiError = require('../utils/ApiError');
+const cacheService = require('./cacheService');
 
 class AuthService {
   /**
@@ -180,15 +181,23 @@ class AuthService {
     // Generar refresh token
     const refreshToken = jwtUtils.generateRefreshToken(payload);
 
-    // Guardar refresh token en la base de datos
-    const expiresAt = jwtUtils.calculateExpirationDate(config.jwt.refreshExpiration);
-    await refreshTokenRepository.create({
-      userId: user.id,
-      token: refreshToken,
-      expiresAt,
-      ipAddress,
-      userAgent
-    });
+    // Intentar guardar refresh token en la base de datos
+    try {
+      const expiresAt = jwtUtils.calculateExpirationDate(config.jwt.refreshExpiration);
+      await refreshTokenRepository.create({
+        userId: user.id,
+        token: refreshToken,
+        expiresAt,
+        ipAddress,
+        userAgent
+      });
+    } catch (error) {
+      console.warn('⚠️  No se pudo guardar refresh token en BD (puede estar caída)');
+      console.warn('   El usuario puede autenticarse pero no podrá refrescar tokens');
+      // No lanzar error, permitir que el login continúe
+      // El refresh token se podrá usar mientras esté válido (verificación JWT)
+      // pero no se podrá verificar contra BD hasta que se recupere
+    }
 
     return {
       accessToken,

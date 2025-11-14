@@ -4,6 +4,7 @@ const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const config = require('./config');
 const { testConnection } = require('./config/database');
+const redisClient = require('./config/redis');
 const routes = require('./routes');
 const { errorHandler, notFoundHandler } = require('./middlewares/errorHandler');
 
@@ -62,6 +63,12 @@ const startServer = async () => {
     // Test database connection
     await testConnection();
 
+    // Conectar a Redis (no bloqueante)
+    console.log('🔄 Iniciando conexión a Redis...');
+    await redisClient.connect().catch(err => {
+      console.warn('⚠️  Redis no disponible, continuando sin caché:', err.message);
+    });
+
     // Sincronizar modelos (solo en desarrollo)
     if (config.server.env === 'development') {
       const { sequelize } = require('./config/database');
@@ -78,6 +85,7 @@ const startServer = async () => {
 ║   🚀 Auth Service Running            ║
 ║   Port: ${PORT}                      ║
 ║   Environment: ${config.server.env.padEnd(19)}║
+║   Redis: ${redisClient.isReady() ? '✅ Conectado' : '❌ Desconectado'}         ║
 ║   Health: http://localhost:${PORT}/api/health
 ╚══════════════════════════════════════╝
       `);
@@ -92,13 +100,23 @@ const startServer = async () => {
 process.on('unhandledRejection', (err) => {
   console.error('UNHANDLED REJECTION! 💥 Shutting down...');
   console.error(err);
-  process.exit(1);
+  redisClient.disconnect().finally(() => process.exit(1));
 });
 
 process.on('uncaughtException', (err) => {
   console.error('UNCAUGHT EXCEPTION! 💥 Shutting down...');
   console.error(err);
-  process.exit(1);
+  redisClient.disconnect().finally(() => process.exit(1));
+});
+
+process.on('SIGTERM', () => {
+  console.log('👋 SIGTERM received. Shutting down gracefully...');
+  redisClient.disconnect().finally(() => process.exit(0));
+});
+
+process.on('SIGINT', () => {
+  console.log('👋 SIGINT received. Shutting down gracefully...');
+  redisClient.disconnect().finally(() => process.exit(0));
 });
 
 // Iniciar
