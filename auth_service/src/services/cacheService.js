@@ -26,6 +26,10 @@ class CacheService {
       const client = redisClient.getClient();
       const userData = typeof user.toJSON === 'function' ? user.toJSON() : user;
       
+      delete userData.passwordHash;
+      delete userData.password;      
+
+      
       // Guardar datos completos por ID (incluye passwordHash para validación cuando BD cae)
       await client.setex(
         this._getUserKey(userData.id, 'id'),

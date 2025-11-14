@@ -7,38 +7,23 @@ class UserRepository {
    * Primero intenta desde caché, si falla intenta desde BD
    */
   async findByEmail(email) {
+    // 1. Buscar siempre en la BD
+    let user;
     try {
-      // Intentar obtener desde caché
-      const cachedUser = await cacheService.getUserByEmail(email);
-      if (cachedUser) {
-        console.log('📦 Usuario obtenido desde caché');
-        // Devolver el usuario con todos sus datos (incluye passwordHash para validación)
-        return cachedUser;
-      }
-
-      // Si no está en caché, buscar en BD
-      const user = await User.findOne({ where: { email } });
-      
-      // Si se encuentra, guardar en caché (con passwordHash)
-      if (user) {
-        await cacheService.setUser(user);
-      }
-      
-      return user;
-    } catch (error) {
-      console.error('Error finding user by email:', error);
-      
-      // Si la BD falla, intentar desde caché como fallback
-      console.log('⚠️  Base de datos no disponible, intentando caché...');
-      const cachedUser = await cacheService.getUserByEmail(email);
-      
-      if (cachedUser) {
-        console.log('✅ Usuario recuperado desde caché (BD caída)');
-        return cachedUser;
-      }
-      
-      throw error;
+      user = await User.findOne({ where: { email } });
+    } catch (err) {
+      console.error("❌ Error consultando la base de datos en findByEmail:", err);
+      throw new Error("DATABASE_UNAVAILABLE");
     }
+
+    // 2. Si no existe, devolver null
+    if (!user) return null;
+
+    // 3. Cachear al usuario PERO SIN passwordHash
+    await cacheService.setUser(user);
+
+    // 4. Devolver el usuario completo (incluye passwordHash solo desde BD)
+    return user;
   }
 
   /**
@@ -55,7 +40,13 @@ class UserRepository {
       }
 
       // Si no está en caché, buscar en BD
-      const user = await User.findByPk(id);
+      let user;
+      try {
+        user = await User.findByPk(id);
+      } catch (err) {
+        console.error("❌ Error consultando la base de datos en findById:", err);
+        throw new Error("DATABASE_UNAVAILABLE");
+      }
       
       // Si se encuentra, guardar en caché
       if (user) {
