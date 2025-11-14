@@ -109,6 +109,19 @@ El script `start.sh` automáticamente:
 ./stop.sh
 ```
 
+## 🧪 Tests Unitarios
+
+Este proyecto cuenta con **74 tests unitarios** distribuidos en los 3 servicios:
+
+```bash
+
+# Ejecutar por servicio
+cd adelante_sumerce && npm test
+cd auth_service && npm test
+cd report_service && npm test
+
+```
+
 ## 📖 Documentación Completa
 
 - **[MIGRATION_GUIDE.md](./MIGRATION_GUIDE.md)**: Guía completa de migración y arquitectura
