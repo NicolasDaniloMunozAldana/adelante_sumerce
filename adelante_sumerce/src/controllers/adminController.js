@@ -475,7 +475,9 @@ class AdminController {
             }
 
             // Convertir a JSON plano para Kafka
-            const businessesData = filteredBusinesses.map(b => b.toJSON());
+            const businessesData = filteredBusinesses.map(b => ({
+                ...b
+            }))
 
             // Enviar evento a Kafka
             await kafkaProducer.sendGenerateComparativePDFEvent(
@@ -554,7 +556,9 @@ class AdminController {
             }
 
             // Convertir a JSON plano para Kafka
-            const businessesData = filteredBusinesses.map(b => b.toJSON());
+            const businessesData = filteredBusinesses.map(b => ({
+                ...b
+            }));    
 
             // Enviar evento a Kafka
             await kafkaProducer.sendGenerateComparativeExcelEvent(
