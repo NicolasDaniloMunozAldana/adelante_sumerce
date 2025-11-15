@@ -6,6 +6,8 @@
     <title>Registro - Salga Adelante Sumercé</title>
     <link rel="stylesheet" href="/css/login.css">
     <link rel="shortcut icon" href="/images/logo_login.png" type="image/x-icon">
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <body>
     <div class="login-container">
@@ -125,6 +127,17 @@
     </div>
 
     <script>
+        // Mostrar error con SweetAlert2 si existe
+        <% if (typeof error !== 'undefined' && error) { %>
+            Swal.fire({
+                icon: 'error',
+                title: 'Error en el registro',
+                text: '<%= error %>',
+                confirmButtonColor: '#667eea',
+                confirmButtonText: 'Entendido'
+            });
+        <% } %>
+
         // Validación de correo electrónico
         document.getElementById('email').addEventListener('blur', function(e) {
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -148,7 +161,13 @@
             
             if (!emailRegex.test(email)) {
                 e.preventDefault();
-                alert('Por favor ingresa un correo electrónico válido.');
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Correo inválido',
+                    text: 'Por favor ingresa un correo electrónico válido.',
+                    confirmButtonColor: '#667eea',
+                    confirmButtonText: 'Entendido'
+                });
                 return false;
             }
 
@@ -157,14 +176,26 @@
             
             if (password !== confirmPassword) {
                 e.preventDefault();
-                alert('Las contraseñas no coinciden. Por favor, verifica.');
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Contraseñas no coinciden',
+                    text: 'Las contraseñas no coinciden. Por favor, verifica.',
+                    confirmButtonColor: '#667eea',
+                    confirmButtonText: 'Entendido'
+                });
                 return false;
             }
 
             const celular = document.getElementById('celular').value;
             if (celular.length !== 10 || !celular.startsWith('3')) {
                 e.preventDefault();
-                alert('El celular debe tener 10 dígitos y comenzar con 3.');
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Celular inválido',
+                    text: 'El celular debe tener 10 dígitos y comenzar con 3.',
+                    confirmButtonColor: '#667eea',
+                    confirmButtonText: 'Entendido'
+                });
                 return false;
             }
         });
