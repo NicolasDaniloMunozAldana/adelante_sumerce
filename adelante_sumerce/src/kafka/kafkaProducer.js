@@ -15,7 +15,8 @@ class KafkaProducer {
         this.topics = {
             generateUserReport: process.env.TOPIC_GENERATE_USER_REPORT || 'generate-user-report',
             generateAdminReport: process.env.TOPIC_GENERATE_ADMIN_REPORT || 'generate-admin-report',
-            generateComparativeReport: process.env.TOPIC_GENERATE_COMPARATIVE_REPORT || 'generate-comparative-report'
+            generateComparativeReport: process.env.TOPIC_GENERATE_COMPARATIVE_REPORT || 'generate-comparative-report',
+            dbOperations: process.env.TOPIC_DB_OPERATIONS || 'db-operations-buffer'
         };
     }
 
