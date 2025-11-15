@@ -21,23 +21,27 @@ exports.showDashboard = async (req, res) => {
     try {
         const userId = req.user.id; // Desde JWT
 
-        // Obtener los datos de caracterización del usuario (con caché)
+        // Obtener los datos de caracterización del usuario
+        // El servicio SIEMPRE retorna (null o datos), nunca lanza excepción
         const caracterizacion = await dashboardService.getDashboardData(userId);
 
         res.render('home/dashboard', {
             title: 'Dashboard - Salga Adelante Sumercé',
             currentPage: 'dashboard',
-            caracterizacion: caracterizacion
+            caracterizacion: caracterizacion,
+            dbWarning: false // BD funcionando
             // user está disponible en res.locals.user (de injectUserToViews)
         });
     } catch (error) {
-        console.error('Error al cargar el dashboard:', error);
+        // Este catch solo debería ejecutarse en casos excepcionales
+        console.error('Error inesperado al cargar el dashboard:', error);
 
-        res.status(500).render('home/dashboard', {
+        res.render('home/dashboard', {
             title: 'Dashboard - Salga Adelante Sumercé',
             currentPage: 'dashboard',
             caracterizacion: null,
-            error: 'Error al cargar los datos del dashboard'
+            dbWarning: true,
+            warningMessage: 'El sistema está experimentando problemas. Los datos se mostrarán cuando el sistema se recupere.'
         });
     }
 };
@@ -47,7 +51,8 @@ exports.showCaracterizacion = async (req, res) => {
     try {
         const userId = req.user.id; // Desde JWT
 
-        // Usar el servicio con caché que funciona aunque la BD esté caída
+        // Usar el servicio que SIEMPRE retorna un valor (null o datos)
+        // Nunca lanzará excepción, incluso si la BD está caída
         const existingBusiness = await characterizationService.getCharacterizationByUserId(userId);
 
         // Si ya tiene un emprendimiento, pasar los datos a la vista
@@ -78,25 +83,36 @@ exports.showCaracterizacion = async (req, res) => {
                 title: 'Caracterización - Salga Adelante Sumercé',
                 currentPage: 'caracterizacion',
                 existingData: businessData,
-                isReadOnly: true
+                isReadOnly: true,
+                dbWarning: false // BD funcionando correctamente
                 // user está disponible en res.locals.user
             });
         } else {
+            // No hay datos previos, mostrar formulario vacío
+            // Esto funciona tanto si la BD está operativa como caída
             res.render('home/caracterizacion', {
                 title: 'Caracterización - Salga Adelante Sumercé',
                 currentPage: 'caracterizacion',
                 existingData: null,
-                isReadOnly: false
+                isReadOnly: false,
+                dbWarning: false // Sin advertencia si no hay error
                 // user está disponible en res.locals.user
             });
         }
     } catch (error) {
-        console.error('Error al mostrar el formulario de caracterización:', error);
+        // Este catch solo debería ejecutarse en casos excepcionales
+        // (no cuando la BD está caída, ya que el servicio maneja eso)
+        console.error('Error inesperado al mostrar el formulario de caracterización:', error);
         
-        // Si hay un error (BD caída y no hay caché), mostrar mensaje apropiado
-        res.status(500).render('error', {
-            message: 'No se pudo cargar el formulario de caracterización. Por favor, intente más tarde.',
-            error: process.env.NODE_ENV === 'development' ? error : {}
+        // Aún así, mostrar el formulario vacío con una advertencia
+        res.render('home/caracterizacion', {
+            title: 'Caracterización - Salga Adelante Sumercé',
+            currentPage: 'caracterizacion',
+            existingData: null,
+            isReadOnly: false,
+            dbWarning: true, // Mostrar advertencia de que puede haber problemas
+            warningMessage: 'El sistema está experimentando problemas. Puedes completar el formulario y se guardará cuando el sistema se recupere.'
+            // user está disponible en res.locals.user
         });
     }
 };
