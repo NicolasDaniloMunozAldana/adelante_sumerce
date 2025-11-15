@@ -183,6 +183,7 @@ class CharacterizationService {
     /**
      * Obtiene la caracterización de un usuario por su ID
      * Datos críticos que deben servirse aunque la BD esté caída
+     * SIEMPRE retorna un valor (null si no hay datos), nunca lanza excepción
      * @param {number} userId - ID del usuario
      * @returns {Promise<Object|null>} Datos de caracterización o null
      */
@@ -191,24 +192,46 @@ class CharacterizationService {
             userId 
         });
 
-        // Usar getCriticalData para datos críticos que deben servirse aunque la BD esté caída
-        return await cacheService.getCriticalData(
-            cacheKey,
-            async () => {
-                const business = await Business.findOne({
-                    where: { userId },
-                    include: [
-                        { model: BusinessModel },
-                        { model: Finance },
-                        { model: WorkTeam },
-                        { model: Rating }
-                    ]
-                });
-
-                // Retornar null si no existe (no es un error)
-                return business;
+        try {
+            // Primero intentar obtener desde caché
+            const cachedData = await cacheService.get(cacheKey);
+            if (cachedData !== null) {
+                return cachedData;
             }
-        );
+
+            // Si no hay caché, intentar consultar la BD
+            const business = await Business.findOne({
+                where: { userId },
+                include: [
+                    { model: BusinessModel },
+                    { model: Finance },
+                    { model: WorkTeam },
+                    { model: Rating }
+                ]
+            });
+
+            // Si encontramos datos, cachearlos
+            if (business) {
+                await cacheService.set(cacheKey, business, cacheService.CRITICAL_DATA_TTL);
+            }
+
+            // Retornar los datos (puede ser null si no existe)
+            return business;
+
+        } catch (error) {
+            // Si la BD falla, intentar una última vez con datos antiguos de caché
+            
+            const staleData = await cacheService.get(cacheKey);
+            if (staleData !== null) {
+                // Extender el TTL de los datos antiguos
+                await cacheService.set(cacheKey, staleData, cacheService.CRITICAL_DATA_TTL);
+                return staleData;
+            }
+            
+            // Si no hay datos en caché y la BD está caída, retornar null
+            // Esto permite que el formulario se muestre vacío
+            return null;
+        }
     }
 }
 
