@@ -63,7 +63,9 @@ $topics = @(
     "generate-admin-report",
     "generate-comparative-report",
     "report-generated",
-    "report-failed"
+    "report-failed",
+    "characterization-writes",
+    "characterization-updates"
 )
 
 foreach ($topic in $topics) {

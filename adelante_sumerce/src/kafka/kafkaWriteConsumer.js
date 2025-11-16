@@ -2,6 +2,7 @@ const { Kafka } = require('kafkajs');
 const { Business, BusinessModel, Finance, WorkTeam, Rating } = require('../models');
 const cacheService = require('../services/cacheService');
 const characterizationService = require('../services/characterizationService');
+const { redisClient, isRedisAvailable } = require('../config/redis');
 
 /**
  * Consumer de Kafka para procesar eventos de escritura
@@ -29,6 +30,8 @@ class KafkaWriteConsumer {
         this.retryQueue = []; // Cola de eventos fallidos para reintentar
         this.maxRetries = 5;
         this.retryInterval = 60000; // 1 minuto
+        this.dbCheckInterval = 10000; // Verificar BD cada 30 segundos
+        this.lastDbCheck = null;
     }
 
     async connect() {
@@ -90,6 +93,9 @@ class KafkaWriteConsumer {
             // Iniciar procesamiento de reintentos
             this.startRetryProcessor();
 
+            // Iniciar verificación periódica de datos pendientes en caché
+            this.startPendingDataSync();
+
             console.log('🎧 Kafka Write Consumer escuchando eventos...');
 
         } catch (error) {
@@ -121,6 +127,8 @@ class KafkaWriteConsumer {
 
                 businessId = result.business.id;
                 console.log(`✅ Caracterización persistida en BD: businessId=${businessId}`);
+                console.log(`   📝 Usuario: ${userId}, Nombre: ${business.name}`);
+                console.log(`   🔗 Verificar en BD: SELECT * FROM emprendimientos WHERE id=${businessId};`);
 
                 // Actualizar caché con ID real
                 await this.updateCacheWithRealId(userId, tempId, businessId, result);
@@ -199,27 +207,41 @@ class KafkaWriteConsumer {
      */
     async updateCacheWithRealId(userId, tempId, businessId, businessData) {
         try {
-            // Eliminar entrada con ID temporal
-            const tempCharKey = cacheService.generateCacheKey('characterization:user', { userId });
-            const tempDashKey = cacheService.generateCacheKey('dashboard:user', { userId });
-            
-            // Obtener datos actuales del caché
-            const cachedData = await cacheService.get(tempCharKey);
-            
-            if (cachedData) {
-                // Actualizar con ID real y marcar como sincronizado
-                cachedData.id = businessId;
-                cachedData._isPending = false;
-                cachedData._syncedAt = new Date().toISOString();
+            // Obtener datos completos de BD para actualizar caché
+            const fullBusinessData = await Business.findOne({
+                where: { id: businessId },
+                include: [
+                    { model: BusinessModel },
+                    { model: Finance },
+                    { model: WorkTeam },
+                    { model: Rating }
+                ]
+            });
 
-                // Guardar con claves definitivas
-                await cacheService.set(tempCharKey, cachedData, cacheService.CRITICAL_DATA_TTL);
-                
-                const businessKey = cacheService.generateCacheKey('admin:business', { businessId });
-                await cacheService.set(businessKey, cachedData, cacheService.CRITICAL_DATA_TTL);
-
-                console.log(`💾 Caché actualizado: tempId ${tempId} → businessId ${businessId}`);
+            if (!fullBusinessData) {
+                console.error(`⚠️  No se encontró businessId ${businessId} en BD`);
+                return;
             }
+
+            // Actualizar múltiples claves de caché
+            const charKey = cacheService.generateCacheKey('characterization:user', { userId });
+            const businessKey = cacheService.generateCacheKey('admin:business', { businessId });
+            const dashKey = cacheService.generateCacheKey('dashboard:user', { userId });
+
+            // Marcar como sincronizado
+            const syncedData = fullBusinessData.toJSON();
+            syncedData._isPending = false;
+            syncedData._syncedAt = new Date().toISOString();
+
+            // Actualizar todas las claves relacionadas
+            await cacheService.set(charKey, syncedData, cacheService.CRITICAL_DATA_TTL);
+            await cacheService.set(businessKey, syncedData, cacheService.CRITICAL_DATA_TTL);
+            
+            // Actualizar dashboard si es necesario
+            const dashboardData = this.buildDashboardFromBusiness(syncedData);
+            await cacheService.set(dashKey, dashboardData, cacheService.CRITICAL_DATA_TTL);
+
+            console.log(`💾 Caché actualizado: tempId ${tempId} → businessId ${businessId}`);
 
         } catch (error) {
             console.error('⚠️  Error actualizando caché con ID real:', error);
@@ -286,6 +308,178 @@ class KafkaWriteConsumer {
             }
 
         }, this.retryInterval); // Revisar cola cada minuto
+    }
+
+    /**
+     * Sincroniza datos pendientes en caché con BD periódicamente
+     */
+    startPendingDataSync() {
+        setInterval(async () => {
+            try {
+                // Verificar si BD está disponible
+                const dbAvailable = await this.checkDatabaseAvailability();
+                
+                if (!dbAvailable) {
+                    console.log('🔍 BD no disponible, esperando...');
+                    return;
+                }
+
+                // Buscar datos pendientes en caché
+                const pendingData = await this.findPendingDataInCache();
+                
+                if (pendingData.length === 0) {
+                    return;
+                }
+
+                console.log(`🔄 Sincronizando ${pendingData.length} registros pendientes...`);
+
+                for (const item of pendingData) {
+                    try {
+                        // Verificar si ya existe en BD
+                        const exists = await Business.findOne({
+                            where: { 
+                                userId: item.userId,
+                                name: item.name 
+                            }
+                        });
+
+                        if (!exists) {
+                            console.log(`⚠️  Registro pendiente sin evento en Kafka: userId=${item.userId}`);
+                            // Este caso requiere recrear el evento o insertar directamente
+                            // Por ahora, solo logeamos
+                        } else {
+                            // Ya existe en BD, actualizar caché con ID real
+                            await this.updateCacheWithRealId(
+                                item.userId, 
+                                item.id, // tempId
+                                exists.id, 
+                                null
+                            );
+                        }
+                    } catch (error) {
+                        console.error(`❌ Error procesando registro pendiente:`, error.message);
+                    }
+                }
+
+            } catch (error) {
+                console.error('❌ Error en sincronización periódica:', error);
+            }
+        }, this.dbCheckInterval);
+    }
+
+    /**
+     * Verifica si la BD está disponible
+     */
+    async checkDatabaseAvailability() {
+        try {
+            await Business.findOne({ limit: 1 });
+            
+            // Si antes no estaba disponible y ahora sí, loguear
+            if (this.lastDbCheck === false) {
+                console.log('✅ BD ahora está disponible, iniciando sincronización...');
+            }
+            
+            this.lastDbCheck = true;
+            return true;
+        } catch (error) {
+            this.lastDbCheck = false;
+            return false;
+        }
+    }
+
+    /**
+     * Busca datos marcados como pendientes en caché
+     */
+    async findPendingDataInCache() {
+        try {
+            // Verificar si Redis está disponible
+            if (!isRedisAvailable()) {
+                console.warn('⚠️  Redis no disponible para buscar datos pendientes');
+                return [];
+            }
+
+            // Buscar todas las claves de characterization:user
+            const pattern = 'characterization:user:userId:*';
+            const keys = await redisClient.keys(pattern);
+            
+            if (!keys || keys.length === 0) {
+                return [];
+            }
+
+            const pendingData = [];
+            
+            for (const fullKey of keys) {
+                // Remover prefijo si existe
+                const cleanKey = fullKey.replace('adelante_sumerce:', '');
+                const data = await cacheService.get(cleanKey);
+                
+                if (data && data._isPending === true) {
+                    console.log(`📌 Dato pendiente encontrado: userId=${data.userId}, id=${data.id}`);
+                    pendingData.push(data);
+                }
+            }
+
+            return pendingData;
+        } catch (error) {
+            console.error('❌ Error buscando datos pendientes:', error.message);
+            return [];
+        }
+    }
+
+    /**
+     * Construye datos de dashboard desde business data
+     */
+    buildDashboardFromBusiness(business) {
+        if (!business.Rating) return null;
+
+        const rating = business.Rating;
+        const maxTotal = 13;
+        const totalPercentage = parseFloat(rating.totalPercentage) || 0;
+
+        return {
+            puntajeTotal: parseInt(rating.totalScore) || 0,
+            maxTotal: maxTotal,
+            porcentaje: parseFloat(totalPercentage.toFixed(2)),
+            estado: this.getEstadoLabel(rating.globalClassification),
+            secciones: [
+                {
+                    nombre: 'Datos Generales',
+                    puntaje: parseInt(rating.generalDataScore) || 0,
+                    max: 3,
+                    porcentaje: parseFloat(((parseInt(rating.generalDataScore) / 3) * 100).toFixed(2))
+                },
+                {
+                    nombre: 'Finanzas',
+                    puntaje: parseInt(rating.financeScore) || 0,
+                    max: 6,
+                    porcentaje: parseFloat(((parseInt(rating.financeScore) / 6) * 100).toFixed(2))
+                },
+                {
+                    nombre: 'Equipo de Trabajo',
+                    puntaje: parseInt(rating.workTeamScore) || 0,
+                    max: 4,
+                    porcentaje: parseFloat(((parseInt(rating.workTeamScore) / 4) * 100).toFixed(2))
+                }
+            ],
+            emprendimiento: {
+                nombre: business.name,
+                sector: business.economicSector,
+                anioCreacion: business.creationYear,
+                encargado: business.managerName
+            },
+            fechaCalculo: rating.calculationDate,
+            _isPending: false,
+            _syncedAt: business._syncedAt
+        };
+    }
+
+    getEstadoLabel(classification) {
+        const labels = {
+            'idea_inicial': 'Idea Inicial',
+            'en_desarrollo': 'En Desarrollo',
+            'consolidado': 'Consolidado'
+        };
+        return labels[classification] || 'Sin clasificar';
     }
 }
 

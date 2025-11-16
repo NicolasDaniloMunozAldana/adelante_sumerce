@@ -1,6 +1,7 @@
 const { Business, BusinessModel, Finance, WorkTeam, Rating, User } = require('../models');
 const kafkaProducer = require('../kafka/kafkaProducer');
 const cacheService = require('../services/cacheService');
+const { redisClient, isRedisAvailable } = require('../config/redis');
 
 class AdminController {
     /**
@@ -10,10 +11,15 @@ class AdminController {
         try {
             const cacheKey = cacheService.generateCacheKey('admin:all-businesses');
 
-            const businesses = await cacheService.getOrFetch(
-                cacheKey,
-                async () => {
-                    return await Business.findAll({
+            // Primero intentar desde caché (puede venir de precarga)
+            let businesses = await cacheService.get(cacheKey);
+            
+            if (!businesses) {
+                try {
+                    // Si no hay caché, consultar BD
+                    console.log('🔄 Consultando BD para obtener todos los emprendimientos');
+                    
+                    businesses = await Business.findAll({
                         include: [
                             { 
                                 model: User,
@@ -39,11 +45,28 @@ class AdminController {
                         ],
                         order: [['registrationDate', 'DESC']]
                     });
-                },
-                1800 // 30 minutos
-            );
 
-            
+                    // Cachear resultado
+                    if (businesses && businesses.length > 0) {
+                        await cacheService.set(cacheKey, businesses, 1800); // 30 minutos
+                        console.log(`💾 ${businesses.length} emprendimientos cacheados`);
+                    }
+                } catch (dbError) {
+                    console.error('❌ Error BD al obtener emprendimientos:', dbError.message);
+                    console.warn('⚠️  BD CAÍDA - Intentando obtener emprendimientos de caché individual');
+                    
+                    // Intentar reconstruir lista desde cachés individuales
+                    businesses = await this.getBusinessesFromIndividualCache();
+                }
+            } else {
+                console.log(`✅ ${businesses.length} emprendimientos obtenidos desde caché`);
+            }
+
+            // Si aún no hay datos, retornar array vacío
+            if (!businesses) {
+                businesses = [];
+            }
+
             res.json({
                 success: true,
                 count: businesses.length,
@@ -56,6 +79,42 @@ class AdminController {
                 message: 'Error al obtener los emprendimientos',
                 error: error.message
             });
+        }
+    }
+
+    /**
+     * Reconstruye lista de emprendimientos desde cachés individuales
+     */
+    async getBusinessesFromIndividualCache() {
+        try {
+            if (!isRedisAvailable()) {
+                console.warn('⚠️  Redis no disponible para reconstruir lista');
+                return [];
+            }
+
+            const pattern = 'admin:business:businessId:*';
+            const keys = await redisClient.keys(pattern);
+            
+            if (!keys || keys.length === 0) {
+                console.log('⚠️  No se encontraron cachés individuales de emprendimientos');
+                return [];
+            }
+
+            const businesses = [];
+            
+            for (const fullKey of keys) {
+                const cleanKey = fullKey.replace('adelante_sumerce:', '');
+                const data = await cacheService.get(cleanKey);
+                if (data) {
+                    businesses.push(data);
+                }
+            }
+
+            console.log(`✅ Reconstruidos ${businesses.length} emprendimientos desde caché individual`);
+            return businesses;
+        } catch (error) {
+            console.error('❌ Error reconstruyendo desde caché individual:', error.message);
+            return [];
         }
     }
 
