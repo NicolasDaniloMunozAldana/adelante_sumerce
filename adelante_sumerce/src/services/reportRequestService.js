@@ -44,13 +44,14 @@ class ReportRequestService {
      * @throws {Error} Si no se encuentra el emprendimiento
      */
     async fetchBusinessDataForUser(userId) {
-        const cacheKey = cacheService.generateCacheKey('report:business-data', { userId });
+        // Primero intentar obtener desde el caché de caracterización precargado
+        const characterizationKey = cacheService.generateCacheKey('characterization:user', { userId });
+        let business = await cacheService.get(characterizationKey);
 
-        // Usar caché crítico ya que estos datos son para reportes
-        const business = await cacheService.getCriticalData(
-            cacheKey,
-            async () => {
-                return await Business.findOne({
+        // Si no hay en caché de caracterización, intentar desde BD
+        if (!business) {
+            try {
+                const businessDB = await Business.findOne({
                     where: { userId },
                     include: [
                         { model: BusinessModel },
@@ -60,18 +61,29 @@ class ReportRequestService {
                     ],
                     order: [['id', 'DESC']]
                 });
+
+                if (businessDB) {
+                    business = businessDB.toJSON();
+                    // Cachear para futuras consultas
+                    await cacheService.set(characterizationKey, business, cacheService.CRITICAL_DATA_TTL);
+                }
+            } catch (dbError) {
+                console.error('❌ Error BD al obtener datos para reporte:', dbError.message);
+                // business permanece null
             }
-        );
+        }
 
         if (!business) {
             const error = new Error('No se encontró caracterización para este usuario');
             error.statusCode = 404;
             throw error;
         }
+
+        // Si ya es JSON plano, retornarlo directamente
         if (business && typeof business.toJSON === 'function') {
             return business.toJSON();
         }
-        // Convertir a JSON plano para enviar por Kafka
+        
         return business;
     }
 

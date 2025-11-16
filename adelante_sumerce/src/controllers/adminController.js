@@ -616,12 +616,14 @@ class AdminController {
         try {
             const { id } = req.params;
 
-            // Obtener el emprendimiento con todas sus relaciones desde cache
-            const cacheKey = cacheService.generateCacheKey('business_full', { id });
-            const business = await cacheService.getCriticalData(
-                cacheKey,
-                async () => {
-                    return await Business.findOne({
+            // Obtener el emprendimiento desde caché precargado primero
+            const cacheKey = cacheService.generateCacheKey('admin:business', { businessId: id });
+            let business = await cacheService.get(cacheKey);
+
+            // Si no hay en caché, intentar BD
+            if (!business) {
+                try {
+                    const businessDB = await Business.findOne({
                         where: { id },
                         include: [
                             { model: User, attributes: ['id', 'email', 'firstName', 'lastName', 'phoneContact'] },
@@ -631,9 +633,17 @@ class AdminController {
                             { model: Rating }
                         ]
                     });
-                },
-                24 * 60 * 60 // 24 horas - datos críticos para reportes
-            );
+
+                    if (businessDB) {
+                        business = businessDB.toJSON();
+                        // Cachear para futuras consultas
+                        await cacheService.set(cacheKey, business, cacheService.CRITICAL_DATA_TTL);
+                    }
+                } catch (dbError) {
+                    console.error('❌ Error BD al obtener emprendimiento para reporte:', dbError.message);
+                    // business permanece null
+                }
+            }
 
             if (!business || !business.Rating) {
                 return res.status(404).json({
@@ -642,12 +652,11 @@ class AdminController {
                 });
             }
 
-            const businessData = business;
-            
+            // Si ya es JSON plano, usarlo directamente
+            let businessData = business;
             if (business && typeof business.toJSON === 'function') {
                 businessData = business.toJSON();
             }
-        
 
             // Enviar evento a Kafka
             await kafkaProducer.sendGenerateAdminReportEvent(
