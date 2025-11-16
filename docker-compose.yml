@@ -167,6 +167,8 @@ services:
       context: ./adelante_sumerce
       dockerfile: Dockerfile
     container_name: adelante_sumerce_app_1
+    volumes:
+    - ./adelante_sumerce:/app
     depends_on:
       mysql:
         condition: service_healthy
@@ -208,6 +210,8 @@ services:
       context: ./adelante_sumerce
       dockerfile: Dockerfile
     container_name: adelante_sumerce_app_2
+    volumes:
+    - ./adelante_sumerce:/app
     depends_on:
       mysql:
         condition: service_healthy
@@ -249,6 +253,8 @@ services:
       context: ./adelante_sumerce
       dockerfile: Dockerfile
     container_name: adelante_sumerce_app_3
+    volumes:
+    - ./adelante_sumerce:/app
     depends_on:
       mysql:
         condition: service_healthy

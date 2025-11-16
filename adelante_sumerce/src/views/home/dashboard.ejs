@@ -248,85 +248,74 @@
           
                 
                 <script>
-                    // Función para generar el PDF
-                    document.addEventListener('DOMContentLoaded', function() {
-                        const btnGenerarPDF = document.getElementById('btnGenerarPDF');
+    // Función para generar el PDF
+    document.addEventListener('DOMContentLoaded', function() {
+        const btnGenerarPDF = document.getElementById('btnGenerarPDF');
+        
+        if (btnGenerarPDF) {
+            btnGenerarPDF.addEventListener('click', async function() {
+                const originalHTML = this.innerHTML;
+                
+                try {
+                    // Deshabilitar botón y mostrar loading
+                    this.disabled = true;
+                    this.classList.add('loading');
+                    this.innerHTML = `
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <path d="M12 6v6l4 2"></path>
+                        </svg>
+                        Solicitando reporte...
+                    `;
+
+                    // Realizar la petición
+                    const response = await fetch('/reportes/generate-pdf');
+                    const data = await response.json();
+                    
+                    if (!response.ok || !data.success) {
+                        throw new Error(data.message || 'Error al solicitar el reporte');
+                    }
+
+                    // Mostrar mensaje de éxito
+                    this.innerHTML = `
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                        </svg>
+                        ¡Solicitado!
+                    `;
+
+                    // Mostrar alerta personalizada
+                    setTimeout(() => {
+                        alert(`Reporte solicitado exitosamente\n\nTu reporte será generado y enviado a:\n${data.email || 'tu correo electrónico'}`);
                         
-                        if (btnGenerarPDF) {
-                            btnGenerarPDF.addEventListener('click', async function() {
-                                const originalHTML = this.innerHTML;
-                                
-                                try {
-                                    // Deshabilitar botón y mostrar loading
-                                    this.disabled = true;
-                                    this.classList.add('loading');
-                                    this.innerHTML = `
-                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                            <circle cx="12" cy="12" r="10"></circle>
-                                            <path d="M12 6v6l4 2"></path>
-                                        </svg>
-                                        Generando PDF...
-                                    `;
+                        this.innerHTML = originalHTML;
+                        this.disabled = false;
+                        this.classList.remove('loading');
+                    }, 1000);
 
-                                    // Realizar la petición
-                                    const response = await fetch('/reportes/generate-pdf');
-                                    
-                                    if (!response.ok) {
-                                        throw new Error('Error al generar el reporte');
-                                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    
+                    // Mostrar mensaje de error
+                    this.innerHTML = `
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <line x1="15" y1="9" x2="9" y2="15"></line>
+                            <line x1="9" y1="9" x2="15" y2="15"></line>
+                        </svg>
+                        Error al solicitar
+                    `;
 
-                                    // Obtener el blob del PDF
-                                    const blob = await response.blob();
-                                    
-                                    // Crear un enlace temporal y descargarlo
-                                    const url = window.URL.createObjectURL(blob);
-                                    const a = document.createElement('a');
-                                    a.href = url;
-                                    a.download = `reporte-caracterizacion-${new Date().getTime()}.pdf`;
-                                    document.body.appendChild(a);
-                                    a.click();
-                                    
-                                    // Limpiar
-                                    window.URL.revokeObjectURL(url);
-                                    document.body.removeChild(a);
+                    setTimeout(() => {
+                        this.innerHTML = originalHTML;
+                        this.disabled = false;
+                        this.classList.remove('loading');
+                    }, 2000);
 
-                                    // Mostrar mensaje de éxito
-                                    this.innerHTML = `
-                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                                            <polyline points="22 4 12 14.01 9 11.01"></polyline>
-                                        </svg>
-                                        ¡Descargado!
-                                    `;
-
-                                    setTimeout(() => {
-                                        this.innerHTML = originalHTML;
-                                        this.disabled = false;
-                                        this.classList.remove('loading');
-                                    }, 2000);
-
-                                } catch (error) {
-                                    console.error('Error:', error);
-                                    
-                                    // Mostrar mensaje de error
-                                    this.innerHTML = `
-                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                            <circle cx="12" cy="12" r="10"></circle>
-                                            <line x1="15" y1="9" x2="9" y2="15"></line>
-                                            <line x1="9" y1="9" x2="15" y2="15"></line>
-                                        </svg>
-                                        Error al generar
-                                    `;
-
-                                    setTimeout(() => {
-                                        this.innerHTML = originalHTML;
-                                        this.disabled = false;
-                                        this.classList.remove('loading');
-                                    }, 2000);
-
-                                    alert('Error al generar el reporte. Por favor, intenta nuevamente.');
-                                }
-                            });
-                        }
-                    });
-                </script>
+                    alert('❌ ' + error.message + '\n\nPor favor, intenta nuevamente.');
+                }
+            });
+        }
+    });
+</script>

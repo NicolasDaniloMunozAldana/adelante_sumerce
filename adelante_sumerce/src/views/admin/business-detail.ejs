@@ -883,44 +883,34 @@ document.addEventListener('DOMContentLoaded', function() {
                         <circle cx="12" cy="12" r="10"></circle>
                         <path d="M12 6v6l4 2"></path>
                     </svg>
-                    Generando Reporte...
+                    Solicitando reporte...
                 `;
 
                 // Realizar la petición
                 const response = await fetch(`/admin/emprendimientos/${businessId}/generar-pdf`);
+                const data = await response.json();
                 
-                if (!response.ok) {
-                    throw new Error('Error al generar el reporte');
+                if (!response.ok || !data.success) {
+                    throw new Error(data.message || 'Error al solicitar el reporte');
                 }
-
-                // Obtener el blob del PDF
-                const blob = await response.blob();
-                
-                // Crear un enlace temporal y descargarlo
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `evaluacion-<%= business.name.replace(/\s+/g, '-') %>-${new Date().getTime()}.pdf`;
-                document.body.appendChild(a);
-                a.click();
-                
-                // Limpiar
-                window.URL.revokeObjectURL(url);
-                document.body.removeChild(a);
 
                 // Mostrar mensaje de éxito
                 this.innerHTML = `
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <polyline points="20 6 9 17 4 12"></polyline>
                     </svg>
-                    ¡Descargado!
+                    ¡Solicitado!
                 `;
 
+                const businessName = '<%= business.name %>';
+                
                 setTimeout(() => {
+                    alert(`Reporte solicitado exitosamente\n\nEmprendimiento: ${businessName}`);
+                    
                     this.innerHTML = originalHTML;
                     this.classList.remove('loading');
                     this.disabled = false;
-                }, 2000);
+                }, 1000);
 
             } catch (error) {
                 console.error('Error:', error);
@@ -932,7 +922,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         <line x1="15" y1="9" x2="9" y2="15"></line>
                         <line x1="9" y1="9" x2="15" y2="15"></line>
                     </svg>
-                    Error al generar
+                    Error al solicitar
                 `;
 
                 setTimeout(() => {
@@ -941,7 +931,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     this.disabled = false;
                 }, 2000);
 
-                alert('Error al generar el reporte. Por favor, intenta nuevamente.');
+                alert(error.message + '\n\nPor favor, intenta nuevamente.');
             }
         });
     }

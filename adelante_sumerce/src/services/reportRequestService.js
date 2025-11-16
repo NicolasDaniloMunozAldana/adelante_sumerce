@@ -68,9 +68,11 @@ class ReportRequestService {
             error.statusCode = 404;
             throw error;
         }
-
+        if (business && typeof business.toJSON === 'function') {
+            return business.toJSON();
+        }
         // Convertir a JSON plano para enviar por Kafka
-        return business.toJSON();
+        return business;
     }
 
     /**

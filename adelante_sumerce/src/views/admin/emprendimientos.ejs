@@ -842,7 +842,7 @@
             button.disabled = true;
             button.classList.add('loading');
             
-            const loadingText = tipo === 'pdf' ? 'Generando PDF...' : 'Generando Excel...';
+            const loadingText = tipo === 'pdf' ? 'Solicitando PDF...' : 'Solicitando Excel...';
             button.innerHTML = `
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <circle cx="12" cy="12" r="10"></circle>
@@ -866,30 +866,14 @@
 
             // Realizar la petición
             const response = await fetch(endpoint);
+            const data = await response.json();
             
-            if (!response.ok) {
-                throw new Error('Error al generar el reporte');
+            if (!response.ok || !data.success) {
+                throw new Error(data.message || 'Error al solicitar el reporte');
             }
 
-            // Obtener el blob del archivo
-            const blob = await response.blob();
-            
-            // Crear un enlace temporal y descargarlo
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = tipo === 'pdf' 
-                ? `reporte-comparativo-${new Date().getTime()}.pdf`
-                : `reporte-comparativo-${new Date().getTime()}.xlsx`;
-            document.body.appendChild(a);
-            a.click();
-            
-            // Limpiar
-            window.URL.revokeObjectURL(url);
-            document.body.removeChild(a);
-
             // Mostrar mensaje de éxito
-            const successText = tipo === 'pdf' ? '¡PDF Descargado!' : '¡Excel Descargado!';
+            const successText = tipo === 'pdf' ? '¡PDF Solicitado!' : '¡Excel Solicitado!';
             button.innerHTML = `
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
@@ -898,11 +882,23 @@
                 ${successText}
             `;
 
+            // Construir mensaje con filtros aplicados
+            let filtrosAplicados = '';
+            if (classification || sector) {
+                filtrosAplicados = '\n\nFiltros aplicados:';
+                if (classification) filtrosAplicados += `\n- Clasificación: ${getClassificationLabel(classification)}`;
+                if (sector) filtrosAplicados += `\n- Sector: ${getSectorLabel(sector)}`;
+            }
+
+            const fileType = tipo === 'pdf' ? 'PDF' : 'Excel';
+
             setTimeout(() => {
+                alert(`Reporte comparativo solicitado exitosamente\n\nTipo: ${fileType}${filtrosAplicados}\n\nEl reporte será enviado a:\n${data.email || 'tu correo electrónico'}`);
+                
                 button.innerHTML = originalHTML;
                 button.disabled = false;
                 button.classList.remove('loading');
-            }, 2000);
+            }, 1000);
 
         } catch (error) {
             console.error('Error:', error);
@@ -914,7 +910,7 @@
                     <line x1="15" y1="9" x2="9" y2="15"></line>
                     <line x1="9" y1="9" x2="15" y2="15"></line>
                 </svg>
-                Error al generar
+                Error al solicitar
             `;
 
             setTimeout(() => {
@@ -923,7 +919,7 @@
                 button.classList.remove('loading');
             }, 2000);
 
-            alert('Error al generar el reporte. Por favor, intenta nuevamente.');
+            alert('❌ ' + error.message + '\n\nPor favor, intenta nuevamente.');
         }
     }
 

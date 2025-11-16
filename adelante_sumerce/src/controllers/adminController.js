@@ -618,8 +618,12 @@ class AdminController {
                 });
             }
 
-            // Convertir a JSON plano para Kafka
-            const businessData = business.toJSON();
+            const businessData = business;
+            
+            if (business && typeof business.toJSON === 'function') {
+                businessData = business.toJSON();
+            }
+        
 
             // Enviar evento a Kafka
             await kafkaProducer.sendGenerateAdminReportEvent(

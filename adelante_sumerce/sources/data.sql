@@ -5,9 +5,9 @@ VALUES
 
 INSERT INTO usuarios (id, email, password_hash, contacto_celular, nombre, apellido, rol)
 VALUES
-(3,  'ana.martinez@example.com',    'password_hash_1', '3101110001', 'Ana',      'Martínez', 'emprendedor'),
-(4,  'juan.lopez@example.com',       'password_hash_2', '3101110002', 'Juan',     'López',    'emprendedor'),
-(5,  'carla.gomez@example.com',      'password_hash_3', '3101110003', 'Carla',    'Gómez',    'emprendedor'),
+(3,  'ana.martinez@example.com',    '$2b$10$wq.D5pw1/0KK3TELCKyQTezDu0kcPyE.D2YV3aHvV5Jsw6XPSPZZm', '3101110001', 'Ana',      'Martínez', 'emprendedor'),
+(4,  'juan.lopez@example.com',       '$2b$10$wq.D5pw1/0KK3TELCKyQTezDu0kcPyE.D2YV3aHvV5Jsw6XPSPZZm', '3101110002', 'Juan',     'López',    'emprendedor'),
+(5,  'carla.gomez@example.com',      '$2b$10$wq.D5pw1/0KK3TELCKyQTezDu0kcPyE.D2YV3aHvV5Jsw6XPSPZZm', '3101110003', 'Carla',    'Gómez',    'emprendedor'),
 (6,  'mario.ramirez@example.com',    'password_hash_4', '3101110004', 'Mario',    'Ramírez',  'emprendedor'),
 (7,  'laura.mendez@example.com',     'password_hash_5', '3101110005', 'Laura',    'Méndez',   'emprendedor'),
 (8,  'santiago.velez@example.com',   'password_hash_6', '3101110006', 'Santiago', 'Vélez',    'emprendedor'),
