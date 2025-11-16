@@ -14,6 +14,12 @@ RUN apk add --no-cache \
 # Configurar Puppeteer
 ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
+ENV CHROME_BIN=/usr/bin/chromium-browser
+ENV CHROME_PATH=/usr/lib/chromium/
+
+# Variables de entorno para optimizar Chrome en Docker
+ENV CHROME_DEVEL_SANDBOX=0
+ENV NODE_OPTIONS="--max-old-space-size=2048"
 
 WORKDIR /app
 

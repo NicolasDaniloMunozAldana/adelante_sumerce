@@ -22,11 +22,23 @@ class ComparativeReportService {
             // Generar PDF
             const browser = await puppeteer.launch({
                 headless: true,
-                args: ['--no-sandbox', '--disable-setuid-sandbox']
+                args: [
+                    '--no-sandbox',
+                    '--disable-setuid-sandbox',
+                    '--disable-dev-shm-usage',
+                    '--disable-accelerated-2d-canvas',
+                    '--disable-gpu',
+                    '--disable-software-rasterizer',
+                    '--disable-extensions'
+                ],
+                protocolTimeout: 180000, // 3 minutos
+                timeout: 180000 // 3 minutos
             });
 
             const page = await browser.newPage();
-            await page.setContent(html, { waitUntil: 'networkidle0' });
+            await page.setDefaultTimeout(180000); // 3 minutos
+            await page.setDefaultNavigationTimeout(180000); // 3 minutos
+            await page.setContent(html, { waitUntil: 'domcontentloaded', timeout: 180000 });
 
             const pdf = await page.pdf({
                 format: 'A4',
