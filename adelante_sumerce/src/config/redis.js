@@ -19,8 +19,27 @@ redisClient.on('connect', () => {
     console.log('🔄 Redis: Conectando...');
 });
 
-redisClient.on('ready', () => {
+redisClient.on('ready', async () => {
     console.log('✅ Redis: Conectado y listo');
+    
+    // Iniciar precarga de datos críticos en segundo plano
+    try {
+        // Importar el servicio de precarga DESPUÉS de que Redis esté listo
+        const dataPreloadService = require('../services/dataPreloadService');
+        
+        // Dar un pequeño delay para que los modelos se inicialicen
+        setTimeout(async () => {
+            try {
+                await dataPreloadService.start();
+            } catch (error) {
+                console.error('❌ Error al iniciar servicio de precarga:', error.message);
+                console.warn('⚠️  La aplicación continuará sin precarga automática');
+            }
+        }, 2000); // 2 segundos de delay
+        
+    } catch (error) {
+        console.error('❌ Error al cargar servicio de precarga:', error.message);
+    }
 });
 
 redisClient.on('end', () => {
@@ -42,6 +61,14 @@ const connectRedis = async () => {
 // Desconectar Redis
 const disconnectRedis = async () => {
     try {
+        // Detener el servicio de precarga antes de desconectar
+        try {
+            const dataPreloadService = require('../services/dataPreloadService');
+            dataPreloadService.stop();
+        } catch (error) {
+            // Ignorar si el servicio no está disponible
+        }
+        
         if (redisClient.isOpen) {
             await redisClient.quit();
         }

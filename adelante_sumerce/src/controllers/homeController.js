@@ -25,11 +25,18 @@ exports.showDashboard = async (req, res) => {
         // El servicio SIEMPRE retorna (null o datos), nunca lanza excepción
         const caracterizacion = await dashboardService.getDashboardData(userId);
 
+        // Si no hay caracterización, puede ser que:
+        // 1. El usuario no ha completado la caracterización
+        // 2. La BD está caída y no hay datos precargados
+        const showNoDataMessage = !caracterizacion;
+
         res.render('home/dashboard', {
             title: 'Dashboard - Salga Adelante Sumercé',
             currentPage: 'dashboard',
             caracterizacion: caracterizacion,
-            dbWarning: false // BD funcionando
+            dbWarning: false,
+            showNoDataMessage: showNoDataMessage,
+            noDataMessage: showNoDataMessage ? 'No has completado tu caracterización aún. Visita la sección de Caracterización para comenzar.' : null
             // user está disponible en res.locals.user (de injectUserToViews)
         });
     } catch (error) {
@@ -41,7 +48,7 @@ exports.showDashboard = async (req, res) => {
             currentPage: 'dashboard',
             caracterizacion: null,
             dbWarning: true,
-            warningMessage: 'El sistema está experimentando problemas. Los datos se mostrarán cuando el sistema se recupere.'
+            warningMessage: 'El sistema está experimentando problemas técnicos. Por favor, intenta más tarde.'
         });
     }
 };
@@ -104,14 +111,14 @@ exports.showCaracterizacion = async (req, res) => {
         // (no cuando la BD está caída, ya que el servicio maneja eso)
         console.error('Error inesperado al mostrar el formulario de caracterización:', error);
         
-        // Aún así, mostrar el formulario vacío con una advertencia
+        // Aún así, mostrar el formulario vacío
+        // No mostramos advertencia porque el sistema debería funcionar con datos precargados
         res.render('home/caracterizacion', {
             title: 'Caracterización - Salga Adelante Sumercé',
             currentPage: 'caracterizacion',
             existingData: null,
             isReadOnly: false,
-            dbWarning: true, // Mostrar advertencia de que puede haber problemas
-            warningMessage: 'El sistema está experimentando problemas. Puedes completar el formulario y se guardará cuando el sistema se recupere.'
+            dbWarning: false
             // user está disponible en res.locals.user
         });
     }

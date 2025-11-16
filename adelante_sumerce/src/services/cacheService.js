@@ -207,20 +207,29 @@ class CacheService {
     /**
      * Wrapper especial para datos críticos que sobreviven a fallos de BD
      * Usa un TTL más largo y siempre mantiene una copia en caché
+     * Si dbQuery es null, solo intenta obtener desde caché (modo solo-lectura)
      * @param {string} cacheKey - Clave de caché
-     * @param {Function} dbQuery - Función que ejecuta la consulta a la BD
+     * @param {Function|null} dbQuery - Función que ejecuta la consulta a la BD (null para modo solo-lectura)
      * @returns {Promise<any>} Datos desde caché o BD
      */
-    async getCriticalData(cacheKey, dbQuery) {
+    async getCriticalData(cacheKey, dbQuery = null) {
         try {
             // Intentar obtener desde caché
             const cachedData = await this.get(cacheKey);
             
             if (cachedData !== null) {
                 // Si hay datos en caché, retornarlos inmediatamente
-                // pero intentar actualizar en segundo plano
-                this.refreshCacheInBackground(cacheKey, dbQuery);
+                // pero intentar actualizar en segundo plano si hay dbQuery
+                if (dbQuery) {
+                    this.refreshCacheInBackground(cacheKey, dbQuery);
+                }
                 return cachedData;
+            }
+
+            // Si no hay dbQuery (modo solo-lectura), retornar null
+            if (!dbQuery) {
+                console.log(`ℹ️  Modo solo-lectura: no hay datos en caché para ${cacheKey}`);
+                return null;
             }
 
             // Si no hay datos en caché, consultar la BD
@@ -245,8 +254,9 @@ class CacheService {
                 return staleData;
             }
             
-            // Si no hay ni siquiera datos antiguos, lanzar el error
-            throw error;
+            // Si no hay ni siquiera datos antiguos, retornar null en lugar de lanzar error
+            console.warn(`⚠️  No hay datos disponibles (ni en caché ni en BD) para: ${cacheKey}`);
+            return null;
         }
     }
 

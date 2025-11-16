@@ -12,7 +12,7 @@ class DashboardService {
         const cacheKey = cacheService.generateCacheKey('dashboard:user', { userId });
 
         try {
-            // Primero intentar obtener desde caché
+            // Primero intentar obtener desde caché (puede venir de precarga)
             const cachedData = await cacheService.get(cacheKey);
             if (cachedData !== null) {
                 console.log(`✅ Dashboard obtenido desde caché para userId: ${userId}`);
@@ -113,11 +113,10 @@ class DashboardService {
         } catch (error) {
             // Si la BD falla, intentar obtener datos antiguos de caché
             console.error(`❌ Error al obtener dashboard para userId ${userId}:`, error.message);
-            console.warn(`⚠️  Intentando obtener datos antiguos de caché...`);
             
             const staleData = await cacheService.get(cacheKey);
             if (staleData !== null) {
-                console.warn(`✅ BD CAÍDA - Sirviendo datos antiguos de caché para userId: ${userId}`);
+                console.warn(`✅ BD CAÍDA - Sirviendo datos de caché para userId: ${userId}`);
                 // Extender el TTL de los datos antiguos
                 await cacheService.set(cacheKey, staleData, cacheService.CRITICAL_DATA_TTL);
                 return staleData;

@@ -67,10 +67,13 @@ class AdminController {
             const { id } = req.params;
             const cacheKey = cacheService.generateCacheKey('admin:business', { businessId: id });
 
-            const business = await cacheService.getCriticalData(
-                cacheKey,
-                async () => {
-                    return await Business.findOne({
+            // Intentar primero desde caché (puede venir de precarga)
+            let business = await cacheService.get(cacheKey);
+            
+            // Si no hay caché, intentar BD
+            if (!business) {
+                try {
+                    const businessDB = await Business.findOne({
                         where: { id },
                         include: [
                             { 
@@ -96,8 +99,17 @@ class AdminController {
                             }
                         ]
                     });
+                    
+                    // Cachear si se obtuvo de BD
+                    if (businessDB) {
+                        business = businessDB.toJSON();
+                        await cacheService.set(cacheKey, business, cacheService.CRITICAL_DATA_TTL);
+                    }
+                } catch (dbError) {
+                    console.error('❌ Error BD al obtener emprendimiento:', dbError.message);
+                    // business permanece null
                 }
-            );
+            }
 
             if (!business) {
                 return res.status(404).json({
@@ -281,10 +293,13 @@ class AdminController {
             const { id } = req.params;
             const cacheKey = cacheService.generateCacheKey('admin:business-dashboard', { businessId: id });
 
-            const business = await cacheService.getCriticalData(
-                cacheKey,
-                async () => {
-                    return await Business.findOne({
+            // Intentar primero desde caché (puede venir de precarga)
+            let business = await cacheService.get(cacheKey);
+            
+            // Si no hay caché, intentar BD
+            if (!business) {
+                try {
+                    const businessDB = await Business.findOne({
                         where: { id },
                         include: [
                             { 
@@ -310,8 +325,17 @@ class AdminController {
                             }
                         ]
                     });
+                    
+                    // Cachear si se obtuvo de BD
+                    if (businessDB) {
+                        business = businessDB.toJSON();
+                        await cacheService.set(cacheKey, business, cacheService.CRITICAL_DATA_TTL);
+                    }
+                } catch (dbError) {
+                    console.error('❌ Error BD al obtener emprendimiento:', dbError.message);
+                    // business permanece null
                 }
-            );
+            }
 
             if (!business) {
                 return res.status(404).send('Emprendimiento no encontrado');

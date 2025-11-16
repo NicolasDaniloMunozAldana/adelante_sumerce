@@ -157,27 +157,54 @@ class CharacterizationService {
             businessId 
         });
 
-        // Usar getCriticalData para datos críticos que deben servirse aunque la BD esté caída
-        return await cacheService.getCriticalData(
-            cacheKey,
-            async () => {
-                const results = await Business.findOne({
-                    where: { id: businessId },
-                    include: [
-                        { model: BusinessModel },
-                        { model: Finance },
-                        { model: WorkTeam },
-                        { model: Rating }
-                    ]
-                });
-
-                if (!results) {
-                    throw new Error('No se encontró la caracterización');
-                }
-
-                return results;
+        try {
+            // Primero intentar obtener desde caché (puede venir de precarga)
+            const cachedData = await cacheService.get(cacheKey);
+            if (cachedData !== null) {
+                console.log(`✅ Resultados obtenidos desde caché para businessId: ${businessId}`);
+                return cachedData;
             }
-        );
+
+            // Si no hay caché, intentar consultar la BD
+            console.log(`🔄 Consultando BD para resultados de businessId: ${businessId}`);
+            
+            const results = await Business.findOne({
+                where: { id: businessId },
+                include: [
+                    { model: BusinessModel },
+                    { model: Finance },
+                    { model: WorkTeam },
+                    { model: Rating }
+                ]
+            });
+
+            if (!results) {
+                return null;
+            }
+
+            // Cachear los resultados
+            const resultsData = results.toJSON();
+            await cacheService.set(cacheKey, resultsData, cacheService.CRITICAL_DATA_TTL);
+            console.log(`💾 Resultados cacheados para businessId: ${businessId}`);
+            
+            return resultsData;
+
+        } catch (error) {
+            console.error(`❌ Error al obtener resultados para businessId ${businessId}:`, error.message);
+            
+            // Si la BD falla, intentar obtener datos antiguos de caché
+            const staleData = await cacheService.get(cacheKey);
+            if (staleData !== null) {
+                console.warn(`✅ BD CAÍDA - Sirviendo datos de caché para businessId: ${businessId}`);
+                // Extender el TTL de los datos antiguos
+                await cacheService.set(cacheKey, staleData, cacheService.CRITICAL_DATA_TTL);
+                return staleData;
+            }
+            
+            // Si no hay datos en caché y la BD está caída, retornar null
+            console.warn(`⚠️  BD CAÍDA y sin caché - Retornando null para businessId: ${businessId}`);
+            return null;
+        }
     }
 
     /**
@@ -193,13 +220,16 @@ class CharacterizationService {
         });
 
         try {
-            // Primero intentar obtener desde caché
+            // Primero intentar obtener desde caché (puede venir de precarga)
             const cachedData = await cacheService.get(cacheKey);
             if (cachedData !== null) {
+                console.log(`✅ Caracterización obtenida desde caché para userId: ${userId}`);
                 return cachedData;
             }
 
             // Si no hay caché, intentar consultar la BD
+            console.log(`🔄 Consultando BD para caracterización de userId: ${userId}`);
+            
             const business = await Business.findOne({
                 where: { userId },
                 include: [
@@ -212,24 +242,30 @@ class CharacterizationService {
 
             // Si encontramos datos, cachearlos
             if (business) {
-                await cacheService.set(cacheKey, business, cacheService.CRITICAL_DATA_TTL);
+                const businessData = business.toJSON();
+                await cacheService.set(cacheKey, businessData, cacheService.CRITICAL_DATA_TTL);
+                console.log(`💾 Caracterización cacheada para userId: ${userId}`);
+                return businessData;
             }
 
-            // Retornar los datos (puede ser null si no existe)
-            return business;
+            // No hay caracterización para este usuario
+            console.log(`ℹ️  No hay caracterización disponible para userId: ${userId}`);
+            return null;
 
         } catch (error) {
-            // Si la BD falla, intentar una última vez con datos antiguos de caché
+            // Si la BD falla, intentar obtener datos antiguos de caché
+            console.error(`❌ Error al obtener caracterización para userId ${userId}:`, error.message);
             
             const staleData = await cacheService.get(cacheKey);
             if (staleData !== null) {
+                console.warn(`✅ BD CAÍDA - Sirviendo datos de caché para userId: ${userId}`);
                 // Extender el TTL de los datos antiguos
                 await cacheService.set(cacheKey, staleData, cacheService.CRITICAL_DATA_TTL);
                 return staleData;
             }
             
             // Si no hay datos en caché y la BD está caída, retornar null
-            // Esto permite que el formulario se muestre vacío
+            console.warn(`⚠️  BD CAÍDA y sin caché - Retornando null para userId: ${userId}`);
             return null;
         }
     }
