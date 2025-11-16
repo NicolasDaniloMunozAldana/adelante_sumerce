@@ -31,7 +31,7 @@ Business.init({
   },
   creationYear: {
     type: DataTypes.INTEGER,
-    field: 'año_creacion'
+    field: 'anio_creacion'
   },
   economicSector: {
     type: DataTypes.STRING(100),

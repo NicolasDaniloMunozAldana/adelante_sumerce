@@ -4,13 +4,13 @@ Sistema de gestión comercial para emprendedores, refactorizado con arquitectura
 
 ## 🎯 Características Principales
 
-- ✅ **Autenticación JWT**: Access tokens de corta duración + Refresh tokens rotativos
-- ✅ **Microservicios**: Autenticación separada del negocio principal
-- ✅ **Sliding Session**: Sensación de sesión infinita sin comprometer seguridad
-- ✅ **Gestión de Roles**: Administrador y Emprendedor
-- ✅ **Retrocompatibilidad**: Código original intacto, nueva implementación en paralelo
-- ✅ **Caracterización de Emprendimientos**: Formularios y reportes
-- ✅ **Dashboard Administrativo**: Métricas y reportes comparativos
+-  **Autenticación JWT**: Access tokens de corta duración + Refresh tokens rotativos
+-  **Microservicios**: Autenticación separada del negocio principal
+-  **Sliding Session**: Sensación de sesión infinita sin comprometer seguridad
+-  **Gestión de Roles**: Administrador y Emprendedor
+-  **Retrocompatibilidad**: Código original intacto, nueva implementación en paralelo
+-  **Caracterización de Emprendimientos**: Formularios y reportes
+-  **Dashboard Administrativo**: Métricas y reportes comparativos
 
 ## 📁 Estructura del Proyecto
 
@@ -59,10 +59,45 @@ adelante_sumerce/
 
 ## 🚀 Inicio Rápido
 
-### Prerequisitos
+### 🐳 Opción 1: Docker Compose (Recomendado)
 
+La forma más rápida de desplegar el proyecto completo con balanceo de carga incluido.
+
+**Características:**
+- ✅ 3 réplicas de la aplicación principal con Nginx load balancer
+- ✅ Todos los servicios configurados automáticamente
+- ✅ Base de datos, Redis y Kafka incluidos
+- ✅ Health checks y restart automático
+
+```bash
+# Windows
+docker-deploy.bat setup
+# Editar .env con tus configuraciones
+docker-deploy.bat start
+
+# Linux/Mac
+./docker-deploy.sh setup
+# Editar .env con tus configuraciones
+./docker-deploy.sh start
+```
+
+**Acceder:**
+- Aplicación: http://localhost
+- Auth Service: http://localhost:3001
+
+📖 **Documentación completa:** Ver [QUICK_START_DOCKER.md](QUICK_START_DOCKER.md)
+
+---
+
+### 💻 Opción 2: Instalación Manual (Node.js)
+
+Para desarrollo local sin Docker.
+
+**Prerequisitos:**
 - Node.js >= 14.x
 - MySQL >= 5.7
+- Redis (opcional, para cache)
+- Kafka (opcional, para reportes)
 - npm o yarn
 
 ### 1. Configurar Base de Datos
