@@ -1,6 +1,6 @@
 # Adelante Sumercé - Arquitectura de Microservicios
 
-Sistema de gestión comercial para emprendedores, refactorizado con arquitectura de microservicios y autenticación JWT.
+Sistema de gestión comercial para emprendedores, refactorizado con arquitectura de microservicios, autenticación JWT y **resiliencia total** con Event Sourcing.
 
 ## 🎯 Características Principales
 
@@ -11,6 +11,10 @@ Sistema de gestión comercial para emprendedores, refactorizado con arquitectura
 -  **Retrocompatibilidad**: Código original intacto, nueva implementación en paralelo
 -  **Caracterización de Emprendimientos**: Formularios y reportes
 -  **Dashboard Administrativo**: Métricas y reportes comparativos
+-  **🔥 RESILIENCIA TOTAL**: Sistema funciona aunque PostgreSQL esté caída
+  - ✅ **Lecturas resilientes**: Redis como caché primario con precarga automática
+  - ✅ **Escrituras resilientes**: Event Sourcing con Kafka + sincronización automática
+  - ✅ **Reportes resilientes**: Generación de PDFs optimizada para Docker
 
 ## 📁 Estructura del Proyecto
 
