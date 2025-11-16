@@ -22,7 +22,7 @@ VALUES
 (17, 'valentina.oro@example.com',    'password_hash_15','3101110015', 'Valentina','Oro',      'emprendedor');
 
 
-INSERT INTO emprendimientos (id, usuario_id, nombre_emprendimiento, año_creacion, sector_economico, nombre_encargado, contacto_encargado, email_encargado, tiempo_operacion_meses)
+INSERT INTO emprendimientos (id, usuario_id, nombre_emprendimiento, anio_creacion, sector_economico, nombre_encargado, contacto_encargado, email_encargado, tiempo_operacion_meses)
 VALUES
 (3,  3,  'Panadería La Esquina',        2022, 'comercio',       'Ana Martínez',     '3101110001', 'ana.martinez@example.com',    '12_24_meses'),
 (4,  4,  'EcoLimpio Servicios',         2021, 'servicios',      'Juan López',       '3101110002', 'juan.lopez@example.com',      'mas_24_meses'),

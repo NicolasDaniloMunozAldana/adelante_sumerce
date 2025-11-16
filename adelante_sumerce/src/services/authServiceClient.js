@@ -2,7 +2,10 @@ const axios = require('axios');
 
 class AuthServiceClient {
   constructor() {
-    this.baseURL = process.env.AUTH_SERVICE_URL || 'http://localhost:3001/api/auth';
+    // Si AUTH_SERVICE_URL ya incluye /api/auth, úsala directamente
+    // Si no, añade /api/auth al final
+    const baseUrl = process.env.AUTH_SERVICE_URL || 'http://localhost:3001';
+    this.baseURL = baseUrl.includes('/api/auth') ? baseUrl : `${baseUrl}/api/auth`;
     this.client = axios.create({
       baseURL: this.baseURL,
       timeout: 10000,
@@ -10,6 +13,7 @@ class AuthServiceClient {
         'Content-Type': 'application/json'
       }
     });
+    console.log(`[AuthServiceClient] Configurado con baseURL: ${this.baseURL}`);
   }
 
   /**

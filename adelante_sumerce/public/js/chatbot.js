@@ -27,9 +27,11 @@ document.addEventListener('DOMContentLoaded', function () {
  */
 async function initializeChatbot() {
     // Mostrar el tooltip de bienvenida cada vez que el usuario entra a la aplicación
-    setTimeout(() => {
-        showWelcomeTooltip();
-    }, 2000);
+    if (localStorage.getItem(CHATBOT_STORAGE_KEY) !== 'true') {
+        setTimeout(() => {
+            showWelcomeTooltip();
+        }, 2000);
+    }
 
     // Cargar mensaje de bienvenida del chatbot
     try {
@@ -55,9 +57,18 @@ async function initializeChatbot() {
  */
 function showWelcomeTooltip() {
     const tooltip = document.getElementById('chatbot-welcome-tooltip');
-    // No mostrar el tooltip si el chatbot ya está abierto
+
+    // Si ya se mostró antes, NO mostrarlo
+    if (localStorage.getItem(CHATBOT_STORAGE_KEY) === 'true') {
+        return;
+    }
+
+    // No mostrar si el chatbot ya está abierto
     if (tooltip && !chatbotState.isOpen) {
         tooltip.style.display = 'block';
+
+        // Marcar como mostrado
+        localStorage.setItem(CHATBOT_STORAGE_KEY, 'true');
 
         // Auto-ocultar después de 10 segundos
         setTimeout(() => {
@@ -251,7 +262,7 @@ async function sendChatbotMessage() {
     // Agregar mensaje del usuario
     addMessageToChat('user', message);
     input.value = '';
-    
+
     // Resetear altura del textarea
     input.style.height = 'auto';
 
