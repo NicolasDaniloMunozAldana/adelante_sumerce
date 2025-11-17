@@ -1,0 +1,44 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+          - alertmanager:9093
+
+rule_files:
+  - "alert_rules.yml"
+
+scrape_configs:
+  # Monitoreo del host Windows
+  - job_name: 'node_exporter'
+    static_configs:
+      - targets: ['node-exporter:9100']
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        replacement: 'windows-host'
+
+  # MySQL Metrics
+  - job_name: 'mysqld_exporter'
+    static_configs:
+      - targets: ['mysqld_exporter:9104']
+
+  # Container Metrics
+  - job_name: 'cadvisor'
+    static_configs:
+      - targets: ['cadvisor:8080']
+
+  # Nginx Metrics
+  - job_name: 'nginx_exporter'
+    static_configs:
+      - targets: ['nginx-exporter:9113']
+
+  # Auth Service
+  - job_name: 'auth_service'
+    static_configs:
+      - targets: ['auth_service:3001']
+    metrics_path: '/metrics'
+    scrape_interval: 30s

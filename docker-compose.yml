@@ -318,6 +318,157 @@ services:
       timeout: 10s
       retries: 3
 
+  nginx-exporter:
+    image: nginx/nginx-prometheus-exporter:latest
+    container_name: nginx_exporter
+    ports:
+      - '9113:9113'
+    command:
+      - '-nginx.scrape-uri=http://nginx:80/nginx_status'
+    networks:
+      - adelante_network
+    depends_on:
+      - nginx
+    restart: unless-stopped
+
+  windows-exporter:
+    image: quay.io/prometheus-community/windows-exporter:latest
+    container_name: windows_exporter
+    ports:
+      - '9182:9182'
+    networks:
+      - adelante_network
+    restart: unless-stopped
+
+  # Node Exporter para monitorear el host
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: node_exporter
+    ports:
+      - '9100:9100'
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.sysfs=/host/sys'
+      - '--path.rootfs=/host'
+      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/host:ro
+    networks:
+      - adelante_network
+    restart: unless-stopped
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    ports:
+      - '9090:9090'
+    volumes:
+      - ./docker/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./docker/prometheus/alert_rules.yml:/etc/prometheus/alert_rules.yml
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.enable-lifecycle'
+      - '--web.external-url=http://localhost:9090'
+    networks:
+      - adelante_network
+    restart: unless-stopped
+    depends_on:
+      - cadvisor
+      - mysqld_exporter
+      - nginx-exporter
+      - node-exporter
+      
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - '3000:3000'
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_INSTALL_PLUGINS=grafana-piechart-panel
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./docker/grafana/provisioning:/etc/grafana/provisioning
+    restart: unless-stopped
+    networks:
+      - adelante_network
+    depends_on:
+      - prometheus
+
+  mysqld_exporter:
+    image: prom/mysqld-exporter:latest
+    container_name: mysqld_exporter
+    volumes:
+      - ./docker/mysqld_exporter/.my.cnf:/.my.cnf
+    ports:
+      - '9104:9104'
+    networks:
+      - adelante_network
+    depends_on:
+      mysql:
+        condition: service_healthy
+    restart: unless-stopped
+    # Coleccionadores completos para métricas detalladas
+    command:
+      - '--collect.global_status'
+      - '--collect.global_variables'
+      - '--collect.info_schema.innodb_metrics'
+      - '--collect.info_schema.innodb_tablespaces'
+      - '--collect.info_schema.innodb_cmp'
+      - '--collect.info_schema.innodb_cmpmem'
+      - '--collect.info_schema.processlist'
+      - '--collect.info_schema.query_response_time'
+      - '--collect.info_schema.schemastats'
+      - '--collect.info_schema.tables'
+      - '--collect.info_schema.tablestats'
+      - '--collect.info_schema.userstats'
+      - '--collect.perf_schema.eventswaits'
+      - '--collect.perf_schema.file_events'
+      - '--collect.perf_schema.tablelocks'
+      - '--collect.perf_schema.indexiowaits'
+      - '--collect.perf_schema.tableiowaits'
+      - '--collect.slave_status'
+      - '--collect.heartbeat'
+      - '--collect.binlog_size'
+      - '--config.my-cnf=/.my.cnf'
+
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:latest
+    container_name: cadvisor
+    ports:
+      - '8080:8080'
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+    networks:
+      - adelante_network
+    privileged: true
+    restart: unless-stopped
+
+  alertmanager:
+    image: prom/alertmanager:latest
+    container_name: alertmanager
+    ports:
+      - '9094:9093'
+    volumes:
+      - ./docker/alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml
+      - alertmanager_data:/alertmanager
+    command:
+      - '--config.file=/etc/alertmanager/alertmanager.yml'
+      - '--storage.path=/alertmanager'
+      - '--web.external-url=http://localhost:9094'
+    networks:
+      - adelante_network
+    restart: unless-stopped
+
 networks:
   adelante_network:
     driver: bridge
@@ -336,3 +487,9 @@ volumes:
     name: adelante_sumerce_kafka_data
   report_logs:
     name: adelante_sumerce_report_logs
+  prometheus_data:
+    name: adelante_sumerce_prometheus_data
+  grafana_data:
+    name: adelante_sumerce_grafana_data
+  alertmanager_data:
+    name: adelante_sumerce_alertmanager_data
