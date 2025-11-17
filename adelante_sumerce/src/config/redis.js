@@ -22,6 +22,14 @@ redisClient.on('connect', () => {
 redisClient.on('ready', async () => {
     console.log('✅ Redis: Conectado y listo');
     
+    // Iniciar listener de eventos de caché
+    try {
+        const cacheEventListener = require('../services/cacheEventListener');
+        await cacheEventListener.start();
+    } catch (error) {
+        console.error('❌ Error al iniciar listener de eventos de caché:', error.message);
+    }
+    
     // Iniciar precarga de datos críticos en segundo plano
     try {
         // Importar el servicio de precarga DESPUÉS de que Redis esté listo

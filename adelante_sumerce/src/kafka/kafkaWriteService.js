@@ -151,6 +151,12 @@ class KafkaWriteService {
             const dashboardData = this.buildDashboardData(cachedBusiness);
             await cacheService.set(dashboardKey, dashboardData, cacheService.CRITICAL_DATA_TTL);
 
+            // INVALIDAR CACHÉS ADMINISTRATIVOS para reflejar el nuevo registro
+            await this.invalidateAdminCaches();
+
+            // Publicar evento de actualización de caché vía Redis Pub/Sub
+            await this.publishCacheUpdateEvent('NEW_BUSINESS', { userId, tempId });
+
             console.log(`💾 Caché actualizado para userId ${userId} (datos pendientes)`);
 
         } catch (error) {
@@ -314,6 +320,51 @@ class KafkaWriteService {
             'consolidado': 'Consolidado'
         };
         return labels[classification] || 'Sin clasificar';
+    }
+
+    /**
+     * Invalida todos los cachés administrativos que listan emprendimientos
+     */
+    async invalidateAdminCaches() {
+        try {
+            // Invalidar lista completa de emprendimientos
+            await cacheService.delete('admin:all-businesses');
+            
+            // Invalidar estadísticas administrativas
+            await cacheService.delete('admin:statistics');
+            
+            // Invalidar cachés de usuarios (lista de todos los emprendedores)
+            await cacheService.delete('admin:all-users');
+            
+            console.log('🔄 Cachés administrativos invalidados');
+        } catch (error) {
+            console.error('⚠️  Error invalidando cachés administrativos:', error.message);
+        }
+    }
+
+    /**
+     * Publica evento de actualización de caché vía Redis Pub/Sub
+     * para notificar a otras instancias de la aplicación
+     */
+    async publishCacheUpdateEvent(eventType, data) {
+        try {
+            const { redisClient, isRedisAvailable } = require('../config/redis');
+            
+            if (!isRedisAvailable()) {
+                return;
+            }
+
+            const event = {
+                type: eventType,
+                timestamp: Date.now(),
+                data: data
+            };
+
+            await redisClient.publish('cache-updates', JSON.stringify(event));
+            console.log(`📢 Evento de caché publicado: ${eventType}`);
+        } catch (error) {
+            console.error('⚠️  Error publicando evento de caché:', error.message);
+        }
     }
 }
 

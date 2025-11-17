@@ -133,6 +133,12 @@ class KafkaWriteConsumer {
                 // Actualizar caché con ID real
                 await this.updateCacheWithRealId(userId, tempId, businessId, result);
 
+                // INVALIDAR CACHÉS ADMINISTRATIVOS para reflejar persistencia en BD
+                await this.invalidateAdminCaches();
+
+                // Publicar evento de sincronización
+                await this.publishCacheUpdateEvent('BUSINESS_PERSISTED', { userId, businessId });
+
                 // Marcar evento como completado
                 event.status = 'COMPLETED';
                 event.businessId = businessId;
@@ -480,6 +486,40 @@ class KafkaWriteConsumer {
             'consolidado': 'Consolidado'
         };
         return labels[classification] || 'Sin clasificar';
+    }
+
+    /**
+     * Invalida todos los cachés administrativos
+     */
+    async invalidateAdminCaches() {
+        try {
+            await cacheService.delete('admin:all-businesses');
+            await cacheService.delete('admin:statistics');
+            await cacheService.delete('admin:all-users');
+            console.log('🔄 Cachés administrativos invalidados después de persistir en BD');
+        } catch (error) {
+            console.error('⚠️  Error invalidando cachés administrativos:', error.message);
+        }
+    }
+
+    /**
+     * Publica evento de actualización de caché
+     */
+    async publishCacheUpdateEvent(eventType, data) {
+        try {
+            if (!isRedisAvailable()) return;
+
+            const event = {
+                type: eventType,
+                timestamp: Date.now(),
+                data: data
+            };
+
+            await redisClient.publish('cache-updates', JSON.stringify(event));
+            console.log(`📢 Evento de caché publicado: ${eventType}`);
+        } catch (error) {
+            console.error('⚠️  Error publicando evento de caché:', error.message);
+        }
     }
 }
 

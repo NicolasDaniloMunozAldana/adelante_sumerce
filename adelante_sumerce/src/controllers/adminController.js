@@ -10,13 +10,19 @@ class AdminController {
     async getAllBusinesses(req, res) {
         try {
             const cacheKey = cacheService.generateCacheKey('admin:all-businesses');
+            const forceRefresh = req.query.refresh === 'true'; // Permitir forzar recarga
 
-            // Primero intentar desde caché (puede venir de precarga)
-            let businesses = await cacheService.get(cacheKey);
+            let businesses = null;
+
+            // Si se solicita refresh, saltar caché
+            if (!forceRefresh) {
+                // Intentar desde caché (puede venir de precarga)
+                businesses = await cacheService.get(cacheKey);
+            }
             
             if (!businesses) {
                 try {
-                    // Si no hay caché, consultar BD
+                    // Consultar BD
                     console.log('🔄 Consultando BD para obtener todos los emprendimientos');
                     
                     businesses = await Business.findAll({
@@ -46,10 +52,10 @@ class AdminController {
                         order: [['registrationDate', 'DESC']]
                     });
 
-                    // Cachear resultado
+                    // Cachear resultado con TTL corto para datos administrativos (5 minutos)
                     if (businesses && businesses.length > 0) {
-                        await cacheService.set(cacheKey, businesses, 1800); // 30 minutos
-                        console.log(`💾 ${businesses.length} emprendimientos cacheados`);
+                        await cacheService.set(cacheKey, businesses, 300); // 5 minutos en lugar de 30
+                        console.log(`💾 ${businesses.length} emprendimientos cacheados (TTL: 5min)`);
                     }
                 } catch (dbError) {
                     console.error('❌ Error BD al obtener emprendimientos:', dbError.message);
@@ -70,7 +76,8 @@ class AdminController {
             res.json({
                 success: true,
                 count: businesses.length,
-                data: businesses
+                data: businesses,
+                fromCache: !forceRefresh && businesses.length > 0
             });
         } catch (error) {
             console.error('Error al obtener emprendimientos:', error);
