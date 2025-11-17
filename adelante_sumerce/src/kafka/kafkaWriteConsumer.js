@@ -1,5 +1,5 @@
 const { Kafka } = require('kafkajs');
-const { Business, BusinessModel, Finance, WorkTeam, Rating } = require('../models');
+const { Business, BusinessModel, Finance, WorkTeam, Rating, User } = require('../models');
 const cacheService = require('../services/cacheService');
 const characterizationService = require('../services/characterizationService');
 const { redisClient, isRedisAvailable } = require('../config/redis');
@@ -111,7 +111,7 @@ class KafkaWriteConsumer {
         try {
             console.log(`🔄 Procesando evento CREATE_CHARACTERIZATION: ${event.eventId}`);
 
-            const { data, userId, tempId } = event;
+            const { data, userId, tempId, userData } = event;
             const { business, businessModel, finance, workTeam } = data;
 
             // Intentar escribir en BD (puede fallar si está caída)
@@ -130,14 +130,19 @@ class KafkaWriteConsumer {
                 console.log(`   📝 Usuario: ${userId}, Nombre: ${business.name}`);
                 console.log(`   🔗 Verificar en BD: SELECT * FROM emprendimientos WHERE id=${businessId};`);
 
-                // Actualizar caché con ID real
-                await this.updateCacheWithRealId(userId, tempId, businessId, result);
+                // Actualizar caché con ID real (incluir userData si está disponible)
+                await this.updateCacheWithRealId(userId, tempId, businessId, result, userData);
 
-                // INVALIDAR CACHÉS ADMINISTRATIVOS para reflejar persistencia en BD
-                await this.invalidateAdminCaches();
+                // Reemplazar en lista admin el ID temporal por el ID real
+                await this.replaceInAdminList(tempId, businessId, result.business);
 
                 // Publicar evento de sincronización
-                await this.publishCacheUpdateEvent('BUSINESS_PERSISTED', { userId, businessId });
+                await this.publishCacheUpdateEvent('BUSINESS_PERSISTED', { 
+                    userId, 
+                    businessId, 
+                    tempId,
+                    businessData: result.business 
+                });
 
                 // Marcar evento como completado
                 event.status = 'COMPLETED';
@@ -211,12 +216,17 @@ class KafkaWriteConsumer {
     /**
      * Actualiza caché reemplazando ID temporal con ID real de BD
      */
-    async updateCacheWithRealId(userId, tempId, businessId, businessData) {
+    async updateCacheWithRealId(userId, tempId, businessId, businessData, userData = null) {
         try {
-            // Obtener datos completos de BD para actualizar caché
+            // Obtener datos completos de BD para actualizar caché (incluye User)
             const fullBusinessData = await Business.findOne({
                 where: { id: businessId },
                 include: [
+                    { 
+                        model: User,
+                        attributes: ['id', 'email', 'firstName', 'lastName', 'phoneContact'],
+                        required: false
+                    },
                     { model: BusinessModel },
                     { model: Finance },
                     { model: WorkTeam },
@@ -486,6 +496,77 @@ class KafkaWriteConsumer {
             'consolidado': 'Consolidado'
         };
         return labels[classification] || 'Sin clasificar';
+    }
+
+    /**
+     * Reemplaza emprendimiento con ID temporal por uno con ID real en lista admin
+     */
+    async replaceInAdminList(tempId, realId, businessData) {
+        try {
+            const cacheKey = 'admin:all-businesses';
+            let businesses = await cacheService.get(cacheKey);
+            
+            if (businesses) {
+                // Convertir businessData a JSON si es necesario
+                const businessJson = businessData.toJSON ? businessData.toJSON() : businessData;
+                
+                // Marcar como sincronizado
+                const updatedBusiness = {
+                    ...businessJson,
+                    _isPending: false,
+                    _syncedAt: new Date().toISOString()
+                };
+                
+                // Encontrar índice del emprendimiento temporal
+                const tempIndex = businesses.findIndex(b => 
+                    b.id === tempId || 
+                    b._tempId === tempId ||
+                    (b.userId === businessJson.userId && b._isPending)
+                );
+                
+                // Verificar si ya existe uno con el ID real (para evitar duplicados)
+                const realIndex = businesses.findIndex(b => b.id === realId && !b._isPending);
+                
+                if (tempIndex !== -1) {
+                    if (realIndex !== -1 && realIndex !== tempIndex) {
+                        // Ya existe uno con ID real, eliminar el temporal
+                        businesses.splice(tempIndex, 1);
+                        console.log(`🗑️  Duplicado temporal ${tempId} eliminado (ya existe ${realId})`);
+                    } else {
+                        // Reemplazar el temporal con el real
+                        businesses[tempIndex] = updatedBusiness;
+                        console.log(`🔄 ID temporal ${tempId} reemplazado por ID real ${realId}`);
+                    }
+                } else if (realIndex === -1) {
+                    // No se encontró ni temporal ni real, agregarlo
+                    businesses = [updatedBusiness, ...businesses];
+                    console.log(`➕ Emprendimiento ${realId} agregado a lista admin`);
+                } else {
+                    // Ya existe con ID real, solo actualizar
+                    businesses[realIndex] = updatedBusiness;
+                    console.log(`🔄 Emprendimiento ${realId} actualizado en lista admin`);
+                }
+                
+                // Guardar lista actualizada
+                await cacheService.set(cacheKey, businesses, 300); // 5 minutos
+            } else {
+                // Si no hay lista, invalidar para forzar recarga desde BD
+                await cacheService.delete('admin:all-businesses');
+                console.log('🔄 Lista admin no existe, se invalidará para recarga');
+            }
+            
+            // Actualizar caché individual con ID real
+            const businessKey = cacheService.generateCacheKey('admin:business', { businessId: realId });
+            const businessJson = businessData.toJSON ? businessData.toJSON() : businessData;
+            await cacheService.set(businessKey, { ...businessJson, _isPending: false }, cacheService.CRITICAL_DATA_TTL);
+            
+            // Eliminar caché con ID temporal
+            const tempBusinessKey = cacheService.generateCacheKey('admin:business', { businessId: tempId });
+            await cacheService.delete(tempBusinessKey);
+            
+        } catch (error) {
+            console.error('⚠️  Error reemplazando en lista admin:', error.message);
+        }
     }
 
     /**

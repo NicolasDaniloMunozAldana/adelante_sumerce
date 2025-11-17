@@ -52,11 +52,16 @@ class AdminController {
                         order: [['registrationDate', 'DESC']]
                     });
 
+                    // Convertir a JSON para serializar correctamente
+                    const businessesJSON = businesses.map(b => b.toJSON());
+
                     // Cachear resultado con TTL corto para datos administrativos (5 minutos)
-                    if (businesses && businesses.length > 0) {
-                        await cacheService.set(cacheKey, businesses, 300); // 5 minutos en lugar de 30
-                        console.log(`💾 ${businesses.length} emprendimientos cacheados (TTL: 5min)`);
+                    if (businessesJSON && businessesJSON.length > 0) {
+                        await cacheService.set(cacheKey, businessesJSON, 300); // 5 minutos en lugar de 30
+                        console.log(`💾 ${businessesJSON.length} emprendimientos cacheados (TTL: 5min)`);
                     }
+                    
+                    businesses = businessesJSON;
                 } catch (dbError) {
                     console.error('❌ Error BD al obtener emprendimientos:', dbError.message);
                     console.warn('⚠️  BD CAÍDA - Intentando obtener emprendimientos de caché individual');
@@ -91,6 +96,7 @@ class AdminController {
 
     /**
      * Reconstruye lista de emprendimientos desde cachés individuales
+     * Incluye tanto emprendimientos persistidos como pendientes (BD caída)
      */
     async getBusinessesFromIndividualCache() {
         try {
@@ -99,25 +105,62 @@ class AdminController {
                 return [];
             }
 
+            // Buscar cachés individuales de emprendimientos
             const pattern = 'admin:business:businessId:*';
             const keys = await redisClient.keys(pattern);
             
-            if (!keys || keys.length === 0) {
-                console.log('⚠️  No se encontraron cachés individuales de emprendimientos');
-                return [];
-            }
-
-            const businesses = [];
+            // También buscar en cachés de caracterización de usuarios (pueden tener datos pendientes)
+            const userPattern = 'characterization:user:userId:*';
+            const userKeys = await redisClient.keys(userPattern);
             
+            console.log(`🔍 Encontrados ${keys.length} cachés admin y ${userKeys.length} cachés de usuario`);
+            
+            const businesses = [];
+            const processedUserIds = new Set();
+            
+            // 1. Procesar cachés individuales de admin
             for (const fullKey of keys) {
-                const cleanKey = fullKey.replace('adelante_sumerce:', '');
-                const data = await cacheService.get(cleanKey);
-                if (data) {
-                    businesses.push(data);
+                try {
+                    const cleanKey = fullKey.replace('adelante_sumerce:', '');
+                    const data = await cacheService.get(cleanKey);
+                    if (data) {
+                        businesses.push(data);
+                        if (data.userId) {
+                            processedUserIds.add(data.userId);
+                        }
+                    }
+                } catch (err) {
+                    console.error(`⚠️  Error procesando ${fullKey}:`, err.message);
                 }
             }
+            
+            // 2. Procesar cachés de caracterización de usuarios (datos pendientes)
+            for (const fullKey of userKeys) {
+                try {
+                    const cleanKey = fullKey.replace('adelante_sumerce:', '');
+                    const data = await cacheService.get(cleanKey);
+                    
+                    // Solo agregar si tiene datos y no fue procesado ya
+                    if (data && data.userId && !processedUserIds.has(data.userId)) {
+                        businesses.push(data);
+                        processedUserIds.add(data.userId);
+                    }
+                } catch (err) {
+                    console.error(`⚠️  Error procesando ${fullKey}:`, err.message);
+                }
+            }
+            
+            // Ordenar por fecha de registro (más recientes primero)
+            businesses.sort((a, b) => {
+                const dateA = new Date(a.registrationDate || 0);
+                const dateB = new Date(b.registrationDate || 0);
+                return dateB - dateA;
+            });
 
-            console.log(`✅ Reconstruidos ${businesses.length} emprendimientos desde caché individual`);
+            console.log(`✅ Reconstruidos ${businesses.length} emprendimientos desde caché`);
+            console.log(`   - Persistidos: ${businesses.filter(b => !b._isPending).length}`);
+            console.log(`   - Pendientes de BD: ${businesses.filter(b => b._isPending).length}`);
+            
             return businesses;
         } catch (error) {
             console.error('❌ Error reconstruyendo desde caché individual:', error.message);
@@ -131,49 +174,85 @@ class AdminController {
     async getBusinessById(req, res) {
         try {
             const { id } = req.params;
-            const cacheKey = cacheService.generateCacheKey('admin:business', { businessId: id });
-
-            // Intentar primero desde caché (puede venir de precarga)
-            let business = await cacheService.get(cacheKey);
             
-            // Si no hay caché, intentar BD
-            if (!business) {
-                try {
-                    const businessDB = await Business.findOne({
-                        where: { id },
-                        include: [
-                            { 
-                                model: User,
-                                attributes: ['id', 'email', 'firstName', 'lastName', 'phoneContact'],
-                                required: false
-                            },
-                            { 
-                                model: BusinessModel,
-                                required: false
-                            },
-                            { 
-                                model: Finance,
-                                required: false
-                            },
-                            { 
-                                model: WorkTeam,
-                                required: false
-                            },
-                            { 
-                                model: Rating,
-                                required: false
-                            }
-                        ]
-                    });
+            // 1. Verificar si es un ID temporal (temp_*)
+            const isTempId = typeof id === 'string' && id.startsWith('temp_');
+            
+            let business = null;
+            
+            if (isTempId) {
+                // Buscar en la lista de admin (contiene temporales)
+                console.log(`🔍 Buscando emprendimiento temporal: ${id}`);
+                const adminListKey = 'admin:all-businesses';
+                const adminList = await cacheService.get(adminListKey);
+                
+                if (adminList && Array.isArray(adminList)) {
+                    business = adminList.find(b => 
+                        b.id === id || 
+                        b._tempId === id ||
+                        (b._isPending && b.id === id)
+                    );
+                }
+                
+                // Si no está en admin list, buscar en cachés de usuario
+                if (!business) {
+                    const userPattern = 'characterization:user:userId:*';
+                    const userKeys = await redisClient.keys(userPattern);
                     
-                    // Cachear si se obtuvo de BD
-                    if (businessDB) {
-                        business = businessDB.toJSON();
-                        await cacheService.set(cacheKey, business, cacheService.CRITICAL_DATA_TTL);
+                    for (const key of userKeys) {
+                        const data = await cacheService.get(key);
+                        if (data && (data.id === id || data._tempId === id)) {
+                            business = data;
+                            break;
+                        }
                     }
-                } catch (dbError) {
-                    console.error('❌ Error BD al obtener emprendimiento:', dbError.message);
-                    // business permanece null
+                }
+                
+                if (business) {
+                    console.log(`✅ Emprendimiento temporal encontrado: ${business.name}`);
+                }
+            } else {
+                // ID numérico real - buscar en BD o caché
+                const cacheKey = cacheService.generateCacheKey('admin:business', { businessId: id });
+                business = await cacheService.get(cacheKey);
+                
+                if (!business) {
+                    try {
+                        const businessDB = await Business.findOne({
+                            where: { id },
+                            include: [
+                                { 
+                                    model: User,
+                                    attributes: ['id', 'email', 'firstName', 'lastName', 'phoneContact'],
+                                    required: false
+                                },
+                                { 
+                                    model: BusinessModel,
+                                    required: false
+                                },
+                                { 
+                                    model: Finance,
+                                    required: false
+                                },
+                                { 
+                                    model: WorkTeam,
+                                    required: false
+                                },
+                                { 
+                                    model: Rating,
+                                    required: false
+                                }
+                            ]
+                        });
+                        
+                        if (businessDB) {
+                            business = businessDB.toJSON();
+                            await cacheService.set(cacheKey, business, cacheService.CRITICAL_DATA_TTL);
+                            console.log(`✅ Emprendimiento obtenido de BD: ${business.name}`);
+                        }
+                    } catch (dbError) {
+                        console.error('❌ Error BD al obtener emprendimiento:', dbError.message);
+                    }
                 }
             }
 
@@ -357,49 +436,85 @@ class AdminController {
     async showBusinessDashboard(req, res) {
         try {
             const { id } = req.params;
-            const cacheKey = cacheService.generateCacheKey('admin:business-dashboard', { businessId: id });
-
-            // Intentar primero desde caché (puede venir de precarga)
-            let business = await cacheService.get(cacheKey);
             
-            // Si no hay caché, intentar BD
-            if (!business) {
-                try {
-                    const businessDB = await Business.findOne({
-                        where: { id },
-                        include: [
-                            { 
-                                model: User,
-                                attributes: ['id', 'email', 'firstName', 'lastName', 'phoneContact'],
-                                required: false
-                            },
-                            { 
-                                model: BusinessModel,
-                                required: false
-                            },
-                            { 
-                                model: Finance,
-                                required: false
-                            },
-                            { 
-                                model: WorkTeam,
-                                required: false
-                            },
-                            { 
-                                model: Rating,
-                                required: false
-                            }
-                        ]
-                    });
+            // 1. Verificar si es un ID temporal (temp_*)
+            const isTempId = typeof id === 'string' && id.startsWith('temp_');
+            
+            let business = null;
+            
+            if (isTempId) {
+                // Buscar en la lista de admin (contiene temporales)
+                console.log(`🔍 Buscando emprendimiento temporal para vista: ${id}`);
+                const adminListKey = 'admin:all-businesses';
+                const adminList = await cacheService.get(adminListKey);
+                
+                if (adminList && Array.isArray(adminList)) {
+                    business = adminList.find(b => 
+                        b.id === id || 
+                        b._tempId === id ||
+                        (b._isPending && b.id === id)
+                    );
+                }
+                
+                // Si no está en admin list, buscar en cachés de usuario
+                if (!business) {
+                    const userPattern = 'characterization:user:userId:*';
+                    const userKeys = await redisClient.keys(userPattern);
                     
-                    // Cachear si se obtuvo de BD
-                    if (businessDB) {
-                        business = businessDB.toJSON();
-                        await cacheService.set(cacheKey, business, cacheService.CRITICAL_DATA_TTL);
+                    for (const key of userKeys) {
+                        const data = await cacheService.get(key);
+                        if (data && (data.id === id || data._tempId === id)) {
+                            business = data;
+                            break;
+                        }
                     }
-                } catch (dbError) {
-                    console.error('❌ Error BD al obtener emprendimiento:', dbError.message);
-                    // business permanece null
+                }
+                
+                if (business) {
+                    console.log(`✅ Emprendimiento temporal encontrado para vista: ${business.name}`);
+                }
+            } else {
+                // ID numérico real - buscar en BD o caché
+                const cacheKey = cacheService.generateCacheKey('admin:business-dashboard', { businessId: id });
+                business = await cacheService.get(cacheKey);
+                
+                if (!business) {
+                    try {
+                        const businessDB = await Business.findOne({
+                            where: { id },
+                            include: [
+                                { 
+                                    model: User,
+                                    attributes: ['id', 'email', 'firstName', 'lastName', 'phoneContact'],
+                                    required: false
+                                },
+                                { 
+                                    model: BusinessModel,
+                                    required: false
+                                },
+                                { 
+                                    model: Finance,
+                                    required: false
+                                },
+                                { 
+                                    model: WorkTeam,
+                                    required: false
+                                },
+                                { 
+                                    model: Rating,
+                                    required: false
+                                }
+                            ]
+                        });
+                        
+                        if (businessDB) {
+                            business = businessDB.toJSON();
+                            await cacheService.set(cacheKey, business, cacheService.CRITICAL_DATA_TTL);
+                            console.log(`✅ Emprendimiento obtenido de BD para vista: ${business.name}`);
+                        }
+                    } catch (dbError) {
+                        console.error('❌ Error BD al obtener emprendimiento:', dbError.message);
+                    }
                 }
             }
 

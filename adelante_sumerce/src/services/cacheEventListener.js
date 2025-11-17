@@ -56,23 +56,33 @@ class CacheEventListener {
     async handleCacheUpdateEvent(message) {
         try {
             const event = JSON.parse(message);
-            console.log(`📨 Evento de caché recibido: ${event.type}`, event.data);
+            console.log(`📨 Evento de caché recibido: ${event.type}`);
 
             switch (event.type) {
                 case 'NEW_BUSINESS':
-                    // Nuevo emprendimiento creado - invalidar cachés administrativos
-                    await this.invalidateAdminCaches();
-                    console.log('🔄 Cachés administrativos invalidados por NEW_BUSINESS');
+                    // Nuevo emprendimiento creado - agregar a lista admin
+                    if (event.data.businessData) {
+                        await this.addToAdminList(event.data.businessData);
+                        console.log(`✅ Nuevo emprendimiento agregado a lista admin: ${event.data.tempId}`);
+                    } else {
+                        // Si no viene businessData, invalidar para forzar recarga
+                        await this.invalidateAdminCaches();
+                    }
                     break;
 
                 case 'BUSINESS_PERSISTED':
-                    // Emprendimiento persistido en BD - refrescar cachés administrativos
-                    await this.invalidateAdminCaches();
-                    console.log('🔄 Cachés administrativos invalidados por BUSINESS_PERSISTED');
+                    // Emprendimiento persistido en BD - reemplazar ID temporal
+                    if (event.data.businessData && event.data.tempId) {
+                        await this.replaceInAdminList(event.data.tempId, event.data.businessId, event.data.businessData);
+                        console.log(`🔄 ID temporal ${event.data.tempId} reemplazado por ${event.data.businessId}`);
+                    } else {
+                        // Si no viene data completa, invalidar
+                        await this.invalidateAdminCaches();
+                    }
                     break;
 
                 case 'BUSINESS_UPDATED':
-                    // Emprendimiento actualizado
+                    // Emprendimiento actualizado - invalidar y refrescar
                     await this.invalidateAdminCaches();
                     if (event.data.businessId) {
                         await cacheService.invalidateBusinessCache(event.data.businessId);
@@ -92,6 +102,88 @@ class CacheEventListener {
 
         } catch (error) {
             console.error('❌ Error procesando evento de caché:', error);
+        }
+    }
+
+    /**
+     * Agrega un nuevo emprendimiento a la lista administrativa
+     */
+    async addToAdminList(newBusiness) {
+        try {
+            const cacheKey = 'admin:all-businesses';
+            let businesses = await cacheService.get(cacheKey);
+            
+            if (!businesses) {
+                businesses = [newBusiness];
+            } else {
+                // Verificar si ya existe por ID, userId+pending o _tempId
+                const exists = businesses.some(b => {
+                    if (b.id === newBusiness.id) return true;
+                    if (b.userId === newBusiness.userId && b._isPending && newBusiness._isPending) return true;
+                    if (b._tempId && b._tempId === newBusiness._tempId) return true;
+                    return false;
+                });
+                
+                if (!exists) {
+                    businesses = [newBusiness, ...businesses];
+                } else {
+                    console.log(`⚠️  Emprendimiento ya existe, no se duplicará`);
+                }
+            }
+            
+            await cacheService.set(cacheKey, businesses, 300); // 5 minutos
+            console.log(`✅ Lista admin actualizada (total: ${businesses.length})`);
+        } catch (error) {
+            console.error('⚠️  Error agregando a lista admin:', error.message);
+        }
+    }
+
+    /**
+     * Reemplaza emprendimiento temporal por uno persistido
+     */
+    async replaceInAdminList(tempId, realId, businessData) {
+        try {
+            const cacheKey = 'admin:all-businesses';
+            let businesses = await cacheService.get(cacheKey);
+            
+            if (businesses) {
+                // Marcar como sincronizado
+                const updatedBusiness = { 
+                    ...businessData, 
+                    _isPending: false,
+                    _syncedAt: new Date().toISOString()
+                };
+                
+                // Buscar el temporal
+                const tempIndex = businesses.findIndex(b => 
+                    b.id === tempId || 
+                    b._tempId === tempId ||
+                    (b.userId === businessData.userId && b._isPending)
+                );
+                
+                // Buscar si ya existe con ID real
+                const realIndex = businesses.findIndex(b => b.id === realId && !b._isPending);
+                
+                if (tempIndex !== -1) {
+                    if (realIndex !== -1 && realIndex !== tempIndex) {
+                        // Duplicado: eliminar temporal
+                        businesses.splice(tempIndex, 1);
+                        console.log(`🗑️  Duplicado eliminado: ${tempId}`);
+                    } else {
+                        // Reemplazar temporal
+                        businesses[tempIndex] = updatedBusiness;
+                        console.log(`🔄 Emprendimiento ${tempId} → ${realId} actualizado en lista`);
+                    }
+                } else if (realIndex === -1) {
+                    // Agregar si no existe
+                    businesses = [updatedBusiness, ...businesses];
+                    console.log(`➕ Emprendimiento ${realId} agregado a lista admin`);
+                }
+                
+                await cacheService.set(cacheKey, businesses, 300);
+            }
+        } catch (error) {
+            console.error('⚠️  Error reemplazando en lista admin:', error.message);
         }
     }
 

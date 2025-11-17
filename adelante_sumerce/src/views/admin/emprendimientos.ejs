@@ -189,6 +189,26 @@
         position: relative;
         overflow: hidden;
     }
+    
+    /* Estilo para emprendimientos pendientes */
+    .business-card[data-pending="true"] {
+        border-left: 4px solid #f59e0b;
+        background: linear-gradient(to right, #fffbeb 0%, #ffffff 10%);
+    }
+    
+    .business-card[data-pending="true"]::before {
+        content: 'Pendiente de BD';
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        background: #f59e0b;
+        color: white;
+        font-size: 10px;
+        padding: 3px 8px;
+        border-radius: 6px;
+        font-weight: 600;
+        opacity: 0.9;
+    }
 
     .business-card:hover {
         transform: translateY(-3px);
@@ -642,29 +662,45 @@
         
         // Renderizar tarjetas (nuevo diseño)
         grid.innerHTML = currentBusinesses.map(business => {            
-            const classification = business.Rating?.globalClassification || 'N/A';
-            const classificationLabel = getClassificationLabel(classification);
-            const badgeClass = getClassificationBadgeClass(classification);
-            const score = business.Rating?.totalScore || 0;
+            // Verificar si es pendiente
+            const isPending = business._isPending === true;
+            
+            // Clasificación con manejo de pendientes
+            const classification = business.Rating?.globalClassification || 
+                                  business.Rating?.clasificacion_global || 
+                                  (isPending ? 'pendiente' : 'N/A');
+            const classificationLabel = isPending ? 'Pendiente' : getClassificationLabel(classification);
+            const badgeClass = isPending ? 'badge-idea' : getClassificationBadgeClass(classification);
+            
+            // Rating con manejo robusto
+            const totalScore = parseInt(business.Rating?.totalScore || business.Rating?.puntaje_total || 0);
+            const totalPercentage = parseFloat(business.Rating?.totalPercentage || business.Rating?.porcentaje_total || 0);
             const maxScore = 13;
-            const percentage = parseFloat(business.Rating?.totalPercentage || 0);
             
+            // Usuario con múltiples fallbacks
             const userName = business.User 
-                ? `${business.User.firstName} ${business.User.lastName}` 
-                : 'N/A';
-            const userEmail = business.User?.email || '';
+                ? `${business.User.firstName || business.User.first_name || ''} ${business.User.lastName || business.User.last_name || ''}`.trim()
+                : (business.user_name || 'N/A');
+            const userEmail = business.User?.email || business.user_email || '';
             
-            const date = new Date(business.registrationDate);
-            const formattedDate = isNaN(date.getTime()) ? '-' : date.toLocaleDateString('es-CO', { year: 'numeric', month: 'short', day: 'numeric' });
+            // Fecha con manejo de fechas inválidas
+            const dateStr = business.registrationDate || business.registration_date || business.createdAt;
+            const date = dateStr ? new Date(dateStr) : null;
+            const formattedDate = (date && !isNaN(date.getTime())) 
+                ? date.toLocaleDateString('es-CO', { year: 'numeric', month: 'short', day: 'numeric' })
+                : '-';
+            
+            // ID para el enlace (puede ser temporal)
+            const businessId = business.id || business._tempId || 'unknown';
             
             return `
-                <div class="business-card fade-in">
+                <div class="business-card fade-in" data-pending="${isPending}">
                     <div class="card-top">
                         <span class="badge ${badgeClass}">${classificationLabel}</span>
-                        <span class="business-id">#${business.id}</span>
+                        <span class="business-id">#${businessId}</span>
                     </div>
 
-                    <h3 class="business-name">${business.name}</h3>
+                    <h3 class="business-name">${business.name || business.nombre_emprendimiento || 'Sin nombre'}</h3>
 
                     <div class="user-line">
                         <span class="user-avatar" aria-hidden="true"></span>
@@ -675,22 +711,22 @@
                     </div>
 
                     <div class="chips-row">
-                        <span class="chip">${getSectorLabel(business.economicSector)}</span>
+                        <span class="chip">${getSectorLabel(business.economicSector || business.sector_economico)}</span>
                         <span class="chip chip-date">${formattedDate}</span>
                     </div>
 
                     <div class="score-row">
                         <div class="score-main">
-                            <span class="score-strong">${score}/${maxScore}</span>
-                            <span class="score-percentage">${percentage.toFixed(1)}%</span>
+                            <span class="score-strong">${totalScore}/${maxScore}</span>
+                            <span class="score-percentage">${totalPercentage.toFixed(1)}%</span>
                         </div>
                         <div class="score-progress">
-                            <div class="score-progress-bar" data-width="${percentage}"></div>
+                            <div class="score-progress-bar" data-width="${totalPercentage}"></div>
                         </div>
                     </div>
 
                     <div class="card-actions">
-                        <a href="/admin/emprendimientos/${business.id}" class="btn-view">Ver Detalles →</a>
+                        <a href="/admin/emprendimientos/${businessId}" class="btn-view">Ver Detalles →</a>
                     </div>
                 </div>
             `;

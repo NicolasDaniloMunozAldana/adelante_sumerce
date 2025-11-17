@@ -101,7 +101,8 @@ exports.saveCharacterization = async (req, res) => {
             businessData,
             businessModelData,
             financeData,
-            workTeamData
+            workTeamData,
+            req.user // Pasar datos del usuario autenticado
         );
 
         res.json({
