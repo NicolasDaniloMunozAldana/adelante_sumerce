@@ -12,8 +12,8 @@ class DataPreloadService {
         this.isPreloading = false;
         this.lastPreloadTime = null;
         this.preloadInterval = null;
-        // Tiempo entre precargas automáticas (cada 15 minutos)
-        this.PRELOAD_INTERVAL_MS = 15 * 60 * 1000;
+        // Tiempo entre precargas automáticas (cada 30 minutos para evitar cachés obsoletos frecuentes)
+        this.PRELOAD_INTERVAL_MS = 30 * 60 * 1000;
     }
 
     /**
@@ -25,13 +25,10 @@ class DataPreloadService {
         // Precarga inicial
         await this.preloadAllCriticalData();
         
-        // Configurar precarga periódica
-        this.preloadInterval = setInterval(async () => {
-            console.log('🔄 Ejecutando precarga periódica de datos...');
-            await this.preloadAllCriticalData();
-        }, this.PRELOAD_INTERVAL_MS);
-
-        console.log(`✅ Servicio de precarga iniciado. Próxima sincronización en ${this.PRELOAD_INTERVAL_MS / 60000} minutos`);
+        // Configurar precarga periódica (deshabilitada - se usarán eventos en tiempo real)
+        // La precarga automática puede causar que se sobrescriban datos nuevos
+        // Se mantendrá solo la precarga inicial al arrancar la app
+        console.log('✅ Precarga inicial completada. Sincronización en tiempo real activa vía Redis Pub/Sub');
     }
 
     /**
@@ -161,10 +158,10 @@ class DataPreloadService {
                 await cacheService.set(resultsKey, businessData, cacheService.CRITICAL_DATA_TTL);
             }
 
-            // Cachear lista completa de emprendimientos
+            // Cachear lista completa de emprendimientos con TTL corto (5 minutos)
             const allBusinessesKey = cacheService.generateCacheKey('admin:all-businesses');
             const businessesData = businesses.map(b => b.toJSON());
-            await cacheService.set(allBusinessesKey, businessesData, cacheService.CRITICAL_DATA_TTL);
+            await cacheService.set(allBusinessesKey, businessesData, 300); // 5 minutos
 
             console.log(`   ✅ ${businesses.length} emprendimientos precargados`);
             return businesses.length;

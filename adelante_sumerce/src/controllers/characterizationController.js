@@ -1,5 +1,6 @@
 const { Business, BusinessModel, Finance, WorkTeam, Rating } = require('../models');
 const characterizationService = require('../services/characterizationService');
+const kafkaWriteService = require('../kafka/kafkaWriteService');
 
 exports.showCharacterizationForm = async (req, res) => {
     try {
@@ -94,19 +95,24 @@ exports.saveCharacterization = async (req, res) => {
             employeeCount: parseInt(req.body.cantidadEmpleados) || 0
         };
 
-        // Guardar toda la información y calcular puntajes
-        const result = await characterizationService.saveCharacterization(
+        // ESCRITURA RESILIENTE: Usar Kafka para garantizar persistencia
+        // aunque la BD esté caída
+        const result = await kafkaWriteService.createCharacterization(
             businessData,
             businessModelData,
             financeData,
-            workTeamData
+            workTeamData,
+            req.user // Pasar datos del usuario autenticado
         );
-
 
         res.json({
             success: true,
-            message: 'Caracterización guardada exitosamente',
-            data: result
+            message: result.message || 'Caracterización guardada exitosamente',
+            data: {
+                businessId: result.tempId, // ID temporal hasta que se sincronice con BD
+                isPending: result.cached,
+                eventId: result.eventId
+            }
         });
 
     } catch (error) {

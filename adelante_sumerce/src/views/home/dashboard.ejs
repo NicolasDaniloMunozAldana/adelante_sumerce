@@ -276,44 +276,41 @@
                         throw new Error(data.message || 'Error al solicitar el reporte');
                     }
 
-                    // Mostrar mensaje de éxito
-                    this.innerHTML = `
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                            <polyline points="22 4 12 14.01 9 11.01"></polyline>
-                        </svg>
-                        ¡Solicitado!
-                    `;
+                    // Restaurar botón
+                    this.innerHTML = originalHTML;
+                    this.disabled = false;
+                    this.classList.remove('loading');
 
-                    // Mostrar alerta personalizada
-                    setTimeout(() => {
-                        alert(`Reporte solicitado exitosamente\n\nTu reporte será generado y enviado a:\n${data.email || 'tu correo electrónico'}`);
-                        
-                        this.innerHTML = originalHTML;
-                        this.disabled = false;
-                        this.classList.remove('loading');
-                    }, 1000);
+                    // Mostrar mensaje de éxito con SweetAlert2
+                    Swal.fire({
+                        icon: 'success',
+                        title: '¡Reporte Solicitado!',
+                        html: `Tu reporte será generado y enviado a:<br><strong>${data.email || 'tu correo electrónico'}</strong>`,
+                        timer: 3000,
+                        showConfirmButton: true,
+                        confirmButtonColor: '#667eea',
+                        confirmButtonText: 'Entendido',
+                        toast: true,
+                        position: 'top-end',
+                        timerProgressBar: true
+                    });
 
                 } catch (error) {
                     console.error('Error:', error);
                     
-                    // Mostrar mensaje de error
-                    this.innerHTML = `
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <circle cx="12" cy="12" r="10"></circle>
-                            <line x1="15" y1="9" x2="9" y2="15"></line>
-                            <line x1="9" y1="9" x2="15" y2="15"></line>
-                        </svg>
-                        Error al solicitar
-                    `;
+                    // Restaurar botón
+                    this.innerHTML = originalHTML;
+                    this.disabled = false;
+                    this.classList.remove('loading');
 
-                    setTimeout(() => {
-                        this.innerHTML = originalHTML;
-                        this.disabled = false;
-                        this.classList.remove('loading');
-                    }, 2000);
-
-                    alert('❌ ' + error.message + '\n\nPor favor, intenta nuevamente.');
+                    // Mostrar error con SweetAlert2
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error al solicitar reporte',
+                        text: error.message,
+                        confirmButtonColor: '#667eea',
+                        confirmButtonText: 'Intentar nuevamente'
+                    });
                 }
             });
         }

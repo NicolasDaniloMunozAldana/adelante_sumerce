@@ -6,7 +6,9 @@
     <title><%= title %></title>
     <link rel="stylesheet" href="/css/login.css">
     <link rel="shortcut icon" href="/images/logo_login.png" type="image/x-icon">
-
+    <!-- SweetAlert2 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <body>
     <div class="login-container">
@@ -19,13 +21,6 @@
             <!-- Título -->
             <h1 class="login-title">Iniciar Sesión</h1>
             <p class="login-subtitle">Ingrese sus credenciales para acceder al sistema</p>
-
-            <!-- Mensaje de error si existe -->
-            <% if (error) { %>
-                <div class="error-message">
-                    <%= error %>
-                </div>
-            <% } %>
 
             <!-- Formulario -->
             <form action="/login" method="POST" class="login-form">
@@ -88,17 +83,40 @@
             
             if (!email || !password) {
                 e.preventDefault();
-                alert('Por favor complete todos los campos');
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Campos incompletos',
+                    text: 'Por favor complete todos los campos',
+                    confirmButtonColor: '#667eea',
+                    confirmButtonText: 'Entendido'
+                });
                 return false;
             }
 
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             if (!emailRegex.test(email)) {
                 e.preventDefault();
-                alert('Por favor ingrese un correo electrónico válido');
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Correo inválido',
+                    text: 'Por favor ingrese un correo electrónico válido',
+                    confirmButtonColor: '#667eea',
+                    confirmButtonText: 'Entendido'
+                });
                 return false;
             }
         });
+
+        // Mostrar error si existe
+        <% if (error) { %>
+            Swal.fire({
+                icon: 'error',
+                title: 'Error de autenticación',
+                text: '<%= error %>',
+                confirmButtonColor: '#667eea',
+                confirmButtonText: 'Intentar nuevamente'
+            });
+        <% } %>
     </script>
 </body>
 </html>

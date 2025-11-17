@@ -15,7 +15,10 @@ class KafkaProducer {
         this.topics = {
             generateUserReport: process.env.TOPIC_GENERATE_USER_REPORT || 'generate-user-report',
             generateAdminReport: process.env.TOPIC_GENERATE_ADMIN_REPORT || 'generate-admin-report',
-            generateComparativeReport: process.env.TOPIC_GENERATE_COMPARATIVE_REPORT || 'generate-comparative-report'
+            generateComparativeReport: process.env.TOPIC_GENERATE_COMPARATIVE_REPORT || 'generate-comparative-report',
+            // Nuevos topics para escrituras resilientes
+            characterizationWrites: process.env.TOPIC_CHARACTERIZATION_WRITES || 'characterization-writes',
+            characterizationUpdates: process.env.TOPIC_CHARACTERIZATION_UPDATES || 'characterization-updates'
         };
     }
 
@@ -126,6 +129,20 @@ class KafkaProducer {
                 businessesData
             }
         });
+    }
+
+    /**
+     * Envía evento de escritura de caracterización (resiliente)
+     */
+    async sendCharacterizationWriteEvent(writeEvent) {
+        return this.sendEvent(this.topics.characterizationWrites, writeEvent);
+    }
+
+    /**
+     * Envía evento de actualización de caracterización (resiliente)
+     */
+    async sendCharacterizationUpdateEvent(updateEvent) {
+        return this.sendEvent(this.topics.characterizationUpdates, updateEvent);
     }
 }
 

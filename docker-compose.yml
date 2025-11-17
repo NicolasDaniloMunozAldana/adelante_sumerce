@@ -235,6 +235,8 @@ services:
       TOPIC_GENERATE_USER_REPORT: generate-user-report
       TOPIC_GENERATE_ADMIN_REPORT: generate-admin-report
       TOPIC_GENERATE_COMPARATIVE_REPORT: generate-comparative-report
+      TOPIC_CHARACTERIZATION_WRITES: characterization-writes
+      TOPIC_CHARACTERIZATION_UPDATES: characterization-updates
       AUTH_SERVICE_URL: http://auth_service:3001/api/auth
       GEMINI_API_KEY: ${GEMINI_API_KEY}
     networks:

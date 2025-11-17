@@ -894,44 +894,43 @@ document.addEventListener('DOMContentLoaded', function() {
                     throw new Error(data.message || 'Error al solicitar el reporte');
                 }
 
-                // Mostrar mensaje de éxito
-                this.innerHTML = `
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <polyline points="20 6 9 17 4 12"></polyline>
-                    </svg>
-                    ¡Solicitado!
-                `;
+                // Restaurar botón
+                this.innerHTML = originalHTML;
+                this.classList.remove('loading');
+                this.disabled = false;
 
                 const businessName = '<%= business.name %>';
                 
-                setTimeout(() => {
-                    alert(`Reporte solicitado exitosamente\n\nEmprendimiento: ${businessName}`);
-                    
-                    this.innerHTML = originalHTML;
-                    this.classList.remove('loading');
-                    this.disabled = false;
-                }, 1000);
+                // Mostrar mensaje de éxito con SweetAlert2
+                Swal.fire({
+                    icon: 'success',
+                    title: '¡Reporte Solicitado!',
+                    html: `Reporte del emprendimiento:<br><strong>${businessName}</strong><br><br>Será enviado a tu correo electrónico`,
+                    timer: 3000,
+                    showConfirmButton: true,
+                    confirmButtonColor: '#667eea',
+                    confirmButtonText: 'Entendido',
+                    toast: true,
+                    position: 'top-end',
+                    timerProgressBar: true
+                });
 
             } catch (error) {
                 console.error('Error:', error);
                 
-                // Mostrar mensaje de error
-                this.innerHTML = `
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <circle cx="12" cy="12" r="10"></circle>
-                        <line x1="15" y1="9" x2="9" y2="15"></line>
-                        <line x1="9" y1="9" x2="15" y2="15"></line>
-                    </svg>
-                    Error al solicitar
-                `;
+                // Restaurar botón
+                this.innerHTML = originalHTML;
+                this.classList.remove('loading');
+                this.disabled = false;
 
-                setTimeout(() => {
-                    this.innerHTML = originalHTML;
-                    this.classList.remove('loading');
-                    this.disabled = false;
-                }, 2000);
-
-                alert(error.message + '\n\nPor favor, intenta nuevamente.');
+                // Mostrar error con SweetAlert2
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error al solicitar reporte',
+                    text: error.message,
+                    confirmButtonColor: '#667eea',
+                    confirmButtonText: 'Intentar nuevamente'
+                });
             }
         });
     }

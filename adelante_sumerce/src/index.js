@@ -3,6 +3,7 @@ const path = require('path');
 const cookieParser = require('cookie-parser');
 const sequelize = require('./config/database');
 const { connectRedis } = require('./config/redis');
+const kafkaWriteConsumer = require('./kafka/kafkaWriteConsumer');
 require('dotenv').config();
 
 const app = express();
@@ -24,6 +25,15 @@ connectRedis()
   })
   .catch(err => {
     console.error('⚠️  No se pudo conectar a Redis (caché deshabilitado):', err.message);
+  });
+
+// Start Kafka Write Consumer (para sincronizar escrituras con BD)
+kafkaWriteConsumer.start()
+  .then(() => {
+    console.log('✅ Kafka Write Consumer iniciado correctamente.');
+  })
+  .catch(err => {
+    console.error('⚠️  No se pudo iniciar Kafka Write Consumer:', err.message);
   });
 
 // Configuración del motor de plantillas EJS
@@ -88,6 +98,13 @@ process.on('SIGINT', async () => {
   console.log('\n🛑 Cerrando aplicación...');
   
   try {
+    await kafkaWriteConsumer.disconnect();
+    console.log('✅ Kafka Write Consumer desconectado correctamente.');
+  } catch (err) {
+    console.error('⚠️  Error al desconectar Kafka Write Consumer:', err.message);
+  }
+  
+  try {
     await disconnectRedis();
     console.log('✅ Redis desconectado correctamente.');
   } catch (err) {
@@ -106,6 +123,13 @@ process.on('SIGINT', async () => {
 
 process.on('SIGTERM', async () => {
   console.log('\n🛑 Cerrando aplicación...');
+  
+  try {
+    await kafkaWriteConsumer.disconnect();
+    console.log('✅ Kafka Write Consumer desconectado correctamente.');
+  } catch (err) {
+    console.error('⚠️  Error al desconectar Kafka Write Consumer:', err.message);
+  }
   
   try {
     await disconnectRedis();
