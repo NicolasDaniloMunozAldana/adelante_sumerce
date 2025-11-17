@@ -130,18 +130,43 @@ class KafkaWriteConsumer {
                 console.log(`   📝 Usuario: ${userId}, Nombre: ${business.name}`);
                 console.log(`   🔗 Verificar en BD: SELECT * FROM emprendimientos WHERE id=${businessId};`);
 
+                // Obtener datos completos de BD con todas las relaciones
+                const fullBusinessData = await Business.findOne({
+                    where: { id: businessId },
+                    include: [
+                        { 
+                            model: User,
+                            attributes: ['id', 'email', 'firstName', 'lastName', 'phoneContact'],
+                            required: false
+                        },
+                        { model: BusinessModel, required: false },
+                        { model: Finance, required: false },
+                        { model: WorkTeam, required: false },
+                        { model: Rating, required: false }
+                    ]
+                });
+
+                if (!fullBusinessData) {
+                    console.error(`⚠️  No se pudo obtener datos completos de businessId ${businessId}`);
+                    throw new Error('No se encontraron datos completos después de persistir');
+                }
+
+                // Convertir a JSON para manipulación
+                const fullBusinessJson = fullBusinessData.toJSON();
+                console.log(`   ✅ Datos completos obtenidos: User=${fullBusinessJson.User ? 'SI' : 'NO'}, Rating=${fullBusinessJson.Rating ? 'SI' : 'NO'}`);
+
                 // Actualizar caché con ID real (incluir userData si está disponible)
-                await this.updateCacheWithRealId(userId, tempId, businessId, result, userData);
+                await this.updateCacheWithRealId(userId, tempId, businessId, fullBusinessJson, userData);
 
-                // Reemplazar en lista admin el ID temporal por el ID real
-                await this.replaceInAdminList(tempId, businessId, result.business);
+                // Reemplazar en lista admin el ID temporal por el ID real (con datos completos)
+                await this.replaceInAdminList(tempId, businessId, fullBusinessJson);
 
-                // Publicar evento de sincronización
+                // Publicar evento de sincronización con datos completos
                 await this.publishCacheUpdateEvent('BUSINESS_PERSISTED', { 
                     userId, 
                     businessId, 
                     tempId,
-                    businessData: result.business 
+                    businessData: fullBusinessJson 
                 });
 
                 // Marcar evento como completado
@@ -215,39 +240,36 @@ class KafkaWriteConsumer {
 
     /**
      * Actualiza caché reemplazando ID temporal con ID real de BD
+     * @param {number} userId - ID del usuario
+     * @param {string} tempId - ID temporal (temp_*)
+     * @param {number} businessId - ID real de BD
+     * @param {Object} businessData - Datos completos del emprendimiento (ya en formato JSON)
+     * @param {Object} userData - Datos del usuario (opcional)
      */
     async updateCacheWithRealId(userId, tempId, businessId, businessData, userData = null) {
         try {
-            // Obtener datos completos de BD para actualizar caché (incluye User)
-            const fullBusinessData = await Business.findOne({
-                where: { id: businessId },
-                include: [
-                    { 
-                        model: User,
-                        attributes: ['id', 'email', 'firstName', 'lastName', 'phoneContact'],
-                        required: false
-                    },
-                    { model: BusinessModel },
-                    { model: Finance },
-                    { model: WorkTeam },
-                    { model: Rating }
-                ]
-            });
-
-            if (!fullBusinessData) {
-                console.error(`⚠️  No se encontró businessId ${businessId} en BD`);
-                return;
-            }
-
+            // businessData ya viene completo con User, Rating, etc. desde processWriteEvent
+            // No necesitamos hacer otra consulta a BD
+            
             // Actualizar múltiples claves de caché
             const charKey = cacheService.generateCacheKey('characterization:user', { userId });
             const businessKey = cacheService.generateCacheKey('admin:business', { businessId });
             const dashKey = cacheService.generateCacheKey('dashboard:user', { userId });
 
             // Marcar como sincronizado
-            const syncedData = fullBusinessData.toJSON();
-            syncedData._isPending = false;
-            syncedData._syncedAt = new Date().toISOString();
+            const syncedData = {
+                ...businessData,
+                _isPending: false,
+                _syncedAt: new Date().toISOString()
+            };
+
+            // Verificar que tiene User y Rating
+            if (!syncedData.User) {
+                console.warn(`⚠️  businessId ${businessId} no tiene User en datos completos`);
+            }
+            if (!syncedData.Rating) {
+                console.warn(`⚠️  businessId ${businessId} no tiene Rating en datos completos`);
+            }
 
             // Actualizar todas las claves relacionadas
             await cacheService.set(charKey, syncedData, cacheService.CRITICAL_DATA_TTL);
@@ -500,6 +522,9 @@ class KafkaWriteConsumer {
 
     /**
      * Reemplaza emprendimiento con ID temporal por uno con ID real en lista admin
+     * @param {string} tempId - ID temporal (temp_*)
+     * @param {number} realId - ID real de BD
+     * @param {Object} businessData - Datos completos del emprendimiento (JSON con User, Rating, etc.)
      */
     async replaceInAdminList(tempId, realId, businessData) {
         try {
@@ -507,8 +532,16 @@ class KafkaWriteConsumer {
             let businesses = await cacheService.get(cacheKey);
             
             if (businesses) {
-                // Convertir businessData a JSON si es necesario
+                // businessData ya debe venir en formato JSON desde processWriteEvent
                 const businessJson = businessData.toJSON ? businessData.toJSON() : businessData;
+                
+                // Verificar que tiene User y Rating
+                console.log(`   🔍 Verificando datos completos para ${realId}:`);
+                console.log(`      - User: ${businessJson.User ? '✅' : '❌'} ${businessJson.User ? businessJson.User.email : ''}`);
+                console.log(`      - Rating: ${businessJson.Rating ? '✅' : '❌'} ${businessJson.Rating ? businessJson.Rating.totalScore + '/13' : ''}`);
+                console.log(`      - BusinessModel: ${businessJson.BusinessModel ? '✅' : '❌'}`);
+                console.log(`      - Finance: ${businessJson.Finance ? '✅' : '❌'}`);
+                console.log(`      - WorkTeam: ${businessJson.WorkTeam ? '✅' : '❌'}`);
                 
                 // Marcar como sincronizado
                 const updatedBusiness = {

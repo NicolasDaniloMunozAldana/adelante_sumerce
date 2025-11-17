@@ -54,6 +54,14 @@ class AdminController {
 
                     // Convertir a JSON para serializar correctamente
                     const businessesJSON = businesses.map(b => b.toJSON());
+                    
+                    // Verificar que los datos tienen User y Rating
+                    console.log(`   📊 Verificando ${businessesJSON.length} emprendimientos de BD:`);
+                    businessesJSON.forEach((b, idx) => {
+                        if (idx < 3) { // Solo mostrar primeros 3
+                            console.log(`      ${idx+1}. ${b.name}: User=${b.User ? '✅' : '❌'}, Rating=${b.Rating ? '✅' : '❌'}`);
+                        }
+                    });
 
                     // Cachear resultado con TTL corto para datos administrativos (5 minutos)
                     if (businessesJSON && businessesJSON.length > 0) {
@@ -71,6 +79,14 @@ class AdminController {
                 }
             } else {
                 console.log(`✅ ${businesses.length} emprendimientos obtenidos desde caché`);
+                // Verificar integridad de datos en caché
+                const withUser = businesses.filter(b => b.User).length;
+                const withRating = businesses.filter(b => b.Rating).length;
+                console.log(`   📊 Integridad: User=${withUser}/${businesses.length}, Rating=${withRating}/${businesses.length}`);
+                
+                if (withUser < businesses.length || withRating < businesses.length) {
+                    console.warn(`   ⚠️  DATOS INCOMPLETOS EN CACHÉ - Algunos emprendimientos sin User o Rating`);
+                }
             }
 
             // Si aún no hay datos, retornar array vacío

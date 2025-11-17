@@ -147,6 +147,11 @@ class CacheEventListener {
             let businesses = await cacheService.get(cacheKey);
             
             if (businesses) {
+                // Verificar que businessData tiene User y Rating
+                console.log(`   📦 Evento BUSINESS_PERSISTED recibido para ${realId}:`);
+                console.log(`      - User: ${businessData.User ? '✅' : '❌'}`);
+                console.log(`      - Rating: ${businessData.Rating ? '✅' : '❌'}`);
+                
                 // Marcar como sincronizado
                 const updatedBusiness = { 
                     ...businessData, 
