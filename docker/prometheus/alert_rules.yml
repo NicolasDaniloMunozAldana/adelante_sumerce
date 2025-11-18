@@ -54,11 +54,11 @@ groups:
           description: "Memoria > 80% en {{ $labels.instance }}"
 
   - name: database
-    interval: 30s
+    interval: 10s
     rules:
       - alert: MySQLDown
         expr: mysql_up == 0
-        for: 1m
+        for: 30s
         labels:
           severity: critical
         annotations:
