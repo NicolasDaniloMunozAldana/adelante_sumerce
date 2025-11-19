@@ -11,8 +11,8 @@
     "dev": "nodemon src/index.js",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "test": "jest --runInBand",
-    "test:cache": "node src/scripts/testCache.js"
+  "test": "jest --runInBand --forceExit",
+  "test:cache": "node src/scripts/testCache.js"
   },
   "dependencies": {
     "@google/genai": "^1.29.1",
