@@ -75,7 +75,7 @@ class ReportServiceApp {
         app.use('/', monitoringRoutes);
 
         return new Promise((resolve, reject) => {
-            this.httpServer = app.listen(port, (err) => {
+            this.httpServer = app.listen(port, '0.0.0.0', (err) => {
                 if (err) {
                     logger.error('❌ Error al iniciar servidor HTTP:', err);
                     reject(err);
@@ -83,8 +83,17 @@ class ReportServiceApp {
                     logger.info(`✅ Servidor HTTP iniciado en puerto ${port}`);
                     logger.info(`   Métricas: http://localhost:${port}/metrics`);
                     logger.info(`   Health: http://localhost:${port}/health`);
+                    
+                    // Marcar el servicio como disponible
+                    metrics.kafkaAvailable.set(0); // Inicialmente Kafka puede no estar conectado
+                    
                     resolve();
                 }
+            });
+
+            this.httpServer.on('error', (err) => {
+                logger.error('❌ Error en servidor HTTP:', err);
+                reject(err);
             });
         });
     }

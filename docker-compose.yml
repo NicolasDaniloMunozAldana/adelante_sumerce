@@ -140,6 +140,10 @@ services:
       context: ./report_service
       dockerfile: Dockerfile
     container_name: adelante_sumerce_reports
+    volumes:
+      - ./report_service:/app  # ← AGREGAR ESTA LÍNEA
+      - /app/node_modules
+      - report_logs:/app/logs           # ← Logs (ya existente)
     depends_on:
       kafka:
         condition: service_healthy
@@ -161,8 +165,6 @@ services:
       EMAIL_REPLY_TO: ${EMAIL_REPLY_TO}
     ports:
       - "3002:3002"
-    volumes:
-      - report_logs:/app/logs
     networks:
       - adelante_network
     restart: unless-stopped
