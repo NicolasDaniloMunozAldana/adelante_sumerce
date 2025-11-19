@@ -2,16 +2,20 @@ name: Run Tests
 
 on:
   pull_request:
-    branches: [ main , develop ]
+    branches: ["main", "develop"]
   push:
-    branches: [ main , develop ]
+    branches: ["main", "develop"]
 
 jobs:
   tests:
     runs-on: ubuntu-latest
 
+    strategy:
+      matrix:
+        service: [adelante_sumerce, auth_service, report_service]
+
     steps:
-      - name: Checkout
+      - name: Checkout repo
         uses: actions/checkout@v3
 
       - name: Set up Node
@@ -21,6 +25,8 @@ jobs:
 
       - name: Install dependencies
         run: npm install
+        working-directory: ${{ matrix.service }}
 
       - name: Run tests
         run: npm test
+        working-directory: ${{ matrix.service }}
