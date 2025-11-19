@@ -14,13 +14,9 @@ module.exports = {
         }
     },
     email: {
-        host: process.env.SMTP_HOST || 'smtp.gmail.com',
-        port: parseInt(process.env.SMTP_PORT) || 587,
-        secure: process.env.SMTP_SECURE === 'true',
-        auth: {
-            user: process.env.SMTP_USER,
-            pass: process.env.SMTP_PASSWORD
-        }
+        sendgridApiKey: process.env.SENDGRID_API_KEY,
+        fromEmail: process.env.EMAIL_FROM || 'no-reply@adelantesumerce.com',
+        replyTo: process.env.EMAIL_REPLY_TO || 'soporte@adelantesumerce.com'
     },
     service: {
         name: process.env.SERVICE_NAME || 'report-service',

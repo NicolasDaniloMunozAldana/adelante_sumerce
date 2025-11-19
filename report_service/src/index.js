@@ -106,9 +106,8 @@ class ReportServiceApp {
 
         const required = [
             { name: 'KAFKA_BROKERS', value: config.kafka.brokers },
-            { name: 'SMTP_HOST', value: config.email.host },
-            { name: 'SMTP_USER', value: config.email.auth.user },
-            { name: 'SMTP_PASSWORD', value: config.email.auth.pass }
+            { name: 'SENDGRID_API_KEY', value: config.email.sendgridApiKey },
+            { name: 'EMAIL_FROM', value: config.email.fromEmail }
         ];
 
         const missing = required.filter(item => !item.value);
@@ -123,21 +122,21 @@ class ReportServiceApp {
     }
 
     /**
-     * Verifica la conexión con el servidor SMTP
+     * Verifica la conexión con SendGrid
      */
     async verifyEmailConnection() {
-        logger.info('📧 Verificando conexión con servidor SMTP...');
+        logger.info('📧 Verificando configuración de SendGrid...');
 
         try {
             const isConnected = await emailService.verifyConnection();
 
             if (!isConnected) {
-                logger.warn('⚠️  No se pudo verificar la conexión SMTP, pero el servicio continuará');
+                logger.warn('⚠️  No se pudo verificar la configuración de SendGrid, pero el servicio continuará');
             } else {
-                logger.info('✅ Conexión SMTP verificada correctamente');
+                logger.info('✅ Configuración de SendGrid verificada correctamente');
             }
         } catch (error) {
-            logger.warn('⚠️  Error al verificar conexión SMTP:', error.message);
+            logger.warn('⚠️  Error al verificar configuración de SendGrid:', error.message);
             logger.warn('⚠️  El servicio continuará, pero puede haber problemas al enviar emails');
         }
     }

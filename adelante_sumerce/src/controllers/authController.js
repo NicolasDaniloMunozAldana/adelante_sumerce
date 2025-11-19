@@ -60,15 +60,17 @@ class AuthController {
         // Guardar SOLO tokens en cookies httpOnly (stateless)
         res.cookie('accessToken', accessToken, {
           httpOnly: true,
-          secure: process.env.NODE_ENV === 'production',
+          secure: false,
           maxAge: 15 * 60 * 1000, // 15 minutos
-          sameSite: 'strict'
+          sameSite: 'lax',
+          path: '/'
         });
         res.cookie('refreshToken', refreshToken, {
           httpOnly: true,
-          secure: process.env.NODE_ENV === 'production',
+          secure: false,
           maxAge: 7 * 24 * 60 * 60 * 1000, // 7 días
-          sameSite: 'strict'
+          sameSite: 'lax',
+          path: '/'
         });
 
         // Redirigir según el rol (extraído del token, no de sesión)

@@ -16,11 +16,11 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@sendgrid/mail": "^8.1.4",
     "dotenv": "^17.2.1",
     "exceljs": "^4.4.0",
     "express": "^5.1.0",
     "kafkajs": "^2.2.4",
-    "nodemailer": "^7.0.6",
     "prom-client": "^15.1.0",
     "puppeteer": "^24.27.0",
     "winston": "^3.11.0"
