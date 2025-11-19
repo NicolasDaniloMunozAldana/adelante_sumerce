@@ -304,7 +304,7 @@ services:
       app_3:
         condition: service_healthy
     ports:
-      - "80:80"
+      - "81:80"
       - "443:443"
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
@@ -329,15 +329,6 @@ services:
       - adelante_network
     depends_on:
       - nginx
-    restart: unless-stopped
-
-  windows-exporter:
-    image: quay.io/prometheus-community/windows-exporter:latest
-    container_name: windows_exporter
-    ports:
-      - '9182:9182'
-    networks:
-      - adelante_network
     restart: unless-stopped
 
   # Node Exporter para monitorear el host
