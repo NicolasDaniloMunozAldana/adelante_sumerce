@@ -99,6 +99,9 @@ services:
       context: ./auth_service
       dockerfile: Dockerfile
     container_name: adelante_sumerce_auth
+    volumes:
+      - ./auth_service:/app  # ← AGREGAR ESTA LÍNEA
+      - /app/node_modules  
     depends_on:
       mysql:
         condition: service_healthy
