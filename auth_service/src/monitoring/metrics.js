@@ -133,6 +133,12 @@ const applicationErrors = new client.Counter({
   labelNames: ['type', 'severity']
 });
 
+// Service availability (always 1 when service is running)
+const serviceAvailable = new client.Gauge({
+  name: 'auth_service_available',
+  help: 'Auth service availability (1 = available, 0 = unavailable)'
+});
+
 // ==================== Register all metrics ====================
 
 register.registerMetric(httpRequestsTotal);
@@ -154,9 +160,11 @@ register.registerMetric(redisCacheHitRate);
 register.registerMetric(rateLimitHits);
 register.registerMetric(systemUptime);
 register.registerMetric(applicationErrors);
+register.registerMetric(serviceAvailable);
 
-// Update uptime
+// Update uptime and mark service as available
 const startTime = Date.now();
+serviceAvailable.set(1); // Service is available
 setInterval(() => {
   systemUptime.set((Date.now() - startTime) / 1000);
 }, 1000);
@@ -182,6 +190,7 @@ module.exports = {
     redisCacheHitRate,
     rateLimitHits,
     systemUptime,
-    applicationErrors
+    applicationErrors,
+    serviceAvailable
   }
 };

@@ -134,6 +134,24 @@ const kafkaAvailable = new client.Gauge({
   help: 'Kafka availability (1 = available, 0 = unavailable)'
 });
 
+// ==================== Inter-Service Latency Metrics ====================
+
+// Histogram for latency between Main App and Auth Service
+const authServiceLatency = new client.Histogram({
+  name: 'adelante_app_auth_service_latency_seconds',
+  help: 'Latency between Main App and Auth Service',
+  labelNames: ['operation'],
+  buckets: [0.001, 0.005, 0.01, 0.05, 0.1, 0.5, 1, 2, 5]
+});
+
+// Histogram for latency between Main App and Report Service (via Kafka)
+const reportServiceLatency = new client.Histogram({
+  name: 'adelante_app_report_service_latency_seconds',
+  help: 'Latency between Main App and Report Service via Kafka',
+  labelNames: ['operation'],
+  buckets: [0.01, 0.05, 0.1, 0.5, 1, 2, 5, 10, 30]
+});
+
 // ==================== Business Metrics ====================
 
 // Counter for user logins
@@ -204,6 +222,8 @@ register.registerMetric(kafkaMessagesConsumed);
 register.registerMetric(kafkaMessageProcessingDuration);
 register.registerMetric(kafkaQueueSize);
 register.registerMetric(kafkaAvailable);
+register.registerMetric(authServiceLatency);
+register.registerMetric(reportServiceLatency);
 register.registerMetric(userLogins);
 register.registerMetric(characterizationOperations);
 register.registerMetric(reportRequests);
@@ -238,6 +258,8 @@ module.exports = {
     kafkaMessageProcessingDuration,
     kafkaQueueSize,
     kafkaAvailable,
+    authServiceLatency,
+    reportServiceLatency,
     userLogins,
     characterizationOperations,
     reportRequests,

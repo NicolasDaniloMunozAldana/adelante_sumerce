@@ -45,25 +45,35 @@
           "unit": "none"
         }
       },
-      "gridPos": {"h": 4, "w": 6, "x": 0, "y": 1},
+      "gridPos": {"h": 4, "w": 8, "x": 0, "y": 1},
       "id": 1,
       "options": {
         "colorMode": "background",
         "graphMode": "none",
         "justifyMode": "auto",
-        "orientation": "auto",
+        "orientation": "horizontal",
         "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false},
-        "textMode": "auto"
+        "textMode": "value_and_name"
       },
       "pluginVersion": "12.2.1",
       "targets": [
         {
-          "expr": "adelante_app_uptime_seconds > 0",
-          "legendFormat": "Main App",
+          "expr": "up{job=\"adelante_app\", instance=\"app_1:3030\"}",
+          "legendFormat": "Main App 1",
           "refId": "A"
+        },
+        {
+          "expr": "up{job=\"adelante_app\", instance=\"app_2:3030\"}",
+          "legendFormat": "Main App 2",
+          "refId": "B"
+        },
+        {
+          "expr": "up{job=\"adelante_app\", instance=\"app_3:3030\"}",
+          "legendFormat": "Main App 3",
+          "refId": "C"
         }
       ],
-      "title": "Main Application Status",
+      "title": "Main App Instances - Status",
       "type": "stat"
     },
     {
@@ -84,7 +94,7 @@
           }
         }
       },
-      "gridPos": {"h": 4, "w": 6, "x": 6, "y": 1},
+      "gridPos": {"h": 4, "w": 5, "x": 8, "y": 1},
       "id": 2,
       "options": {
         "colorMode": "background",
@@ -97,7 +107,7 @@
       "pluginVersion": "12.2.1",
       "targets": [
         {
-          "expr": "auth_service_uptime_seconds > 0",
+          "expr": "auth_service_available",
           "legendFormat": "Auth Service",
           "refId": "A"
         }
@@ -123,7 +133,7 @@
           }
         }
       },
-      "gridPos": {"h": 4, "w": 6, "x": 12, "y": 1},
+      "gridPos": {"h": 4, "w": 6, "x": 13, "y": 1},
       "id": 3,
       "options": {
         "colorMode": "background",
@@ -136,7 +146,7 @@
       "pluginVersion": "12.2.1",
       "targets": [
         {
-          "expr": "report_service_uptime_seconds > 0",
+          "expr": "report_service_available",
           "legendFormat": "Report Service",
           "refId": "A"
         }
@@ -162,7 +172,7 @@
           }
         }
       },
-      "gridPos": {"h": 4, "w": 6, "x": 18, "y": 1},
+      "gridPos": {"h": 4, "w": 5, "x": 19, "y": 1},
       "id": 4,
       "options": {
         "colorMode": "background",
@@ -184,8 +194,129 @@
       "type": "stat"
     },
     {
+      "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
+      "fieldConfig": {
+        "defaults": {
+          "color": {"mode": "palette-classic"},
+          "decimals": 0,
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {"color": "green", "value": null}
+            ]
+          },
+          "unit": "s"
+        }
+      },
+      "gridPos": {"h": 4, "w": 8, "x": 0, "y": 5},
+      "id": 14,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "horizontal",
+        "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false},
+        "textMode": "value_and_name"
+      },
+      "pluginVersion": "12.2.1",
+      "targets": [
+        {
+          "expr": "adelante_app_uptime_seconds{instance=\"app_1:3030\"}",
+          "legendFormat": "Main App 1",
+          "refId": "A"
+        },
+        {
+          "expr": "adelante_app_uptime_seconds{instance=\"app_2:3030\"}",
+          "legendFormat": "Main App 2",
+          "refId": "B"
+        },
+        {
+          "expr": "adelante_app_uptime_seconds{instance=\"app_3:3030\"}",
+          "legendFormat": "Main App 3",
+          "refId": "C"
+        }
+      ],
+      "title": "Main App Instances - Uptime",
+      "type": "stat"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
+      "fieldConfig": {
+        "defaults": {
+          "color": {"mode": "palette-classic"},
+          "decimals": 0,
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {"color": "green", "value": null}
+            ]
+          },
+          "unit": "s"
+        }
+      },
+      "gridPos": {"h": 4, "w": 8, "x": 8, "y": 5},
+      "id": 15,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false},
+        "textMode": "auto"
+      },
+      "pluginVersion": "12.2.1",
+      "targets": [
+        {
+          "expr": "auth_service_uptime_seconds",
+          "legendFormat": "Auth Service",
+          "refId": "A"
+        }
+      ],
+      "title": "Auth Service - Uptime",
+      "type": "stat"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
+      "fieldConfig": {
+        "defaults": {
+          "color": {"mode": "palette-classic"},
+          "decimals": 0,
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {"color": "green", "value": null}
+            ]
+          },
+          "unit": "s"
+        }
+      },
+      "gridPos": {"h": 4, "w": 8, "x": 16, "y": 5},
+      "id": 16,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false},
+        "textMode": "auto"
+      },
+      "pluginVersion": "12.2.1",
+      "targets": [
+        {
+          "expr": "report_service_uptime_seconds",
+          "legendFormat": "Report Service",
+          "refId": "A"
+        }
+      ],
+      "title": "Report Service - Uptime",
+      "type": "stat"
+    },
+    {
       "collapsed": false,
-      "gridPos": {"h": 1, "w": 24, "x": 0, "y": 5},
+      "gridPos": {"h": 1, "w": 24, "x": 0, "y": 9},
       "id": 101,
       "panels": [],
       "title": "Request Rates & Latency",
@@ -379,14 +510,19 @@
       "pluginVersion": "12.2.1",
       "targets": [
         {
-          "expr": "histogram_quantile(0.95, rate(auth_service_auth_duration_seconds_bucket[5m]))",
-          "legendFormat": "p95 Authentication",
+          "expr": "histogram_quantile(0.50, rate(adelante_app_auth_service_latency_seconds_bucket[5m]))",
+          "legendFormat": "p50 Main App → Auth",
           "refId": "A"
         },
         {
-          "expr": "histogram_quantile(0.99, rate(auth_service_auth_duration_seconds_bucket[5m]))",
-          "legendFormat": "p99 Authentication",
+          "expr": "histogram_quantile(0.95, rate(adelante_app_auth_service_latency_seconds_bucket[5m]))",
+          "legendFormat": "p95 Main App → Auth",
           "refId": "B"
+        },
+        {
+          "expr": "histogram_quantile(0.99, rate(adelante_app_auth_service_latency_seconds_bucket[5m]))",
+          "legendFormat": "p99 Main App → Auth",
+          "refId": "C"
         }
       ],
       "title": "Latency Between Main App → Auth Service",
@@ -442,14 +578,19 @@
       "pluginVersion": "12.2.1",
       "targets": [
         {
-          "expr": "histogram_quantile(0.95, rate(report_service_kafka_message_processing_duration_seconds_bucket[5m]))",
-          "legendFormat": "p95 Report Processing",
+          "expr": "histogram_quantile(0.50, rate(adelante_app_report_service_latency_seconds_bucket[5m]))",
+          "legendFormat": "p50 Main App → Report",
           "refId": "A"
         },
         {
-          "expr": "histogram_quantile(0.99, rate(report_service_kafka_message_processing_duration_seconds_bucket[5m]))",
-          "legendFormat": "p99 Report Processing",
+          "expr": "histogram_quantile(0.95, rate(adelante_app_report_service_latency_seconds_bucket[5m]))",
+          "legendFormat": "p95 Main App → Report",
           "refId": "B"
+        },
+        {
+          "expr": "histogram_quantile(0.99, rate(adelante_app_report_service_latency_seconds_bucket[5m]))",
+          "legendFormat": "p99 Main App → Report",
+          "refId": "C"
         }
       ],
       "title": "Latency Main App → Report Service (via Kafka)",

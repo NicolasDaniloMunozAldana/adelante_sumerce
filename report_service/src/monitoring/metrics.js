@@ -128,6 +128,12 @@ const serviceHealth = new client.Gauge({
   help: 'Service health status (1 = healthy, 0 = unhealthy)'
 });
 
+// Service availability (always 1 when service is running)
+const serviceAvailable = new client.Gauge({
+  name: 'report_service_available',
+  help: 'Report service availability (1 = available, 0 = unavailable)'
+});
+
 // ==================== Register all metrics ====================
 
 register.registerMetric(kafkaMessagesConsumed);
@@ -148,6 +154,7 @@ register.registerMetric(excelGenerationDuration);
 register.registerMetric(systemUptime);
 register.registerMetric(applicationErrors);
 register.registerMetric(serviceHealth);
+register.registerMetric(serviceAvailable);
 
 // Update uptime
 const startTime = Date.now();
@@ -155,8 +162,9 @@ setInterval(() => {
   systemUptime.set((Date.now() - startTime) / 1000);
 }, 1000);
 
-// Initialize health as healthy
+// Initialize health and availability as healthy/available
 serviceHealth.set(1);
+serviceAvailable.set(1);
 
 module.exports = {
   register,
@@ -178,6 +186,7 @@ module.exports = {
     excelGenerationDuration,
     systemUptime,
     applicationErrors,
-    serviceHealth
+    serviceHealth,
+    serviceAvailable
   }
 };

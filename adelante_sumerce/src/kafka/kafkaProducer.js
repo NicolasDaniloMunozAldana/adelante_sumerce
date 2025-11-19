@@ -1,4 +1,5 @@
 const { Kafka, Partitioners } = require('kafkajs');
+const { metrics } = require('../monitoring/metrics');
 
 class KafkaProducer {
     constructor() {
@@ -75,60 +76,92 @@ class KafkaProducer {
      * Envía solicitud de generación de reporte de usuario
      */
     async sendGenerateUserReportEvent(userId, email, businessData) {
-        return this.sendEvent(this.topics.generateUserReport, {
-            type: 'GENERATE_USER_REPORT',
-            timestamp: Date.now(),
-            data: {
-                userId,
-                email,
-                businessData
-            }
-        });
+        const end = metrics.reportServiceLatency.startTimer({ operation: 'generate_user_report' });
+        try {
+            const result = await this.sendEvent(this.topics.generateUserReport, {
+                type: 'GENERATE_USER_REPORT',
+                timestamp: Date.now(),
+                data: {
+                    userId,
+                    email,
+                    businessData
+                }
+            });
+            end();
+            return result;
+        } catch (error) {
+            end();
+            throw error;
+        }
     }
 
     /**
      * Envía solicitud de generación de reporte administrativo
      */
     async sendGenerateAdminReportEvent(businessId, adminEmail, businessData) {
-        return this.sendEvent(this.topics.generateAdminReport, {
-            type: 'GENERATE_ADMIN_REPORT',
-            timestamp: Date.now(),
-            data: {
-                businessId,
-                adminEmail,
-                businessData
-            }
-        });
+        const end = metrics.reportServiceLatency.startTimer({ operation: 'generate_admin_report' });
+        try {
+            const result = await this.sendEvent(this.topics.generateAdminReport, {
+                type: 'GENERATE_ADMIN_REPORT',
+                timestamp: Date.now(),
+                data: {
+                    businessId,
+                    adminEmail,
+                    businessData
+                }
+            });
+            end();
+            return result;
+        } catch (error) {
+            end();
+            throw error;
+        }
     }
 
     /**
      * Envía solicitud de generación de reporte comparativo PDF
      */
     async sendGenerateComparativePDFEvent(adminEmail, businessesData, filters = {}) {
-        return this.sendEvent(this.topics.generateComparativeReport, {
-            type: 'GENERATE_COMPARATIVE_PDF',
-            timestamp: Date.now(),
-            data: {
-                adminEmail,
-                filters,
-                businessesData
-            }
-        });
+        const end = metrics.reportServiceLatency.startTimer({ operation: 'generate_comparative_pdf' });
+        try {
+            const result = await this.sendEvent(this.topics.generateComparativeReport, {
+                type: 'GENERATE_COMPARATIVE_PDF',
+                timestamp: Date.now(),
+                data: {
+                    adminEmail,
+                    filters,
+                    businessesData
+                }
+            });
+            end();
+            return result;
+        } catch (error) {
+            end();
+            throw error;
+        }
     }
 
     /**
      * Envía solicitud de generación de reporte comparativo Excel
      */
     async sendGenerateComparativeExcelEvent(adminEmail, businessesData, filters = {}) {
-        return this.sendEvent(this.topics.generateComparativeReport, {
-            type: 'GENERATE_COMPARATIVE_EXCEL',
-            timestamp: Date.now(),
-            data: {
-                adminEmail,
-                filters,
-                businessesData
-            }
-        });
+        const end = metrics.reportServiceLatency.startTimer({ operation: 'generate_comparative_excel' });
+        try {
+            const result = await this.sendEvent(this.topics.generateComparativeReport, {
+                type: 'GENERATE_COMPARATIVE_EXCEL',
+                timestamp: Date.now(),
+                data: {
+                    adminEmail,
+                    filters,
+                    businessesData
+                }
+            });
+            end();
+            return result;
+        } catch (error) {
+            end();
+            throw error;
+        }
     }
 
     /**
