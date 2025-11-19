@@ -30,11 +30,17 @@ router.get('/health', async (req, res) => {
 
   // Check Redis
   try {
-    if (redisClient.isReady) {
-      await redisClient.ping();
-      health.services.redis = { status: 'up' };
+    if (redisClient.isReady()) {
+      const client = redisClient.getClient();
+      if (client) {
+        await client.ping();
+        health.services.redis = { status: 'up' };
+      } else {
+        health.services.redis = { status: 'down', error: 'Client not available' };
+      }
     } else {
-      health.services.redis = { status: 'down' };
+      health.services.redis = { status: 'down', error: 'Not ready' };
+      health.status = 'degraded';
     }
   } catch (error) {
     health.status = 'degraded';
