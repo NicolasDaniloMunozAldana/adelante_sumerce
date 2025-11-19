@@ -1,9 +1,12 @@
 require('dotenv').config();
+const express = require('express');
 const logger = require('./utils/logger');
 const config = require('./config');
 const emailService = require('./email/emailService');
 const reportConsumer = require('./consumers/reportConsumer');
 const kafkaProducer = require('./kafka/kafkaProducer');
+const monitoringRoutes = require('./routes/monitoring');
+const { metrics } = require('./monitoring/metrics');
 
 /**
  * Microservicio de Generación de Reportes
@@ -23,6 +26,7 @@ const kafkaProducer = require('./kafka/kafkaProducer');
 class ReportServiceApp {
     constructor() {
         this.isShuttingDown = false;
+        this.httpServer = null;
     }
 
     async start() {
@@ -33,6 +37,9 @@ class ReportServiceApp {
 
             // Verificar configuración
             this.validateConfiguration();
+
+            // Iniciar servidor HTTP para métricas
+            await this.startHttpServer();
 
             // Verificar conexión de email
             await this.verifyEmailConnection();
@@ -55,6 +62,40 @@ class ReportServiceApp {
             logger.error('❌ Error fatal al iniciar el microservicio:', error);
             process.exit(1);
         }
+    }
+
+    /**
+     * Inicia el servidor HTTP para exponer métricas
+     */
+    async startHttpServer() {
+        const app = express();
+        const port = process.env.METRICS_PORT || 3002;
+
+        // Rutas de monitoreo
+        app.use('/', monitoringRoutes);
+
+        return new Promise((resolve, reject) => {
+            this.httpServer = app.listen(port, '0.0.0.0', (err) => {
+                if (err) {
+                    logger.error('❌ Error al iniciar servidor HTTP:', err);
+                    reject(err);
+                } else {
+                    logger.info(`✅ Servidor HTTP iniciado en puerto ${port}`);
+                    logger.info(`   Métricas: http://localhost:${port}/metrics`);
+                    logger.info(`   Health: http://localhost:${port}/health`);
+                    
+                    // Marcar el servicio como disponible
+                    metrics.kafkaAvailable.set(0); // Inicialmente Kafka puede no estar conectado
+                    
+                    resolve();
+                }
+            });
+
+            this.httpServer.on('error', (err) => {
+                logger.error('❌ Error en servidor HTTP:', err);
+                reject(err);
+            });
+        });
     }
 
     /**
@@ -129,6 +170,12 @@ class ReportServiceApp {
                     // Desconectar producer
                     logger.info('2. Desconectando producer de Kafka...');
                     await kafkaProducer.disconnect();
+
+                    // Cerrar servidor HTTP
+                    if (this.httpServer) {
+                        logger.info('3. Cerrando servidor HTTP...');
+                        await new Promise((resolve) => this.httpServer.close(resolve));
+                    }
 
                     logger.info('='.repeat(60));
                     logger.info('✅ Microservicio detenido exitosamente');

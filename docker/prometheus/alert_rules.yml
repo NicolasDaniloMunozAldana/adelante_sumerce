@@ -1,0 +1,195 @@
+groups:
+  - name: availability
+    interval: 30s
+    rules:
+      - alert: ServiceDown
+        expr: up == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Servicio {{ $labels.job }} caído"
+          description: "El servicio {{ $labels.job }} en {{ $labels.instance }} está caído"
+
+      - alert: DatabaseDown
+        expr: mysql_up == 0
+        for: 30s
+        labels:
+          severity: critical
+        annotations:
+          summary: "Base de datos MySQL caída"
+          description: "La base de datos MySQL no responde"
+
+      - alert: RedisDown
+        expr: adelante_app_redis_available == 0 or auth_service_redis_available == 0
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Redis no disponible"
+          description: "El servicio de caché Redis no está disponible"
+
+      - alert: KafkaDown
+        expr: adelante_app_kafka_available == 0 or report_service_kafka_available == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Kafka no disponible"
+          description: "El sistema de colas Kafka no está disponible"
+
+      - alert: HighErrorRate
+        expr: rate(adelante_app_http_requests_total{status_code=~"5.."}[5m]) > 0.05
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Alta tasa de errores 5xx"
+          description: "Más del 5% de requests retornan error 5xx en {{ $labels.route }}"
+
+  - name: latency
+    interval: 30s
+    rules:
+      - alert: HighLatency
+        expr: histogram_quantile(0.95, rate(adelante_app_http_request_duration_seconds_bucket[5m])) > 1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Alta latencia detectada"
+          description: "P95 de latencia > 1s por 5 minutos en aplicación principal"
+
+      - alert: HighDatabaseLatency
+        expr: histogram_quantile(0.95, rate(adelante_app_db_query_duration_seconds_bucket[5m])) > 0.5
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Alta latencia en base de datos"
+          description: "P95 de latencia de queries > 500ms por 5 minutos"
+
+      - alert: HighAuthLatency
+        expr: histogram_quantile(0.95, rate(auth_service_http_request_duration_seconds_bucket[5m])) > 0.5
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Alta latencia en Auth Service"
+          description: "P95 de latencia > 500ms por 5 minutos en Auth Service"
+
+  - name: resources
+    interval: 30s
+    rules:
+      - alert: HighCPUUsage
+        expr: 100 - (avg by (instance) (rate(node_cpu_seconds_total{mode="idle"}[1m])) * 100) > 85
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Alto uso de CPU"
+          description: "CPU > 85% por 5 minutos en {{ $labels.instance }}"
+
+      - alert: HighMemoryUsage
+        expr: (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100 > 85
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Alto uso de memoria"
+          description: "Memoria > 85% en {{ $labels.instance }}"
+
+      - alert: HighDiskUsage
+        expr: 100 - ((node_filesystem_avail_bytes{fstype=~"ext4|xfs"} * 100) / node_filesystem_size_bytes{fstype=~"ext4|xfs"}) > 80
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Alto uso de disco"
+          description: "Disco > 80% en {{ $labels.mountpoint }} de {{ $labels.instance }}"
+
+      - alert: HighLoadAverage
+        expr: node_load1 > 5
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Load average alto"
+          description: "Load average > 5 por 5 minutos en {{ $labels.instance }}"
+
+  - name: database
+    interval: 10s
+    rules:
+      - alert: MySQLDown
+        expr: mysql_up == 0
+        for: 30s
+        labels:
+          severity: critical
+        annotations:
+          summary: "MySQL está caído"
+          description: "Base de datos MySQL no responde"
+
+      - alert: HighMySQLConnections
+        expr: mysql_global_status_threads_connected / mysql_global_variables_max_connections * 100 > 80
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Alto número de conexiones MySQL"
+          description: "Más del 80% de conexiones en uso"
+
+      - alert: MySQLSlowQueries
+        expr: rate(mysql_global_status_slow_queries[5m]) > 5
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Queries lentas en MySQL"
+          description: "Más de 5 queries lentas por segundo"
+
+      - alert: MySQLReplicationLag
+        expr: mysql_global_status_seconds_behind_master > 30
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Retraso en replicación MySQL"
+          description: "Replicación con más de 30 segundos de retraso"
+
+  - name: application
+    interval: 30s
+    rules:
+      - alert: HighKafkaQueueSize
+        expr: adelante_app_kafka_queue_size > 100
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Cola de Kafka grande"
+          description: "Más de 100 mensajes pendientes en {{ $labels.topic }}"
+
+      - alert: SlowDataRecovery
+        expr: adelante_app_data_recovery_duration_seconds > 60
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Recuperación de datos lenta"
+          description: "La recuperación de datos está tomando más de 60 segundos"
+
+      - alert: HighAuthFailures
+        expr: rate(auth_service_failed_logins_total[5m]) > 10
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Alto número de fallos de autenticación"
+          description: "Más de 10 fallos de login por minuto - posible ataque"
+
+      - alert: ReportServiceBacklog
+        expr: report_service_report_queue_size > 50
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Acumulación de reportes pendientes"
+          description: "Más de 50 reportes pendientes de generar"

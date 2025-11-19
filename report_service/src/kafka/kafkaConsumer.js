@@ -1,6 +1,7 @@
 const { Kafka } = require('kafkajs');
 const config = require('../config');
 const logger = require('../utils/logger');
+const { metrics } = require('../monitoring/metrics');
 
 class KafkaConsumer {
     constructor() {
@@ -28,8 +29,10 @@ class KafkaConsumer {
         try {
             await this.consumer.connect();
             this.isConnected = true;
+            metrics.kafkaAvailable.set(1); // Kafka disponible
             logger.info('Kafka Consumer conectado exitosamente');
         } catch (error) {
+            metrics.kafkaAvailable.set(0); // Kafka no disponible
             logger.error('Error al conectar Kafka Consumer:', error);
             throw error;
         }
@@ -39,6 +42,7 @@ class KafkaConsumer {
         try {
             await this.consumer.disconnect();
             this.isConnected = false;
+            metrics.kafkaAvailable.set(0); // Kafka desconectado
             logger.info('Kafka Consumer desconectado');
         } catch (error) {
             logger.error('Error al desconectar Kafka Consumer:', error);

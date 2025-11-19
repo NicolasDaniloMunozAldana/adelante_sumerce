@@ -1,0 +1,32 @@
+global:
+  smtp_smarthost: 'smtp.gmail.com:587'
+  smtp_from: 'munozaldananicolas@gmail.com'
+  smtp_auth_username: 'munozaldananicolas@gmail.com'
+  smtp_auth_password: 'jzkorrdeccuvlzyo'
+  smtp_require_tls: true
+
+route:
+  group_by: ['alertname']
+  group_wait: 10s
+  group_interval: 10s
+  repeat_interval: 1h
+  receiver: 'email-notifications'
+
+receivers:
+  - name: 'email-notifications'
+    email_configs:
+      - to: 'munozaldananicolasdanilo@gmail.com'
+        headers:
+          Subject: '[ALERTA] {{ .GroupLabels.alertname }}'
+        html: |
+          <h2>ALERTA: {{ .GroupLabels.alertname }}</h2>
+
+          <p>Description: {{ .CommonAnnotations.description }}</p>
+          <p>Severity: {{ .CommonAnnotations.severity }}</p>
+
+          {{ range .Alerts }}
+            <hr>
+            <p><b>Instance:</b> {{ .Labels.instance }}</p>
+            <p><b>Summary:</b> {{ .Annotations.summary }}</p>
+            <p><b>Details:</b> {{ .Annotations.description }}</p>
+          {{ end }}

@@ -1,4 +1,5 @@
 const axios = require('axios');
+const { metrics } = require('../monitoring/metrics');
 
 class AuthServiceClient {
   constructor() {
@@ -20,6 +21,7 @@ class AuthServiceClient {
    * Login de usuario
    */
   async login(email, password, ipAddress, userAgent) {
+    const end = metrics.authServiceLatency.startTimer({ operation: 'login' });
     try {
       const response = await this.client.post('/login', {
         email,
@@ -30,8 +32,10 @@ class AuthServiceClient {
           'User-Agent': userAgent
         }
       });
+      end();
       return response.data;
     } catch (error) {
+      end();
       this._handleError(error);
     }
   }
@@ -40,6 +44,7 @@ class AuthServiceClient {
    * Registro de usuario
    */
   async register(userData, ipAddress, userAgent) {
+    const end = metrics.authServiceLatency.startTimer({ operation: 'register' });
     try {
       const response = await this.client.post('/register', userData, {
         headers: {
@@ -47,8 +52,10 @@ class AuthServiceClient {
           'User-Agent': userAgent
         }
       });
+      end();
       return response.data;
     } catch (error) {
+      end();
       this._handleError(error);
     }
   }
@@ -57,6 +64,7 @@ class AuthServiceClient {
    * Refrescar tokens
    */
   async refreshToken(refreshToken, ipAddress, userAgent) {
+    const end = metrics.authServiceLatency.startTimer({ operation: 'refresh' });
     try {
       const response = await this.client.post('/refresh', {
         refreshToken
@@ -66,8 +74,10 @@ class AuthServiceClient {
           'User-Agent': userAgent
         }
       });
+      end();
       return response.data;
     } catch (error) {
+      end();
       this._handleError(error);
     }
   }
@@ -76,14 +86,17 @@ class AuthServiceClient {
    * Verificar access token
    */
   async verifyToken(accessToken) {
+    const end = metrics.authServiceLatency.startTimer({ operation: 'verify' });
     try {
       const response = await this.client.get('/verify', {
         headers: {
           Authorization: `Bearer ${accessToken}`
         }
       });
+      end();
       return response.data;
     } catch (error) {
+      end();
       this._handleError(error);
     }
   }
@@ -92,12 +105,15 @@ class AuthServiceClient {
    * Logout
    */
   async logout(refreshToken) {
+    const end = metrics.authServiceLatency.startTimer({ operation: 'logout' });
     try {
       const response = await this.client.post('/logout', {
         refreshToken
       });
+      end();
       return response.data;
     } catch (error) {
+      end();
       this._handleError(error);
     }
   }
@@ -106,14 +122,17 @@ class AuthServiceClient {
    * Logout de todas las sesiones
    */
   async logoutAll(accessToken) {
+    const end = metrics.authServiceLatency.startTimer({ operation: 'logout_all' });
     try {
       const response = await this.client.post('/logout-all', {}, {
         headers: {
           Authorization: `Bearer ${accessToken}`
         }
       });
+      end();
       return response.data;
     } catch (error) {
+      end();
       this._handleError(error);
     }
   }
@@ -122,14 +141,17 @@ class AuthServiceClient {
    * Obtener información del usuario autenticado
    */
   async getMe(accessToken) {
+    const end = metrics.authServiceLatency.startTimer({ operation: 'get_me' });
     try {
       const response = await this.client.get('/me', {
         headers: {
           Authorization: `Bearer ${accessToken}`
         }
       });
+      end();
       return response.data;
     } catch (error) {
+      end();
       this._handleError(error);
     }
   }
