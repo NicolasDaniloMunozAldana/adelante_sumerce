@@ -142,6 +142,7 @@ services:
         condition: service_healthy
     environment:
       NODE_ENV: production
+      METRICS_PORT: 3002
       KAFKA_BROKERS: kafka:9093
       KAFKA_CLIENT_ID: report-service
       KAFKA_GROUP_ID: report-service-group
@@ -155,6 +156,8 @@ services:
       SMTP_PASSWORD: ${SMTP_PASSWORD}
       EMAIL_FROM: ${EMAIL_FROM:-noreply@adelantesumerce.com}
       EMAIL_REPLY_TO: ${EMAIL_REPLY_TO}
+    ports:
+      - "3002:3002"
     volumes:
       - report_logs:/app/logs
     networks:

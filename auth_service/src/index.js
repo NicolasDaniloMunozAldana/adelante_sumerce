@@ -7,6 +7,8 @@ const { testConnection } = require('./config/database');
 const redisClient = require('./config/redis');
 const routes = require('./routes');
 const { errorHandler, notFoundHandler } = require('./middlewares/errorHandler');
+const metricsMiddleware = require('./middlewares/metricsMiddleware');
+const { metrics } = require('./monitoring/metrics');
 
 const app = express();
 
@@ -42,6 +44,9 @@ app.use('/api/', limiter);
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
+// Monitoring middleware
+app.use(metricsMiddleware);
+
 // Request logging (simple)
 app.use((req, res, next) => {
   console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
@@ -62,12 +67,18 @@ const startServer = async () => {
   try {
     // Test database connection
     await testConnection();
+    metrics.dbAvailable.set(1);
 
     // Conectar a Redis (no bloqueante)
     console.log('🔄 Iniciando conexión a Redis...');
     await redisClient.connect().catch(err => {
       console.warn('⚠️  Redis no disponible, continuando sin caché:', err.message);
+      metrics.redisAvailable.set(0);
     });
+
+    if (redisClient.isReady) {
+      metrics.redisAvailable.set(1);
+    }
 
     // Sincronizar modelos (solo en desarrollo)
     if (config.server.env === 'development') {

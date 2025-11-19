@@ -12,14 +12,14 @@ rule_files:
   - "/etc/prometheus/alert_rules.yml"
 
 scrape_configs:
-  # Monitoreo del host Windows
+  # Monitoreo del host
   - job_name: 'node_exporter'
     static_configs:
       - targets: ['node-exporter:9100']
     relabel_configs:
       - source_labels: [__address__]
         target_label: instance
-        replacement: 'windows-host'
+        replacement: 'adelante-host'
 
   # MySQL Metrics
   - job_name: 'mysqld_exporter'
@@ -36,9 +36,26 @@ scrape_configs:
     static_configs:
       - targets: ['nginx-exporter:9113']
 
+  # Main Application - Todas las réplicas
+  - job_name: 'adelante_app'
+    static_configs:
+      - targets: 
+        - 'app_1:3030'
+        - 'app_2:3030'
+        - 'app_3:3030'
+    metrics_path: '/metrics'
+    scrape_interval: 15s
+
   # Auth Service
   - job_name: 'auth_service'
     static_configs:
       - targets: ['auth_service:3001']
+    metrics_path: '/api/metrics'
+    scrape_interval: 15s
+
+  # Report Service
+  - job_name: 'report_service'
+    static_configs:
+      - targets: ['report_service:3002']
     metrics_path: '/metrics'
-    scrape_interval: 30s
+    scrape_interval: 15s

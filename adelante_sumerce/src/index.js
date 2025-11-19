@@ -4,6 +4,8 @@ const cookieParser = require('cookie-parser');
 const sequelize = require('./config/database');
 const { connectRedis } = require('./config/redis');
 const kafkaWriteConsumer = require('./kafka/kafkaWriteConsumer');
+const metricsMiddleware = require('./middlewares/metricsMiddleware');
+const { metrics } = require('./monitoring/metrics');
 require('dotenv').config();
 
 const app = express();
@@ -13,27 +15,34 @@ const PORT = process.env.PORT || 3030;
 sequelize.authenticate()
   .then(() => {
     console.log('✅ Conexión a la base de datos establecida correctamente.');
+    metrics.dbAvailable.set(1);
   })
   .catch(err => {
     console.error('❌ No se pudo conectar a la base de datos:', err);
+    metrics.dbAvailable.set(0);
+    metrics.dbConnectionErrors.inc();
   });
 
 // Connect to Redis
 connectRedis()
   .then(() => {
     console.log('✅ Redis conectado correctamente.');
+    metrics.redisAvailable.set(1);
   })
   .catch(err => {
     console.error('⚠️  No se pudo conectar a Redis (caché deshabilitado):', err.message);
+    metrics.redisAvailable.set(0);
   });
 
 // Start Kafka Write Consumer (para sincronizar escrituras con BD)
 kafkaWriteConsumer.start()
   .then(() => {
     console.log('✅ Kafka Write Consumer iniciado correctamente.');
+    metrics.kafkaAvailable.set(1);
   })
   .catch(err => {
     console.error('⚠️  No se pudo iniciar Kafka Write Consumer:', err.message);
+    metrics.kafkaAvailable.set(0);
   });
 
 // Configuración del motor de plantillas EJS
@@ -41,6 +50,7 @@ app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
 // Middlewares
+app.use(metricsMiddleware); // Monitoring middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, '../public')));
@@ -53,8 +63,10 @@ const characterizationRoutes = require('./routes/characterizationRoutes');
 const reportRoutes = require('./routes/reportRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 const chatbotRoutes = require('./routes/chatbotRoutes');
+const monitoringRoutes = require('./routes/monitoringRoutes');
 
 // Usar rutas
+app.use('/', monitoringRoutes); // Monitoring routes (health, metrics)
 app.use('/', authRoutes); // Rutas de autenticación
 app.use('/', homeRoutes); // Rutas principales en la raíz
 app.use('/caracterizacion', characterizationRoutes); // Rutas de caracterización
