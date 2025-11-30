@@ -1,33 +1,39 @@
-const nodemailer = require('nodemailer');
+const sgMail = require('@sendgrid/mail');
 const config = require('../config');
 const logger = require('../utils/logger');
 
 class EmailService {
     constructor() {
-        this.transporter = null;
-        this.initializeTransporter();
+        this.initializeSendGrid();
     }
 
-    initializeTransporter() {
+    initializeSendGrid() {
         try {
-            this.transporter = nodemailer.createTransport(config.email);
-            logger.info('Transporter de email inicializado');
+            if (!config.email.sendgridApiKey) {
+                throw new Error('SendGrid API Key no está configurada');
+            }
+            sgMail.setApiKey(config.email.sendgridApiKey);
+            logger.info('SendGrid API inicializada correctamente');
         } catch (error) {
-            logger.error('Error al inicializar transporter de email:', error);
+            logger.error('Error al inicializar SendGrid:', error);
             throw error;
         }
     }
 
     /**
-     * Verifica la conexión con el servidor SMTP
+     * Verifica la configuración de SendGrid
      */
     async verifyConnection() {
         try {
-            await this.transporter.verify();
-            logger.info('Conexión con servidor SMTP verificada');
+            // SendGrid no requiere verificación previa, validamos que la API key esté configurada
+            if (!config.email.sendgridApiKey) {
+                logger.error('SendGrid API Key no configurada');
+                return false;
+            }
+            logger.info('Configuración de SendGrid validada');
             return true;
         } catch (error) {
-            logger.error('Error al verificar conexión SMTP:', error);
+            logger.error('Error al verificar configuración de SendGrid:', error);
             return false;
         }
     }
@@ -37,34 +43,44 @@ class EmailService {
      */
     async sendReportEmail(to, subject, pdfBuffer, filename = 'reporte.pdf') {
         try {
-            const mailOptions = {
-                from: `"Salga Adelante Sumercé" <${config.email.auth.user}>`,
+            // Asegurar que el buffer esté en base64
+            const base64Content = Buffer.isBuffer(pdfBuffer) 
+                ? pdfBuffer.toString('base64') 
+                : Buffer.from(pdfBuffer).toString('base64');
+
+            const msg = {
                 to,
+                from: {
+                    email: config.email.fromEmail,
+                    name: 'Salga Adelante Sumercé'
+                },
+                replyTo: config.email.replyTo,
                 subject,
                 html: this.getReportEmailTemplate(subject),
                 attachments: [
                     {
+                        content: base64Content,
                         filename,
-                        content: pdfBuffer,
-                        contentType: 'application/pdf'
+                        type: 'application/pdf',
+                        disposition: 'attachment'
                     }
                 ]
             };
 
-            const info = await this.transporter.sendMail(mailOptions);
+            const response = await sgMail.send(msg);
             
-            logger.info(`✉️  Email enviado exitosamente`, {
+            logger.info(`✉️  Email enviado exitosamente via SendGrid`, {
                 to,
                 subject,
-                messageId: info.messageId
+                statusCode: response[0].statusCode
             });
 
             return {
                 success: true,
-                messageId: info.messageId
+                statusCode: response[0].statusCode
             };
         } catch (error) {
-            logger.error(`Error al enviar email a ${to}:`, error);
+            logger.error(`Error al enviar email a ${to}:`, error.response?.body || error);
             throw error;
         }
     }
@@ -74,34 +90,44 @@ class EmailService {
      */
     async sendExcelReportEmail(to, subject, excelBuffer, filename = 'reporte.xlsx') {
         try {
-            const mailOptions = {
-                from: `"Salga Adelante Sumercé" <${config.email.auth.user}>`,
+            // Asegurar que el buffer esté en base64
+            const base64Content = Buffer.isBuffer(excelBuffer) 
+                ? excelBuffer.toString('base64') 
+                : Buffer.from(excelBuffer).toString('base64');
+
+            const msg = {
                 to,
+                from: {
+                    email: config.email.fromEmail,
+                    name: 'Salga Adelante Sumercé'
+                },
+                replyTo: config.email.replyTo,
                 subject,
                 html: this.getReportEmailTemplate(subject),
                 attachments: [
                     {
+                        content: base64Content,
                         filename,
-                        content: excelBuffer,
-                        contentType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                        disposition: 'attachment'
                     }
                 ]
             };
 
-            const info = await this.transporter.sendMail(mailOptions);
+            const response = await sgMail.send(msg);
             
-            logger.info(`✉️  Email con Excel enviado exitosamente`, {
+            logger.info(`✉️  Email con Excel enviado exitosamente via SendGrid`, {
                 to,
                 subject,
-                messageId: info.messageId
+                statusCode: response[0].statusCode
             });
 
             return {
                 success: true,
-                messageId: info.messageId
+                statusCode: response[0].statusCode
             };
         } catch (error) {
-            logger.error(`Error al enviar email Excel a ${to}:`, error);
+            logger.error(`Error al enviar email Excel a ${to}:`, error.response?.body || error);
             throw error;
         }
     }
@@ -111,23 +137,27 @@ class EmailService {
      */
     async sendErrorNotification(to, reportType, errorMessage) {
         try {
-            const mailOptions = {
-                from: `"Salga Adelante Sumercé" <${config.email.auth.user}>`,
+            const msg = {
                 to,
+                from: {
+                    email: config.email.fromEmail,
+                    name: 'Salga Adelante Sumercé'
+                },
+                replyTo: config.email.replyTo,
                 subject: `Error al generar reporte - ${reportType}`,
                 html: this.getErrorEmailTemplate(reportType, errorMessage)
             };
 
-            const info = await this.transporter.sendMail(mailOptions);
+            const response = await sgMail.send(msg);
             
-            logger.info(`Email de error enviado a ${to}`);
+            logger.info(`Email de error enviado a ${to} via SendGrid`);
 
             return {
                 success: true,
-                messageId: info.messageId
+                statusCode: response[0].statusCode
             };
         } catch (error) {
-            logger.error(`Error al enviar email de notificación de error:`, error);
+            logger.error(`Error al enviar email de notificación de error:`, error.response?.body || error);
             throw error;
         }
     }

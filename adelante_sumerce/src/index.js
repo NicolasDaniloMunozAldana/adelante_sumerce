@@ -11,6 +11,8 @@ require('dotenv').config();
 const app = express();
 const PORT = process.env.PORT || 3030;
 
+app.set('trust proxy', 1);
+
 // Test database connection
 sequelize.authenticate()
   .then(() => {

@@ -156,12 +156,9 @@ services:
       TOPIC_GENERATE_USER_REPORT: generate-user-report
       TOPIC_GENERATE_ADMIN_REPORT: generate-admin-report
       TOPIC_GENERATE_COMPARATIVE_REPORT: generate-comparative-report
-      SMTP_HOST: ${SMTP_HOST:-smtp.gmail.com}
-      SMTP_PORT: ${SMTP_PORT:-587}
-      SMTP_SECURE: ${SMTP_SECURE:-false}
-      SMTP_USER: ${SMTP_USER}
-      SMTP_PASSWORD: ${SMTP_PASSWORD}
-      EMAIL_FROM: ${EMAIL_FROM:-noreply@adelantesumerce.com}
+
+      SENDGRID_API_KEY: ${SENDGRID_API_KEY}
+      EMAIL_FROM: ${EMAIL_FROM}
       EMAIL_REPLY_TO: ${EMAIL_REPLY_TO}
     ports:
       - "3002:3002"
