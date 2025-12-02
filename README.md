@@ -1,8 +1,8 @@
-# Adelante Sumercé - Arquitectura de Microservicios
+# Salga Adelante Sumercé - Arquitectura de Microservicios
 
 Sistema de gestión comercial para emprendedores, refactorizado con arquitectura de microservicios, autenticación JWT y **resiliencia total** con Event Sourcing.
 
-## 🎯 Características Principales
+## Características Principales
 
 -  **Autenticación JWT**: Access tokens de corta duración + Refresh tokens rotativos
 -  **Microservicios**: Autenticación separada del negocio principal
@@ -61,39 +61,26 @@ adelante_sumerce/
 └── README.md                 # Este archivo
 ```
 
-## 🚀 Inicio Rápido
+## Inicio Rápido
 
-### 🐳 Opción 1: Docker Compose (Recomendado)
+## Opción 1: Docker Compose (Recomendado)
 
 La forma más rápida de desplegar el proyecto completo con balanceo de carga incluido.
 
 **Características:**
-- ✅ 3 réplicas de la aplicación principal con Nginx load balancer
-- ✅ Todos los servicios configurados automáticamente
-- ✅ Base de datos, Redis y Kafka incluidos
-- ✅ Health checks y restart automático
+- 3 réplicas de la aplicación principal con Nginx load balancer
+- Todos los servicios configurados automáticamente
+- Base de datos, Redis y Kafka incluidos
+- Health checks y restart automático
 
-```bash
-# Windows
-docker-deploy.bat setup
-# Editar .env con tus configuraciones
-docker-deploy.bat start
-
-# Linux/Mac
-./docker-deploy.sh setup
-# Editar .env con tus configuraciones
-./docker-deploy.sh start
-```
 
 **Acceder:**
 - Aplicación: http://localhost
 - Auth Service: http://localhost:3001
 
-📖 **Documentación completa:** Ver [QUICK_START_DOCKER.md](QUICK_START_DOCKER.md)
-
 ---
 
-### 💻 Opción 2: Instalación Manual (Node.js)
+### Opción 2: Instalación Manual (Node.js)
 
 Para desarrollo local sin Docker.
 
@@ -148,7 +135,7 @@ El script `start.sh` automáticamente:
 ./stop.sh
 ```
 
-## 🧪 Tests Unitarios
+## Tests Unitarios
 
 Este proyecto cuenta con **74 tests unitarios** distribuidos en los 3 servicios:
 
@@ -161,12 +148,7 @@ cd report_service && npm test
 
 ```
 
-## 📖 Documentación Completa
-
-- **[MIGRATION_GUIDE.md](./MIGRATION_GUIDE.md)**: Guía completa de migración y arquitectura
-- **[auth_service/README.md](./auth_service/README.md)**: API del microservicio de autenticación
-
-## 🔐 Cómo Funciona la Autenticación JWT
+## Cómo Funciona la Autenticación JWT
 
 ### Flujo Simplificado
 
@@ -182,9 +164,7 @@ cd report_service && npm test
 5. Sesión se mantiene "infinita" sin que el usuario lo note
 ```
 
-Ver detalles completos en [MIGRATION_GUIDE.md](./MIGRATION_GUIDE.md#-cómo-funciona)
-
-## 🛡️ Seguridad
+## Seguridad
 
 - JWT firmados y verificados
 - Cookies httpOnly (no accesibles desde JS)
@@ -193,12 +173,12 @@ Ver detalles completos en [MIGRATION_GUIDE.md](./MIGRATION_GUIDE.md#-cómo-funci
 - CORS configurado
 - Passwords hasheados con bcrypt
 
-## 📊 Roles
+## Roles
 
 - **Emprendedor**: Gestiona su emprendimiento, genera reportes individuales
 - **Administrador**: Ve todos los emprendimientos, genera reportes comparativos
 
-## 🧪 Testing Rápido
+## Testing Rápido
 
 ```bash
 # Verificar que auth service funciona
@@ -217,15 +197,7 @@ curl -X POST http://localhost:3001/api/auth/register \
   }'
 ```
 
-Más ejemplos en [MIGRATION_GUIDE.md](./MIGRATION_GUIDE.md#-testing)
-
 ## 📝 Scripts Disponibles
-
-### Inicio Rápido
-```bash
-./start.sh      # Inicia ambos servicios
-./stop.sh       # Detiene ambos servicios
-```
 
 ### Auth Service
 ```bash
@@ -241,7 +213,7 @@ npm start       # Producción con JWT
 npm run dev     # Desarrollo con JWT
 ```
 
-## 🐛 Troubleshooting
+## Troubleshooting
 
 ### Servicios no inician
 ```bash
@@ -259,8 +231,6 @@ tail -f logs/auth_service.log
 tail -f logs/frontend.log
 ```
 
-Más soluciones en [MIGRATION_GUIDE.md](./MIGRATION_GUIDE.md#-troubleshooting)
-
 ## 🔄 Implementación
 
 Este proyecto utiliza **autenticación JWT** con microservicio independiente:
@@ -273,8 +243,6 @@ Este proyecto utiliza **autenticación JWT** con microservicio independiente:
 | Comando | `npm run dev` |
 
 ## 📦 Deployment
-
-Ver guía completa de deployment en [MIGRATION_GUIDE.md](./MIGRATION_GUIDE.md#-deployment)
 
 Opciones:
 - Docker Compose
@@ -293,7 +261,7 @@ Configurar cron job:
 0 3 * * * mysql -u root adelante_sumerce < /ruta/cleanup_tokens.sql
 ```
 
-## 🤝 Contribución
+## Contribución
 
 1. Fork el proyecto
 2. Crear rama feature (`git checkout -b feature/nueva-funcionalidad`)
@@ -306,5 +274,3 @@ Configurar cron job:
 ISC
 
 ---
-
-**¿Necesitas ayuda?** Consulta [MIGRATION_GUIDE.md](./MIGRATION_GUIDE.md) para información detallada.
